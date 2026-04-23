@@ -5,6 +5,8 @@ const DEFAULT_SETTINGS = {
   maxResults: 40,
   thresholdPct: 80,
   useFinalTier: false,
+  language: "en",
+  theme: "dark",
 };
 
 function loadSettings() {
@@ -17,24 +19,29 @@ function saveSettings(s) {
   localStorage.setItem("gw2_settings", JSON.stringify(s));
 }
 
-function loadCache() {
+function cacheKey(lang) {
+  return `gw2_ach_cache_${lang}`;
+}
+
+function loadCache(lang = "en") {
   try {
-    const raw = localStorage.getItem("gw2_ach_cache");
+    const raw = localStorage.getItem(cacheKey(lang));
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
 
-function saveCache(c) {
-  try { localStorage.setItem("gw2_ach_cache", JSON.stringify(c)); }
+function saveCache(c, lang = "en") {
+  const key = cacheKey(lang);
+  try { localStorage.setItem(key, JSON.stringify(c)); }
   catch (e) {
-    // localStorage quota hit — trim oldest half and retry
     const keys = Object.keys(c);
     const trimmed = Object.fromEntries(keys.slice(keys.length / 2).map(k => [k, c[k]]));
-    localStorage.setItem("gw2_ach_cache", JSON.stringify(trimmed));
+    localStorage.setItem(key, JSON.stringify(trimmed));
   }
 }
 
 function clearCache() {
+  ["en", "fr", "de", "es"].forEach(l => localStorage.removeItem(cacheKey(l)));
   localStorage.removeItem("gw2_ach_cache");
 }
 
@@ -65,12 +72,12 @@ async function apiFetch(endpoint, params = {}, apiKey = "") {
   return res.json();
 }
 
-async function fetchInBatches(endpoint, ids, apiKey, batchSize = 150) {
+async function fetchInBatches(endpoint, ids, apiKey, batchSize = 150, extraParams = {}) {
   const batches = [];
   for (let i = 0; i < ids.length; i += batchSize)
     batches.push(ids.slice(i, i + batchSize));
   const results = await Promise.all(
-    batches.map(b => apiFetch(endpoint, { ids: b.join(",") }, apiKey))
+    batches.map(b => apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey))
   );
   return results.flat();
 }
@@ -82,7 +89,7 @@ function getCurrentTier(tiers, progress) {
   return { idx: tiers.length - 1, tier: tiers[tiers.length - 1] };
 }
 
-function formatRewards(rewards, itemNameMap, points) {
+function formatRewards(rewards, itemNameMap, titleNameMap, points) {
   const parts = [];
   if (points) parts.push(`AP:${points}`);
   for (const r of rewards) {
@@ -96,44 +103,61 @@ function formatRewards(rewards, itemNameMap, points) {
       parts.push(r.count > 1 ? `${r.count}x ${name}` : name);
     } else if (r.type === "Mastery") {
       parts.push(`Mastery(${r.region || "?"})`);
+    } else if (r.type === "Title") {
+      const name = titleNameMap[r.id];
+      parts.push(name ? `[${name}]` : `[Title]`);
     } else {
       parts.push(`[${r.type}]`);
     }
   }
-  return parts.join("  ") || "-";
+  return parts.join(" | ") || "-";
 }
 
-async function fetchAchievements(settings, onStatus) {
-  const { apiKey, thresholdPct, maxResults, useFinalTier } = settings;
+let lastProgressMap = null;
+let persistentItemNameMap = {};
+let persistentTitleNameMap = {};
+
+async function fetchAchievements(settings, onStatus, reuseProgress = false) {
+  const { apiKey, thresholdPct, maxResults, useFinalTier, language } = settings;
+  const lang = language || "en";
   const threshold = thresholdPct / 100;
 
-  onStatus("Fetching account achievements…");
-  const accountData = await apiFetch("/account/achievements", {}, apiKey);
-  const progressMap = Object.fromEntries(accountData.map(e => [e.id, e]));
-  const neededIds = Object.keys(progressMap).map(Number);
-  onStatus(`Account has ${neededIds.length} achievements in progress.`);
+  let progressMap;
+  if (reuseProgress && lastProgressMap) {
+    progressMap = lastProgressMap;
+  } else {
+    onStatus("Fetching account achievements…");
+    const accountData = await apiFetch("/account/achievements", {}, apiKey);
+    progressMap = Object.fromEntries(accountData.map(e => [e.id, e]));
+    lastProgressMap = progressMap;
+    onStatus(`Account has ${Object.keys(progressMap).length} achievements in progress.`);
+  }
 
-  const cache = loadCache();
+  const neededIds = Object.keys(progressMap).map(Number);
+
+  const cache = loadCache(lang);
   const cachedIds = new Set(Object.keys(cache).map(Number));
   const missing = neededIds.filter(id => !cachedIds.has(id));
 
   if (missing.length > 0) {
     onStatus(`Cache has ${cachedIds.size} definitions — fetching ${missing.length} new…`);
-    const fresh = await fetchInBatches("/achievements", missing, apiKey);
+    const fresh = await fetchInBatches("/achievements", missing, apiKey, 150, { lang });
     for (const ach of fresh) cache[ach.id] = ach;
     onStatus(`Fetched ${fresh.length} definitions, saving cache…`);
-  } else {
+  } else if (!reuseProgress) {
     onStatus(`All ${neededIds.length} definitions cached — skipping fetch.`);
   }
 
-  const neededSet = new Set(neededIds);
-  const pruned = Object.fromEntries(
-    Object.entries(cache).filter(([k]) => neededSet.has(Number(k)))
-  );
-  saveCache(pruned);
+  if (!reuseProgress) {
+    const neededSet = new Set(neededIds);
+    const pruned = Object.fromEntries(
+      Object.entries(cache).filter(([k]) => neededSet.has(Number(k)))
+    );
+    saveCache(pruned, lang);
+  }
 
-  const definitions = neededIds.map(id => pruned[id]).filter(Boolean);
-  onStatus(`Filtering ${definitions.length} achievements…`);
+  const definitions = neededIds.map(id => cache[id]).filter(Boolean);
+  if (!reuseProgress) onStatus(`Filtering ${definitions.length} achievements…`);
 
   const rows = [];
   for (const ach of definitions) {
@@ -166,15 +190,24 @@ async function fetchAchievements(settings, onStatus) {
   const itemIds = [...new Set(
     top.flatMap(r => r.rewards.filter(x => x.type === "Item" && x.id).map(x => x.id))
   )];
-  const itemNameMap = {};
-  if (itemIds.length) {
-    onStatus(`Fetching names for ${itemIds.length} reward items…`);
-    const items = await fetchInBatches("/items", itemIds, apiKey);
-    for (const item of items) itemNameMap[item.id] = item.name;
+  const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
+  if (newItemIds.length) {
+    if (!reuseProgress) onStatus(`Fetching names for ${newItemIds.length} reward items…`);
+    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
+    for (const item of items) persistentItemNameMap[item.id] = item.name;
+  }
+
+  const titleIds = [...new Set(
+    top.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id))
+  )];
+  const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
+  if (newTitleIds.length) {
+    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
+    for (const title of titles) persistentTitleNameMap[title.id] = title.name;
   }
 
   for (const row of top) {
-    row.rewardStr = formatRewards(row.rewards, itemNameMap, row.points);
+    row.rewardStr = formatRewards(row.rewards, persistentItemNameMap, persistentTitleNameMap, row.points);
   }
 
   return top;
@@ -186,23 +219,22 @@ let settings = loadSettings();
 
 const setupPanel    = document.getElementById("setup-panel");
 const settingsPanel = document.getElementById("settings-panel");
-const statusBar     = document.getElementById("status-bar");
 const statusText    = document.getElementById("status-text");
 const resultsBody   = document.getElementById("results-body");
 const btnRefresh    = document.getElementById("btn-refresh");
 const btnSettings   = document.getElementById("btn-settings");
 const cacheInfo     = document.getElementById("cache-info");
-const fetchSpinner  = document.getElementById("fetch-spinner");
-const fetchLabel    = document.getElementById("fetch-label");
+const pageSpinner   = document.getElementById("page-spinner");
+const tierToggle    = document.getElementById("tier-toggle");
+const themeCheckbox = document.getElementById("theme-checkbox");
+const themeIcon     = document.getElementById("theme-icon");
 
-function setStatus(msg, isError = false) {
-  statusBar.classList.remove("hidden", "error");
-  if (isError) statusBar.classList.add("error");
+function setStatus(msg) {
   statusText.textContent = msg;
 }
 
 function updateCacheInfo() {
-  const count = Object.keys(loadCache()).length;
+  const count = Object.keys(loadCache(settings.language)).length;
   cacheInfo.textContent = count ? `${count} cached` : "";
 }
 
@@ -212,10 +244,13 @@ function pctClass(pct) {
   return "pct-low";
 }
 
-function barClass(pct) {
-  if (pct >= 99) return "high";
-  if (pct >= 90) return "med";
-  return "";
+function barColor(pct, threshold) {
+  const t = Math.max(0, Math.min(1, (pct - threshold) / (100 - threshold)));
+  const hue = Math.round(185 - t * 55);
+  const sat = Math.round(85 - t * 10);
+  const isLight = document.body.classList.contains("light");
+  const lit = isLight ? Math.round(28 + t * 8) : Math.round(40 + t * 10);
+  return `hsl(${hue}, ${sat}%, ${lit}%)`;
 }
 
 function renderRows(rows) {
@@ -223,8 +258,11 @@ function renderRows(rows) {
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
     return;
   }
+  resultsBody.classList.remove("fade-in");
+  void resultsBody.offsetWidth;
   resultsBody.innerHTML = rows.map(row => {
-    const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
+    const wikiHost = settings.language === "en" ? "wiki" : `wiki-${settings.language}`;
+    const wikiUrl = `https://${wikiHost}.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const pct = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
     return `<tr>
@@ -232,13 +270,16 @@ function renderRows(rows) {
       <td class="col-prog">
         <div class="prog-wrap">
           <span>${row.progress}/${row.required}</span>
-          <div class="prog-bar-bg"><div class="prog-bar-fill ${barClass(row.percent)}" style="width:${fillPct}%"></div></div>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent, settings.thresholdPct)}"></div></div>
         </div>
       </td>
       <td class="col-name"><a class="ach-link" href="${wikiUrl}" target="_blank" rel="noopener">${row.name}</a></td>
-      <td class="col-reward" title="${row.rewardStr}">${row.rewardStr}</td>
+      <td class="col-reward" title="${row.rewardStr}">${row.rewardStr
+        .replace(/AP:(\d+)/, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
+        .replace(/\[([^\]]+)\]/g, '[<em>$1</em>]')}</td>
     </tr>`;
   }).join("");
+  resultsBody.classList.add("fade-in");
 }
 
 // ── Setup panel ───────────────────────────────────────────────────────────────
@@ -267,7 +308,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-apikey").value = settings.apiKey;
   document.getElementById("s-maxresults").value = settings.maxResults;
   document.getElementById("s-threshold").value = settings.thresholdPct;
-  document.getElementById("s-tier").value = settings.useFinalTier ? "last" : "next";
+  document.getElementById("s-language").value = settings.language;
   settingsPanel.classList.toggle("hidden");
 });
 
@@ -280,7 +321,7 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   if (key) settings.apiKey = key;
   settings.maxResults = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
   settings.thresholdPct = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
-  settings.useFinalTier = document.getElementById("s-tier").value === "last";
+  settings.language = document.getElementById("s-language").value;
   saveSettings(settings);
   settingsPanel.classList.add("hidden");
   checkSetup();
@@ -300,8 +341,7 @@ btnRefresh.addEventListener("click", async () => {
 
   btnRefresh.disabled = true;
   btnSettings.disabled = true;
-  fetchSpinner.classList.remove("hidden");
-  fetchLabel.textContent = "Loading";
+  pageSpinner.classList.remove("hidden");
 
   resultsBody.innerHTML =
     `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
@@ -314,7 +354,7 @@ btnRefresh.addEventListener("click", async () => {
     updateCacheInfo();
 
   } catch (e) {
-    setStatus(e.message, true);
+    setStatus(e.message);
 
     resultsBody.innerHTML =
       `<tr class="empty-row">
@@ -326,14 +366,63 @@ btnRefresh.addEventListener("click", async () => {
   } finally {
     btnRefresh.disabled = false;
     btnSettings.disabled = false;
+    pageSpinner.classList.add("hidden");
+  }
+});
 
-    fetchSpinner.classList.add("hidden");
-    fetchLabel.textContent = "Fetch";
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function applyTheme(animate = false) {
+  const isLight = settings.theme === "light";
+  document.body.classList.toggle("light", isLight);
+  themeCheckbox.checked = isLight;
+  const newSrc = isLight ? "assets/sun.png" : "assets/moon.png";
+  if (animate) {
+    themeIcon.classList.add("switching");
+    setTimeout(() => { themeIcon.src = newSrc; }, 175);
+    themeIcon.addEventListener("animationend", () => themeIcon.classList.remove("switching"), { once: true });
+  } else {
+    themeIcon.src = newSrc;
+  }
+}
+
+themeCheckbox.addEventListener("change", () => {
+  settings.theme = themeCheckbox.checked ? "light" : "dark";
+  saveSettings(settings);
+  applyTheme(true);
+});
+
+// ── Tier toggle ───────────────────────────────────────────────────────────────
+
+tierToggle.value = settings.useFinalTier ? "last" : "next";
+
+tierToggle.addEventListener("change", async () => {
+  settings.useFinalTier = tierToggle.value === "last";
+  saveSettings(settings);
+
+  if (!lastProgressMap || !settings.apiKey) return;
+
+  btnRefresh.disabled = true;
+  btnSettings.disabled = true;
+  tierToggle.disabled = true;
+  pageSpinner.classList.remove("hidden");
+
+  try {
+    const rows = await fetchAchievements(settings, msg => setStatus(msg), true);
+    renderRows(rows);
+    setStatus(`Loaded ${rows.length} achievements.`);
+  } catch (e) {
+    setStatus(e.message);
+  } finally {
+    btnRefresh.disabled = false;
+    btnSettings.disabled = false;
+    tierToggle.disabled = false;
+    pageSpinner.classList.add("hidden");
   }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
+applyTheme();
 checkSetup();
 updateCacheInfo();
-setStatus("Press Fetch to load your achievements.");

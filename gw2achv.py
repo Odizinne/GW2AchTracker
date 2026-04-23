@@ -20,7 +20,6 @@ from rich import box
 
 BASE_URL = "https://api.guildwars2.com/v2"
 SETTINGS_FILE = Path("settings.json")
-CACHE_FILE = Path("ach_cache.json")
 MAX_WORKERS = 10
 FETCH_THROTTLE = 0.05
 
@@ -29,7 +28,10 @@ DEFAULT_SETTINGS = {
     "max_results": 40,
     "threshold_pct": 80,
     "use_last_tier": False,
+    "language": "en",
 }
+
+SUPPORTED_LANGUAGES = ["en", "fr", "de", "es"]
 
 ACCENT = "cyan"
 DIM = "dim"
@@ -160,23 +162,28 @@ def save_settings(settings: dict) -> None:
     SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
 
 
-def load_ach_cache() -> dict:
-    """Returns {id (int): definition_dict}."""
-    if CACHE_FILE.exists():
+def _cache_file(lang: str) -> Path:
+    return Path(f"ach_cache_{lang}.json")
+
+
+def load_ach_cache(lang: str = "en") -> dict:
+    f = _cache_file(lang)
+    if f.exists():
         try:
-            return {int(k): v for k, v in json.loads(CACHE_FILE.read_text()).items()}
+            return {int(k): v for k, v in json.loads(f.read_text()).items()}
         except Exception:
             pass
     return {}
 
 
-def save_ach_cache(cache: dict) -> None:
-    CACHE_FILE.write_text(json.dumps(cache, indent=2))
+def save_ach_cache(cache: dict, lang: str = "en") -> None:
+    _cache_file(lang).write_text(json.dumps(cache, indent=2))
 
 
-def clear_ach_cache() -> None:
-    if CACHE_FILE.exists():
-        CACHE_FILE.unlink()
+def clear_ach_cache(lang: str = "en") -> None:
+    f = _cache_file(lang)
+    if f.exists():
+        f.unlink()
 
 
 _session = requests.Session()
@@ -258,6 +265,7 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
     threshold     = settings["threshold_pct"] / 100
     max_res       = settings["max_results"]
     use_last_tier = settings.get("use_last_tier", False)
+    lang          = settings.get("language", "en")
 
     if status_cb: status_cb("Fetching account achievements…")
     account_data = get_json("/account/achievements", api_key=api_key)
@@ -265,7 +273,7 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
     needed_ids   = set(progress_map.keys())
     if status_cb: status_cb(f"Account has {len(needed_ids)} achievements in progress.")
 
-    cache      = load_ach_cache()
+    cache      = load_ach_cache(lang)
     cached_ids = set(cache.keys())
     missing    = list(needed_ids - cached_ids)
 
@@ -275,7 +283,7 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
                 f"Cache has {len(cached_ids)} definitions — "
                 f"fetching {len(missing)} new…"
             )
-        fresh = get_in_parallel("/achievements", missing, api_key=api_key)
+        fresh = get_in_parallel("/achievements", missing, api_key=api_key, lang=lang)
         for ach in fresh:
             cache[ach["id"]] = ach
         if status_cb: status_cb(f"Fetched {len(fresh)} definitions, saving cache…")
@@ -284,7 +292,7 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
             status_cb(f"All {len(needed_ids)} definitions cached — skipping fetch.")
 
     cache = {k: v for k, v in cache.items() if k in needed_ids}
-    save_ach_cache(cache)
+    save_ach_cache(cache, lang)
 
     definitions = [cache[i] for i in needed_ids if i in cache]
 
@@ -422,6 +430,7 @@ class SettingsScreen:
             tbl.add_row("3", "Tier target",     tier_mode)
             tbl.add_row("4", "API key",         key_display)
             tbl.add_row("5", "Cache",           cache_info)
+            tbl.add_row("6", "Language",        draft.get("language", "en"))
             console.print(tbl)
             console.print()
             console.print(Panel(make_footer([
@@ -430,6 +439,7 @@ class SettingsScreen:
                 ("3", "toggle mode"),
                 ("4", "api key"),
                 ("5", "clear cache"),
+                ("6", "language"),
                 ("S", "save"),
                 ("Q", "cancel"),
             ])))
@@ -453,6 +463,9 @@ class SettingsScreen:
                     draft["api_key"] = v
             elif k == "5":
                 clear_ach_cache()
+            elif k == "6":
+                idx = SUPPORTED_LANGUAGES.index(draft.get("language", "en"))
+                draft["language"] = SUPPORTED_LANGUAGES[(idx + 1) % len(SUPPORTED_LANGUAGES)]
             elif k in ("s", "S"):
                 settings.update(draft)
                 save_settings(settings)
@@ -599,8 +612,10 @@ class MainScreen:
                     self._refresh(force=True)
 
                 elif k == KEY_ENTER and self.rows:
+                    lang = settings.get("language", "en")
+                    wiki_host = "wiki" if lang == "en" else f"wiki-{lang}"
                     url = (
-                        "https://wiki.guildwars2.com/wiki/"
+                        f"https://{wiki_host}.guildwars2.com/wiki/"
                         + self.rows[self.cursor]["name"].replace(" ", "_")
                     )
                     webbrowser.open(url)
