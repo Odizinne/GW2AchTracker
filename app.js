@@ -192,6 +192,8 @@ const resultsBody   = document.getElementById("results-body");
 const btnRefresh    = document.getElementById("btn-refresh");
 const btnSettings   = document.getElementById("btn-settings");
 const cacheInfo     = document.getElementById("cache-info");
+const fetchSpinner  = document.getElementById("fetch-spinner");
+const fetchLabel    = document.getElementById("fetch-label");
 
 function setStatus(msg, isError = false) {
   statusBar.classList.remove("hidden", "error");
@@ -295,21 +297,38 @@ document.getElementById("btn-cache-clear").addEventListener("click", () => {
 
 btnRefresh.addEventListener("click", async () => {
   if (!settings.apiKey) return;
+
   btnRefresh.disabled = true;
   btnSettings.disabled = true;
-  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
+  fetchSpinner.classList.remove("hidden");
+  fetchLabel.textContent = "Loading";
+
+  resultsBody.innerHTML =
+    `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
 
   try {
     const rows = await fetchAchievements(settings, msg => setStatus(msg));
+
     renderRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
     updateCacheInfo();
+
   } catch (e) {
     setStatus(e.message, true);
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
+
+    resultsBody.innerHTML =
+      `<tr class="empty-row">
+        <td colspan="4">
+          Error — check your API key and try again.
+        </td>
+      </tr>`;
+
   } finally {
     btnRefresh.disabled = false;
     btnSettings.disabled = false;
+
+    fetchSpinner.classList.add("hidden");
+    fetchLabel.textContent = "Fetch";
   }
 });
 
