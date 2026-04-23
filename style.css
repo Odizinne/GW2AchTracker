@@ -13,10 +13,10 @@
   --yellow: #f0c040;
   --red: #e05555;
   --radius: 6px;
-  --font: 'Segoe UI', system-ui, sans-serif;
+  --font: 'Inter', system-ui, sans-serif;
   --stripe-odd: rgba(255,255,255,0.015);
   --stripe-even: rgba(255,255,255,0.035);
-  --danger-hover-bg: #2a1a1a;
+  --danger-hover-bg: rgba(176,28,28,0.12);
 }
 
 body.light {
@@ -44,6 +44,11 @@ body {
   min-height: 100vh;
 }
 
+/* smooth theme transition — applied only while toggling */
+body.theme-transitioning * {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease !important;
+}
+
 #app {
   max-width: 960px;
   margin: 0 auto;
@@ -61,9 +66,23 @@ header {
   gap: 1rem;
 }
 
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.logo-group select {
+  width: auto;
+  margin-top: 0;
+  padding: 0.3rem 2rem 0.3rem 0.6rem;
+  font-size: 13px;
+}
+
 .logo {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -75,13 +94,6 @@ header {
   gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: flex-end;
-}
-
-.header-actions select {
-  width: auto;
-  margin-top: 0;
-  padding: 0.35rem 0.6rem;
-  font-size: 13px;
 }
 
 /* ── Buttons ── */
@@ -180,6 +192,79 @@ input:focus, select:focus {
   border-color: var(--accent);
 }
 
+/* custom select arrow */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a8c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 10px 6px;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+body.light select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23565350'/%3E%3C/svg%3E");
+}
+
+option {
+  background-color: var(--bg2);
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* number spinners — give a bit of breathing room */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  margin-right: 3px;
+}
+
+/* ── API key wrapper + eye toggle ── */
+.api-key-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 0.3rem;
+}
+
+.api-key-wrap input {
+  width: 100%;
+  margin-top: 0;
+  padding-right: 2.2rem;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 0.35rem;
+  background: transparent;
+  border: none;
+  padding: 0.2rem;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+
+.eye-btn:hover {
+  color: var(--text);
+  background: transparent;
+  border-color: transparent;
+}
+
+/* field-row api-key-wrap takes flex:1 like the plain input did */
+.field-row .api-key-wrap {
+  flex: 1;
+  margin-top: 0;
+}
+.field-row .api-key-wrap input {
+  margin-top: 0;
+}
+
 /* ── Panels ── */
 .panel {
   background: var(--bg2);
@@ -215,7 +300,7 @@ input:focus, select:focus {
 /* ── Settings ── */
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: 50% 1fr 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -241,6 +326,12 @@ input:focus, select:focus {
 .settings-actions > div {
   display: flex;
   gap: 0.5rem;
+}
+
+.settings-cache-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 
@@ -280,17 +371,24 @@ input:focus, select:focus {
 #results-table tbody tr:nth-child(even) td { background: var(--stripe-even); }
 #results-table tbody tr:hover td           { background: var(--bg2); }
 
-.col-pct    { width: 60px;  text-align: right; }
+.col-pct    { width: 70px;  text-align: right; }
 .col-prog   { width: 140px;  text-align: left; }
 .col-name   { width: auto; }
 .col-reward { width: 260px; }
 
 td.col-pct  { text-align: right; font-variant-numeric: tabular-nums; }
+
 td.col-prog {
   text-align: left;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  /* flex centering ensures text+bar sit at mid-row regardless of row height */
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
 }
+
 td.col-reward { color: var(--muted); font-size: 13px; }
 
 .pct-high   { color: var(--green); font-weight: 600; }
@@ -326,7 +424,7 @@ td.col-reward { color: var(--muted); font-size: 13px; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
 }
 

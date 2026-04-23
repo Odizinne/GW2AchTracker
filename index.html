@@ -6,23 +6,25 @@
   <title>GW2 Achievement Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="app">
     <header>
-      <span class="logo">GW2 Achievement Tracker</span>
+      <div class="logo-group">
+        <span class="logo">GW2 Achievement Tracker</span>
+        <select id="tier-toggle">
+          <option value="next">Next tier</option>
+          <option value="last">Final tier</option>
+        </select>
+      </div>
       <div class="header-actions">
-        <span id="cache-info" class="muted"></span>
         <label class="theme-switch" title="Toggle theme">
           <img id="theme-icon" src="assets/moon.png" class="switch-icon" alt="" />
           <input type="checkbox" id="theme-checkbox" />
           <span class="switch-track"><span class="switch-thumb"></span></span>
         </label>
         <button id="btn-settings">Settings</button>
-        <select id="tier-toggle">
-          <option value="next">Next tier</option>
-          <option value="last">Final tier</option>
-        </select>
         <button id="btn-refresh" class="primary">Fetch</button>
       </div>
     </header>
@@ -32,7 +34,12 @@
       <p>Generate a key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
       Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
       <div class="field-row">
-        <input type="password" id="setup-key" placeholder="Paste your API key…" />
+        <div class="api-key-wrap">
+          <input type="password" id="setup-key" placeholder="Paste your API key…" />
+          <button type="button" class="eye-btn" data-target="setup-key" title="Toggle visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
         <button id="btn-setup-save" class="primary">Save &amp; Continue</button>
       </div>
     </div>
@@ -40,8 +47,13 @@
     <div id="settings-panel" class="panel hidden">
       <h2>Settings</h2>
       <div class="settings-grid">
-        <label>API Key
-          <input type="password" id="s-apikey" placeholder="sk-…" />
+        <label class="api-key-label">API Key
+          <div class="api-key-wrap">
+            <input type="password" id="s-apikey" placeholder="sk-…" />
+            <button type="button" class="eye-btn" data-target="s-apikey" title="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </label>
         <label>Max results
           <input type="number" id="s-maxresults" min="1" max="200" />
@@ -59,7 +71,10 @@
         </label>
       </div>
       <div class="settings-actions">
-        <button id="btn-cache-clear" class="danger">Clear cache</button>
+        <div class="settings-cache-group">
+          <button id="btn-cache-clear" class="danger">Clear cache</button>
+          <span id="cache-info" class="muted"></span>
+        </div>
         <div>
           <button id="btn-settings-cancel">Cancel</button>
           <button id="btn-settings-save" class="primary">Save</button>
