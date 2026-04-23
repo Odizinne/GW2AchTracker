@@ -1,17 +1,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:          #0e0e10;
-  --bg2:         #18181c;
-  --bg3:         #222228;
-  --bg4:         #2a2a32;
-  --border:      #2e2e38;
-  --border-soft: #252530;
-  --text:        #e8e8f0;
-  --muted:       #7a7a8c;
-  --accent:      #00bcd4;
-  --accent-dim:  #007a8f;
-  --accent-glow: rgba(0,188,212,0.15);
+  --bg:          #111113;
+  --bg2:         #1a1a1d;
+  --bg3:         #232326;
+  --bg4:         #2c2c30;
+  --border:      #2e2e32;
+  --border-soft: #26262a;
+  --text:        #e8e8ea;
+  --muted:       #7a7a82;
+  --accent:      #d47a3a;
+  --accent-dim:  #9e5a24;
+  --accent-glow: rgba(212,122,58,0.15);
   --green:       #4caf7d;
   --yellow:      #f0c040;
   --red:         #e05555;
@@ -147,7 +147,7 @@ input:focus, select:focus {
 select {
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a8c'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a82'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.65rem center;
   background-size: 10px 6px;
@@ -158,13 +158,6 @@ select {
 option {
   background-color: var(--bg2);
   color: var(--text);
-}
-
-/* number spinners */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  opacity: 1;
-  margin-right: 3px;
 }
 
 /* ── API key wrapper + eye toggle ── */
@@ -243,7 +236,6 @@ input[type="number"]::-webkit-outer-spin-button {
 .modal-overlay.open {
   background: rgba(0,0,0,0.65);
   pointer-events: all;
-  backdrop-filter: blur(3px);
   visibility: visible;
   transition: background 0.25s ease, visibility 0s linear 0s;
 }
@@ -314,7 +306,7 @@ input[type="number"]::-webkit-outer-spin-button {
 /* ── Settings grid ── */
 .settings-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem 1.25rem;
   padding: 1.1rem 1.4rem;
 }
@@ -374,7 +366,7 @@ input[type="number"]::-webkit-outer-spin-button {
   content: '';
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0,188,212,0.15);
+  border: 3px solid rgba(212,122,58,0.15);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -427,10 +419,10 @@ input[type="number"]::-webkit-outer-spin-button {
 
 #results-table tbody tr:nth-child(odd)  td { background: var(--stripe-odd); }
 #results-table tbody tr:nth-child(even) td { background: var(--stripe-even); }
-#results-table tbody tr:hover td { background: rgba(255,255,255,0.045); }
+#results-table tbody tr:hover td { background: var(--bg2); }
 #results-table tbody tr:last-child td { border-bottom: none; }
 
-.col-pct    { width: 75px;  text-align: left; }
+.col-pct    { width: 75px; }
 .col-prog   { width: 145px; }
 .col-name   { width: auto; }
 .col-reward { width: 260px; }
@@ -552,6 +544,7 @@ td.col-reward { color: var(--muted); font-size: 13px; }
   .api-key-label { grid-column: 1; }
 }
 
+/* ── Number spinner ── */
 input[type="number"] {
   -moz-appearance: textfield;
   padding-right: 1.5rem;

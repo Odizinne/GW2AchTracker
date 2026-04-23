@@ -14,27 +14,28 @@
       <div class="logo-group">
         <span class="logo">GW2 Achievement Tracker</span>
         <select id="tier-toggle">
-          <option value="next" data-i18n="tierNext">Next tier</option>
-          <option value="last" data-i18n="tierLast">Final tier</option>
+          <option value="next">Next tier</option>
+          <option value="last">Final tier</option>
         </select>
       </div>
       <div class="header-actions">
-        <button id="btn-settings" data-i18n="btnSettings">Settings</button>
-        <button id="btn-refresh" class="primary" data-i18n="btnFetch">Fetch</button>
+        <button id="btn-settings">Settings</button>
+        <button id="btn-refresh" class="primary">Fetch</button>
       </div>
     </header>
 
     <div id="setup-panel" class="panel hidden">
-      <h2 data-i18n="setupTitle">API Key Required</h2>
-      <p data-i18n="setupDesc">Generate a key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
+      <h2>API Key Required</h2>
+      <p>Generate a key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
+      Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
       <div class="field-row">
         <div class="api-key-wrap">
-          <input type="password" id="setup-key" placeholder="Paste your API key…" data-i18n-placeholder="setupPlaceholder" />
+          <input type="password" id="setup-key" placeholder="Paste your API key…" />
           <button type="button" class="eye-btn" data-target="setup-key" title="Toggle visibility">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
-        <button id="btn-setup-save" class="primary" data-i18n="setupSave">Save &amp; Continue</button>
+        <button id="btn-setup-save" class="primary">Save &amp; Continue</button>
       </div>
     </div>
 
@@ -46,15 +47,15 @@
       <table id="results-table">
         <thead>
           <tr>
-            <th class="col-pct" data-i18n="colPct">%</th>
-            <th class="col-prog" data-i18n="colProg">Progress</th>
-            <th class="col-name" data-i18n="colName">Achievement</th>
-            <th class="col-reward" data-i18n="colReward">Rewards</th>
+            <th class="col-pct">%</th>
+            <th class="col-prog">Progress</th>
+            <th class="col-name">Achievement</th>
+            <th class="col-reward">Rewards</th>
           </tr>
         </thead>
         <tbody id="results-body">
           <tr class="empty-row">
-            <td colspan="4" data-i18n="emptyInitial">Press <strong>Fetch</strong> to load your achievements.</td>
+            <td colspan="4">Press <strong>Fetch</strong> to load your achievements.</td>
           </tr>
         </tbody>
       </table>
@@ -66,20 +67,20 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
       GitHub
     </a>
-    <button class="footer-link" id="btn-legal" data-i18n="footerLegal">Legal &amp; Credits</button>
+    <button class="footer-link" id="btn-legal">Legal &amp; Credits</button>
   </footer>
 
   <!-- Settings modal -->
   <div class="modal-overlay" id="settings-overlay">
-    <div class="modal" id="settings-modal" role="dialog" aria-modal="true">
+    <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h2 data-i18n="settingsTitle">Settings</h2>
+        <h2>Settings</h2>
         <button class="modal-close" id="btn-settings-close" aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="settings-grid">
-        <label class="settings-label api-key-label" data-i18n="settingsApiKey">API Key
+        <label class="settings-label api-key-label">API Key
           <div class="api-key-wrap">
             <input type="password" id="s-apikey" placeholder="Paste your API key…" />
             <button type="button" class="eye-btn" data-target="s-apikey" title="Toggle visibility">
@@ -87,7 +88,7 @@
             </button>
           </div>
         </label>
-        <label class="settings-label" data-i18n="settingsMax">Max results
+        <label class="settings-label">Max results
           <div class="number-wrap">
             <input type="number" id="s-maxresults" min="1" max="200" />
             <div class="number-spin">
@@ -96,7 +97,7 @@
             </div>
           </div>
         </label>
-        <label class="settings-label" data-i18n="settingsThreshold">Min threshold (%)
+        <label class="settings-label">Min threshold (%)
           <div class="number-wrap">
             <input type="number" id="s-threshold" min="1" max="100" />
             <div class="number-spin">
@@ -105,23 +106,15 @@
             </div>
           </div>
         </label>
-        <label class="settings-label" data-i18n="settingsLang">Language
-          <select id="s-language">
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="es">Español</option>
-          </select>
-        </label>
       </div>
       <div class="modal-footer">
         <div class="cache-group">
-          <button id="btn-cache-clear" class="danger" data-i18n="clearCache">Clear cache</button>
+          <button id="btn-cache-clear" class="danger">Clear cache</button>
           <span id="cache-info" class="muted"></span>
         </div>
         <div class="modal-actions">
-          <button id="btn-settings-cancel" data-i18n="btnCancel">Cancel</button>
-          <button id="btn-settings-save" class="primary" data-i18n="btnSave">Save</button>
+          <button id="btn-settings-cancel">Cancel</button>
+          <button id="btn-settings-save" class="primary">Save</button>
         </div>
       </div>
     </div>
@@ -129,34 +122,34 @@
 
   <!-- Legal modal -->
   <div class="modal-overlay" id="legal-overlay">
-    <div class="modal" id="legal-modal" role="dialog" aria-modal="true">
+    <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h2 data-i18n="legalTitle">Legal &amp; Credits</h2>
+        <h2>Legal &amp; Credits</h2>
         <button class="modal-close" id="btn-legal-close" aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="legal-body">
         <section>
-          <h3 data-i18n="legalPrivacyTitle">Privacy &amp; Data</h3>
-          <p data-i18n="legalPrivacy1">All API requests are made directly from your browser to the official Guild Wars 2 API. No data is ever sent to or stored on any third-party server.</p>
-          <p data-i18n="legalPrivacy2">Your API key is stored exclusively in your browser's local storage and never leaves your device.</p>
-          <p data-i18n="legalPrivacy3">This website is provided as-is, without any warranty of any kind. Use at your own risk.</p>
+          <h3>Privacy &amp; Data</h3>
+          <p>All API requests are made directly from your browser to the official Guild Wars 2 API. No data is ever sent to or stored on any third-party server.</p>
+          <p>Your API key is stored exclusively in your browser's local storage and never leaves your device.</p>
+          <p>This website is provided as-is, without any warranty of any kind.</p>
         </section>
         <section>
-          <h3 data-i18n="legalCreditsTitle">Icon Credits</h3>
-          <p data-i18n="legalCredits1">Icons made by <a href="https://www.flaticon.com/authors/dinosoftlabs" target="_blank" rel="noopener">DinosoftLabs</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
-          <p data-i18n="legalCredits2">Icons made by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
+          <h3>Icon Credits</h3>
+          <p>Icons made by <a href="https://www.flaticon.com/authors/dinosoftlabs" target="_blank" rel="noopener">DinosoftLabs</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
+          <p>Icons made by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
         </section>
         <section>
-          <h3 data-i18n="legalDisclaimerTitle">Disclaimer</h3>
-          <p data-i18n="legalDisclaimer">This project is not affiliated with or endorsed by ArenaNet or NCSoft. Guild Wars 2 is a trademark of ArenaNet, LLC.</p>
+          <h3>Disclaimer</h3>
+          <p>This project is not affiliated with or endorsed by ArenaNet or NCSoft. Guild Wars 2 is a trademark of ArenaNet, LLC.</p>
         </section>
       </div>
       <div class="modal-footer">
         <div></div>
         <div class="modal-actions">
-          <button id="btn-legal-close-bottom" class="primary" data-i18n="btnClose">Close</button>
+          <button id="btn-legal-close-bottom" class="primary">Close</button>
         </div>
       </div>
     </div>
