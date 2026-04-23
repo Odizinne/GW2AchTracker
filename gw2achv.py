@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# pip install rich requests
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -19,10 +18,9 @@ from rich.live import Live
 from rich.spinner import Spinner
 from rich import box
 
-# ── Constants ─────────────────────────────────────────────────────────────────
-
 BASE_URL = "https://api.guildwars2.com/v2"
 SETTINGS_FILE = Path("settings.json")
+CACHE_FILE = Path("ach_cache.json")
 MAX_WORKERS = 10
 FETCH_THROTTLE = 0.05
 
@@ -34,10 +32,8 @@ DEFAULT_SETTINGS = {
 }
 
 ACCENT = "cyan"
-DIM = "grey50"
-HIGHLIGHT_BG = "grey23"
-
-# ── Platform input ────────────────────────────────────────────────────────────
+DIM = "dim"
+HIGHLIGHT_BG = ""
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -83,14 +79,13 @@ else:
             tty.setraw(fd)
             ch = sys.stdin.read(1)
             if ch == "\x1b":
-                # try to read escape sequence non-blocking
                 import select
                 r, _, _ = select.select([sys.stdin], [], [], 0.05)
                 if r:
-                    ch += sys.stdin.read(1)  # [
+                    ch += sys.stdin.read(1)
                     r2, _, _ = select.select([sys.stdin], [], [], 0.05)
                     if r2:
-                        ch += sys.stdin.read(1)  # A/B/C/D
+                        ch += sys.stdin.read(1)
             return ch
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
@@ -144,7 +139,6 @@ def read_line(label: str, default=None, password=False) -> str:
         value = _read_password()
     else:
         if not IS_WINDOWS:
-            # restore normal line input on Linux
             fd = sys.stdin.fileno()
             old = termios.tcgetattr(fd)
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
@@ -152,8 +146,6 @@ def read_line(label: str, default=None, password=False) -> str:
 
     return value if value else (str(default) if default is not None else "")
 
-
-# ── Settings ──────────────────────────────────────────────────────────────────
 
 def load_settings() -> dict:
     if SETTINGS_FILE.exists():
@@ -168,7 +160,24 @@ def save_settings(settings: dict) -> None:
     SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
 
 
-# ── API ───────────────────────────────────────────────────────────────────────
+def load_ach_cache() -> dict:
+    """Returns {id (int): definition_dict}."""
+    if CACHE_FILE.exists():
+        try:
+            return {int(k): v for k, v in json.loads(CACHE_FILE.read_text()).items()}
+        except Exception:
+            pass
+    return {}
+
+
+def save_ach_cache(cache: dict) -> None:
+    CACHE_FILE.write_text(json.dumps(cache, indent=2))
+
+
+def clear_ach_cache() -> None:
+    if CACHE_FILE.exists():
+        CACHE_FILE.unlink()
+
 
 _session = requests.Session()
 
@@ -253,11 +262,33 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
     if status_cb: status_cb("Fetching account achievements…")
     account_data = get_json("/account/achievements", api_key=api_key)
     progress_map = {e["id"]: e for e in account_data}
-    ids = list(progress_map.keys())
+    needed_ids   = set(progress_map.keys())
+    if status_cb: status_cb(f"Account has {len(needed_ids)} achievements in progress.")
 
-    if status_cb: status_cb(f"Fetching {len(ids)} achievement definitions…")
-    definitions = get_in_parallel("/achievements", ids, api_key=api_key)
+    cache      = load_ach_cache()
+    cached_ids = set(cache.keys())
+    missing    = list(needed_ids - cached_ids)
 
+    if missing:
+        if status_cb:
+            status_cb(
+                f"Cache has {len(cached_ids)} definitions — "
+                f"fetching {len(missing)} new…"
+            )
+        fresh = get_in_parallel("/achievements", missing, api_key=api_key)
+        for ach in fresh:
+            cache[ach["id"]] = ach
+        if status_cb: status_cb(f"Fetched {len(fresh)} definitions, saving cache…")
+    else:
+        if status_cb:
+            status_cb(f"All {len(needed_ids)} definitions cached — skipping fetch.")
+
+    cache = {k: v for k, v in cache.items() if k in needed_ids}
+    save_ach_cache(cache)
+
+    definitions = [cache[i] for i in needed_ids if i in cache]
+
+    if status_cb: status_cb(f"Filtering {len(definitions)} achievements…")
     rows = []
     for ach in definitions:
         aid   = ach["id"]
@@ -297,7 +328,6 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
     rows.sort(key=lambda x: x["percent"], reverse=True)
     rows = rows[:max_res]
 
-    if status_cb: status_cb("Fetching reward item names…")
     item_ids = [
         r["id"]
         for row in rows
@@ -306,6 +336,7 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
     ]
     item_name_map = {}
     if item_ids:
+        if status_cb: status_cb(f"Fetching names for {len(item_ids)} reward items…")
         items = get_in_parallel("/items", item_ids, api_key=api_key)
         item_name_map = {i["id"]: i["name"] for i in items}
 
@@ -314,8 +345,6 @@ def fetch_achievements(settings: dict, status_cb=None) -> list[dict]:
 
     return rows
 
-
-# ── Rendering ─────────────────────────────────────────────────────────────────
 
 def make_header(title: str) -> Panel:
     return Panel(
@@ -330,20 +359,18 @@ def make_footer(keys):
     for i, (key, label) in enumerate(keys):
         if i:
             t.append("    ")
-        t.append(f" {key} ", style="bold on cyan")
+        t.append(f" {key} ", style=f"bold reverse {ACCENT}")
         if label:
             t.append(f" {label}", style="default")
     return t
 
 
 def pct_style(pct):
-    if pct >= 99: return "bold bright_green"
+    if pct >= 99: return "bold green"
     if pct >= 95: return "green"
     if pct >= 90: return "yellow"
-    return "default"
+    return ""
 
-
-# ── Screens ───────────────────────────────────────────────────────────────────
 
 class SetupScreen:
     def run(self, console, settings):
@@ -383,6 +410,8 @@ class SettingsScreen:
             ) or "[red]not set[/]"
 
             tier_mode = "Final tier" if draft["use_last_tier"] else "Next tier"
+            cache_size = len(load_ach_cache())
+            cache_info = f"{cache_size} definitions" if cache_size else "[dim]empty[/]"
 
             tbl = Table(box=box.SIMPLE, show_header=False, padding=(0, 3))
             tbl.add_column("Key",   style=ACCENT, width=6)
@@ -392,6 +421,7 @@ class SettingsScreen:
             tbl.add_row("2", "Min threshold %", str(draft["threshold_pct"]))
             tbl.add_row("3", "Tier target",     tier_mode)
             tbl.add_row("4", "API key",         key_display)
+            tbl.add_row("5", "Cache",           cache_info)
             console.print(tbl)
             console.print()
             console.print(Panel(make_footer([
@@ -399,6 +429,7 @@ class SettingsScreen:
                 ("2", "threshold"),
                 ("3", "toggle mode"),
                 ("4", "api key"),
+                ("5", "clear cache"),
                 ("S", "save"),
                 ("Q", "cancel"),
             ])))
@@ -420,6 +451,8 @@ class SettingsScreen:
                 v = read_line("New API key", password=True)
                 if v:
                     draft["api_key"] = v
+            elif k == "5":
+                clear_ach_cache()
             elif k in ("s", "S"):
                 settings.update(draft)
                 save_settings(settings)
@@ -499,11 +532,11 @@ class MainScreen:
             row      = self.rows[idx]
             selected = idx == self.cursor
             tbl.add_row(
-                Text(f"{row['percent']}%", style="bold " + pct_style(row["percent"])),
+                Text(f"{row['percent']}%", style=pct_style(row["percent"])),
                 f"{row['progress']}/{row['required']}",
-                Text(row["name"], style="bold default" if selected else "default"),
+                Text(row["name"], style="bold" if selected else "default"),
                 row["reward_str"],
-                style=f"on {HIGHLIGHT_BG}" if selected else "",
+                style="reverse" if selected else "",
             )
 
         return tbl
@@ -573,8 +606,6 @@ class MainScreen:
                     webbrowser.open(url)
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main():
     console  = Console()
     settings = load_settings()
@@ -597,7 +628,7 @@ def main():
         settings = load_settings()
 
     console.clear()
-    console.print("[cyan]Bye![/]")
+    console.print(f"[{ACCENT}]Bye![/]")
 
 
 if __name__ == "__main__":
