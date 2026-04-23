@@ -16,14 +16,14 @@
   --yellow:      #f0c040;
   --red:         #e05555;
   --danger-hover-bg: rgba(224,85,85,0.12);
-  --radius:      8px;
+  --radius:      5px;
   --radius-sm:   5px;
   --font:        'Inter', system-ui, sans-serif;
   --shadow:      0 8px 32px rgba(0,0,0,0.45);
   --shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
   --stripe-odd:  rgba(255,255,255,0.013);
   --stripe-even: rgba(255,255,255,0.028);
-  --footer-h:    48px;
+  --header-h:    48px;
 }
 
 /* ── Base ── */
@@ -33,24 +33,54 @@ body {
   font-family: var(--font);
   font-size: 14px;
   min-height: 100vh;
-  padding-bottom: var(--footer-h);
 }
 
 #app {
   max-width: 980px;
   margin: 0 auto;
-  padding: 0 1.25rem 2rem;
+  padding: calc(var(--header-h) + 1.5rem) 1.25rem 2rem;
 }
 
 /* ── Header ── */
-header {
+#main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  z-index: 90;
+}
+
+.header-inner {
+  width: 100%;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+}
+
+.header-center {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.1rem 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1.5rem;
-  gap: 1rem;
+  width: 980px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.header-edge {
+  width: 100px;
+  flex-shrink: 0;
+  padding: 0 0.75rem;
+}
+
+.header-edge:first-child {
+  margin-left: 1rem;
+}
+
+.header-edge:last-child {
+  margin-right: 1rem;
+  text-align: right;
 }
 
 .logo-group {
@@ -486,22 +516,7 @@ td.col-reward { color: var(--muted); font-size: 13px; }
   transition: width 0.3s ease;
 }
 
-/* ── Footer ── */
-#main-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--footer-h);
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  z-index: 90;
-}
-
+/* ── Footer link style (reused in header) ── */
 .footer-link {
   display: inline-flex;
   align-items: center;
@@ -542,6 +557,7 @@ td.col-reward { color: var(--muted); font-size: 13px; }
   .col-prog   { width: 105px; }
   .settings-grid { grid-template-columns: 1fr; }
   .api-key-label { grid-column: 1; }
+  .logo { font-size: 1rem; }
 }
 
 /* ── Number spinner ── */

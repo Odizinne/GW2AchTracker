@@ -27,7 +27,12 @@ function saveCache(c) {
     localStorage.setItem("gw2_ach_cache", JSON.stringify(trimmed));
   }
 }
-function clearCache() { localStorage.removeItem("gw2_ach_cache"); }
+function clearCache() {
+  localStorage.removeItem("gw2_ach_cache");
+  persistentItemNameMap = {};
+  persistentTitleNameMap = {};
+  lastProgressMap = null;
+}
 
 // ── API ───────────────────────────────────────────────────────────────────────
 
@@ -90,7 +95,7 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
   if (reuseProgress && lastProgressMap) {
     progressMap = lastProgressMap;
   } else {
-    onStatus("…");
+    onStatus("Fetching account progression…");
     const accountData = await apiFetch("/account/achievements", {}, apiKey);
     progressMap = Object.fromEntries(accountData.map(e => [e.id, e]));
     lastProgressMap = progressMap;
@@ -102,6 +107,7 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
   const missing = neededIds.filter(id => !cachedIds.has(id));
 
   if (missing.length > 0) {
+    onStatus(`Fetching ${missing.length} achievement definitions…`);
     const fresh = await fetchInBatches("/achievements", missing, apiKey, 150, { lang: "en" });
     for (const ach of fresh) cache[ach.id] = ach;
   }
@@ -142,6 +148,7 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
   const itemIds = [...new Set(top.flatMap(r => r.rewards.filter(x => x.type === "Item" && x.id).map(x => x.id)))];
   const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
   if (newItemIds.length) {
+    onStatus(`Fetching names for ${newItemIds.length} items…`);
     const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
     for (const item of items) persistentItemNameMap[item.id] = item.name;
   }
@@ -149,6 +156,7 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
   const titleIds = [...new Set(top.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
   const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
   if (newTitleIds.length) {
+    onStatus(`Fetching names for ${newTitleIds.length} titles…`);
     const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
     for (const title of titles) persistentTitleNameMap[title.id] = title.name;
   }
@@ -305,12 +313,12 @@ btnRefresh.addEventListener("click", async () => {
     const rows = await fetchAchievements(settings, msg => setStatus(msg));
     renderRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
+    setFetching(false);
     updateCacheInfo();
   } catch (e) {
     setStatus(e.message);
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
-  } finally {
     setFetching(false);
+    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
   }
 });
 
