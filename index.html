@@ -9,80 +9,107 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header id="main-header">
-    <div class="header-inner">
-      <div class="header-edge">
-      <a href="https://github.com/odizinne/GW2AchTracker" target="_blank" rel="noopener" class="footer-link">
-        <img src="assets/github.svg" width="16" height="16" alt="GitHub" />
-        GitHub
-      </a>
-      </div>
-      <div class="header-center">
-        <div class="logo-group">
-          <span class="logo">GW2 Achievement Tracker</span>
-          <select id="tier-toggle">
-            <option value="next">Next tier</option>
-            <option value="last">Final tier</option>
-          </select>
-        </div>
-        <div class="header-actions">
-          <button id="btn-settings">Settings</button>
-          <button id="btn-refresh" class="primary">Fetch</button>
-        </div>
-      </div>
-      <div class="header-edge" style="display:flex; justify-content:flex-end;">
-        <button class="footer-link" id="btn-legal">Legal &amp; Credits</button>
-      </div>
-    </div>
-  </header>
 
   <div id="app">
-    <div id="setup-panel" class="panel hidden">
-      <h2>API Key Required</h2>
-      <p>Generate a key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
-      Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
-      <div class="field-row">
-        <div class="api-key-wrap">
-          <input type="password" id="setup-key" placeholder="Paste your API key…" />
-          <button type="button" class="eye-btn" data-target="setup-key" title="Toggle visibility">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-        <button id="btn-setup-save" class="primary">Save &amp; Continue</button>
+    <aside id="sidebar">
+      <div class="sb-logo">
+        <span class="sb-logo-title">GW2 Tracker</span>
+        <small>achievement companion</small>
       </div>
-      <p id="setup-key-error" class="field-error hidden"></p>
-    </div>
 
-    <div id="page-spinner" class="hidden">
-      <span id="status-text"></span>
-    </div>
+      <div class="sb-section">
+        <div class="sb-label">Account</div>
+        <div class="sb-select-wrap">
+          <select id="account-select"></select>
+        </div>
+        <button id="btn-refresh" class="sb-btn primary" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Update
+        </button>
+      </div>
 
-    <div id="results-panel">
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th class="col-pct">%</th>
-            <th class="col-prog">Progress</th>
-            <th class="col-name">Achievement</th>
-            <th class="col-reward">Rewards</th>
-          </tr>
-        </thead>
-        <tbody id="results-body">
-          <tr class="empty-row">
-            <td colspan="4">Press <strong>Fetch</strong> to load your achievements.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+      <nav class="sb-nav">
+        <div class="sb-label">Views</div>
+        <button class="nav-item active" data-view="nearly-completed">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Nearly completed
+        </button>
+      </nav>
 
-  <!-- Custom page scrollbar -->
-  <div class="custom-scrollbar" id="custom-scrollbar">
-    <button class="scrollbar-arrow" id="scrollbar-arrow-up">▲</button>
-    <div class="custom-scrollbar-track" id="custom-scrollbar-track">
-      <div class="custom-scrollbar-thumb" id="custom-scrollbar-thumb"></div>
-    </div>
-    <button class="scrollbar-arrow" id="scrollbar-arrow-down">▼</button>
+      <div class="sb-bottom">
+        <button class="sb-link" id="btn-settings">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+        <button class="sb-link" id="btn-github">
+          <img src="assets/github.svg" width="13" height="13" alt="GitHub" class="sb-link-icon" />
+          GitHub
+        </button>
+        <button class="sb-link" id="btn-legal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Legal &amp; credits
+        </button>
+      </div>
+    </aside>
+
+    <main id="main-content">
+
+      <div id="view-setup" class="view">
+        <div class="setup-inner">
+          <div class="setup-card">
+            <h2>Add your first account</h2>
+            <p>Generate an API key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
+            Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
+            <div class="form-field">
+              <label class="field-label">Account name</label>
+              <input type="text" id="setup-name" placeholder="e.g. Main, Alt…" />
+            </div>
+            <div class="form-field">
+              <label class="field-label">API key</label>
+              <div class="api-key-wrap">
+                <input type="password" id="setup-key" placeholder="Paste your API key…" />
+                <button type="button" class="eye-btn" data-target="setup-key" title="Toggle visibility">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <p id="setup-error" class="field-error hidden"></p>
+            <button id="btn-setup-save" class="btn primary">Save &amp; continue</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-nearly-completed" class="view">
+        <div class="view-header">
+          <div>
+            <h2 id="view-title">Nearly completed</h2>
+            <span id="view-subtitle" class="view-sub"></span>
+          </div>
+          <div id="page-spinner" class="spinner hidden">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span id="status-text"></span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th class="col-pct">%</th>
+                <th class="col-prog">Progress</th>
+                <th class="col-name">Achievement</th>
+                <th class="col-reward">Rewards</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <tr class="empty-row">
+                <td colspan="4">Press <strong>Update</strong> to load your achievements.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <!-- Settings modal -->
@@ -91,47 +118,83 @@
       <div class="modal-header">
         <h2>Settings</h2>
         <button class="modal-close" id="btn-settings-close" aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="settings-grid">
-        <label class="settings-label api-key-label">API Key
-          <div class="api-key-wrap">
-            <input type="password" id="s-apikey" placeholder="Paste your API key…" />
-            <button type="button" class="eye-btn" data-target="s-apikey" title="Toggle visibility">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
+      <div class="modal-body">
+
+        <section class="settings-section">
+          <div class="settings-section-header">
+            <h3>Accounts</h3>
+            <button id="btn-add-account" class="btn small">+ Add account</button>
           </div>
-          <p id="settings-key-error" class="field-error hidden"></p>
-        </label>
-        <label class="settings-label">Max results
-          <div class="number-wrap">
-            <input type="number" id="s-maxresults" min="1" max="200" />
-            <div class="number-spin">
-              <button type="button" data-target="s-maxresults" data-delta="1">▲</button>
-              <button type="button" data-target="s-maxresults" data-delta="-1">▼</button>
+          <div id="accounts-list" class="accounts-list"></div>
+          <div id="add-account-form" class="add-account-form hidden">
+            <div class="form-row">
+              <div class="form-field">
+                <label class="field-label">Name</label>
+                <input type="text" id="new-account-name" placeholder="e.g. Alt" />
+              </div>
+              <div class="form-field" style="flex:2">
+                <label class="field-label">API key</label>
+                <div class="api-key-wrap">
+                  <input type="password" id="new-account-key" placeholder="Paste your API key…" />
+                  <button type="button" class="eye-btn" data-target="new-account-key" title="Toggle visibility">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p id="new-account-error" class="field-error hidden"></p>
+            <div class="form-actions">
+              <button id="btn-add-account-cancel" class="btn">Cancel</button>
+              <button id="btn-add-account-save" class="btn primary">Save account</button>
             </div>
           </div>
-        </label>
-        <label class="settings-label">Min threshold (%)
-          <div class="number-wrap">
-            <input type="number" id="s-threshold" min="1" max="100" />
-            <div class="number-spin">
-              <button type="button" data-target="s-threshold" data-delta="1">▲</button>
-              <button type="button" data-target="s-threshold" data-delta="-1">▼</button>
-            </div>
+        </section>
+
+        <section class="settings-section">
+          <h3>Filters</h3>
+          <div class="settings-grid">
+            <label class="field-label">Max results
+              <div class="number-wrap">
+                <input type="number" id="s-maxresults" min="1" max="200" />
+                <div class="number-spin">
+                  <button type="button" data-target="s-maxresults" data-delta="1">▲</button>
+                  <button type="button" data-target="s-maxresults" data-delta="-1">▼</button>
+                </div>
+              </div>
+            </label>
+            <label class="field-label">Min threshold (%)
+              <div class="number-wrap">
+                <input type="number" id="s-threshold" min="1" max="100" />
+                <div class="number-spin">
+                  <button type="button" data-target="s-threshold" data-delta="1">▲</button>
+                  <button type="button" data-target="s-threshold" data-delta="-1">▼</button>
+                </div>
+              </div>
+            </label>
+            <label class="field-label">Tier target
+              <select id="s-tier">
+                <option value="next">Next tier</option>
+                <option value="last">Final tier</option>
+              </select>
+            </label>
           </div>
-        </label>
+        </section>
+
+        <section class="settings-section">
+          <h3>Cache</h3>
+          <div class="cache-row">
+            <span id="cache-info" class="muted"></span>
+            <button id="btn-cache-clear" class="btn danger">Clear cache</button>
+          </div>
+        </section>
+
       </div>
       <div class="modal-footer">
-        <div class="cache-group">
-          <button id="btn-cache-clear" class="danger">Clear cache</button>
-          <span id="cache-info" class="muted"></span>
-        </div>
-        <div class="modal-actions">
-          <button id="btn-settings-cancel">Cancel</button>
-          <button id="btn-settings-save" class="primary">Save</button>
-        </div>
+        <button id="btn-settings-cancel" class="btn">Cancel</button>
+        <button id="btn-settings-save" class="btn primary">Save</button>
       </div>
     </div>
   </div>
@@ -140,16 +203,16 @@
   <div class="modal-overlay" id="legal-overlay">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h2>Legal &amp; Credits</h2>
+        <h2>Legal &amp; credits</h2>
         <button class="modal-close" id="btn-legal-close" aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="legal-body">
         <section>
-          <h3>Privacy &amp; Data</h3>
+          <h3>Privacy &amp; data</h3>
           <p>All API requests are made directly from your browser to the official Guild Wars 2 API. No data is ever sent to or stored on any third-party server.</p>
-          <p>Your API key is stored exclusively in your browser's local storage and never leaves your device.</p>
+          <p>Your API keys are stored exclusively in your browser's local storage and never leave your device.</p>
           <p>This website is provided as-is, without any warranty of any kind.</p>
         </section>
         <section>
@@ -157,7 +220,7 @@
           <p>This project is released under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>. You are free to use, study, and modify it. Any modified version you distribute must also be released under GPLv3 and make its source code available.</p>
         </section>
         <section>
-          <h3>Icon Credits</h3>
+          <h3>Icon credits</h3>
           <p>Icons made by <a href="https://www.flaticon.com/authors/dinosoftlabs" target="_blank" rel="noopener">DinosoftLabs</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
           <p>Icons made by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
         </section>
@@ -167,10 +230,7 @@
         </section>
       </div>
       <div class="modal-footer">
-        <div></div>
-        <div class="modal-actions">
-          <button id="btn-legal-close-bottom" class="primary">Close</button>
-        </div>
+        <button id="btn-legal-close-bottom" class="btn primary">Close</button>
       </div>
     </div>
   </div>

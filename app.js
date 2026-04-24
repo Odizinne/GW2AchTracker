@@ -1,28 +1,48 @@
 document.addEventListener("DOMContentLoaded", () => {
 const BASE = "https://api.guildwars2.com/v2";
 
+const SVG_EYE     = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const SVG_EYE_OFF = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+const SVG_TRASH   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
 const DEFAULT_SETTINGS = {
-  apiKey: "", maxResults: 40, thresholdPct: 80, useFinalTier: false, validated: false,
+  accounts: [],
+  activeAccount: 0,
+  maxResults: 40,
+  thresholdPct: 80,
+  useFinalTier: false,
 };
 
 function loadSettings() {
   try {
     const stored = JSON.parse(localStorage.getItem("gw2_settings") || "{}");
-    const merged = { ...DEFAULT_SETTINGS, ...stored };
-    // Migrate: if a key exists from before the validated flag was introduced,
-    // trust it rather than forcing re-validation on every update.
-    if (stored.apiKey && !("validated" in stored)) {
-      merged.validated = true;
-      localStorage.setItem("gw2_settings", JSON.stringify(merged));
+    const s = { ...DEFAULT_SETTINGS, ...stored };
+    // Migrate from old single-key format
+    if (stored.apiKey && stored.validated && (!stored.accounts || !stored.accounts.length)) {
+      s.accounts = [{ name: "Main", apiKey: stored.apiKey }];
+      s.activeAccount = 0;
+      delete s.apiKey;
+      delete s.validated;
+      localStorage.setItem("gw2_settings", JSON.stringify(s));
     }
-    return merged;
+    return s;
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
 }
-function saveSettings(s) { localStorage.setItem("gw2_settings", JSON.stringify(s)); }
+
+function saveSettings(s) {
+  localStorage.setItem("gw2_settings", JSON.stringify(s));
+}
 
 let settings = loadSettings();
+
+function activeApiKey() {
+  const acc = settings.accounts[settings.activeAccount];
+  return acc ? acc.apiKey : "";
+}
 
 // ── Cache ─────────────────────────────────────────────────────────────────────
 
@@ -30,6 +50,7 @@ function loadCache() {
   try { const r = localStorage.getItem("gw2_ach_cache"); return r ? JSON.parse(r) : {}; }
   catch { return {}; }
 }
+
 function saveCache(c) {
   try { localStorage.setItem("gw2_ach_cache", JSON.stringify(c)); }
   catch {
@@ -38,6 +59,7 @@ function saveCache(c) {
     localStorage.setItem("gw2_ach_cache", JSON.stringify(trimmed));
   }
 }
+
 function clearCache() {
   localStorage.removeItem("gw2_ach_cache");
   persistentItemNameMap = {};
@@ -49,7 +71,7 @@ function clearCache() {
 
 async function apiFetch(endpoint, params = {}, apiKey = "") {
   const url = new URL(BASE + endpoint);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   if (apiKey) url.searchParams.set("access_token", apiKey);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`GW2 API ${res.status}: ${res.statusText}`);
@@ -59,7 +81,9 @@ async function apiFetch(endpoint, params = {}, apiKey = "") {
 async function fetchInBatches(endpoint, ids, apiKey, batchSize = 150, extraParams = {}) {
   const batches = [];
   for (let i = 0; i < ids.length; i += batchSize) batches.push(ids.slice(i, i + batchSize));
-  const results = await Promise.all(batches.map(b => apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey)));
+  const results = await Promise.all(
+    batches.map(b => apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey))
+  );
   return results.flat();
 }
 
@@ -102,8 +126,8 @@ let lastProgressMap = null;
 let persistentItemNameMap = {};
 let persistentTitleNameMap = {};
 
-async function fetchAchievements(s, onStatus, reuseProgress = false) {
-  const { apiKey, thresholdPct, maxResults, useFinalTier } = s;
+async function fetchAchievements(apiKey, s, onStatus, reuseProgress = false) {
+  const { thresholdPct, maxResults, useFinalTier } = s;
   const threshold = thresholdPct / 100;
 
   let progressMap;
@@ -185,19 +209,224 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 
-const SVG_EYE     = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-const SVG_EYE_OFF = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+const accountSelect   = document.getElementById("account-select");
+const btnRefresh      = document.getElementById("btn-refresh");
+const btnSettings     = document.getElementById("btn-settings");
+const btnGithub       = document.getElementById("btn-github");
+const btnLegal        = document.getElementById("btn-legal");
+const resultsBody     = document.getElementById("results-body");
+const statusText      = document.getElementById("status-text");
+const pageSpinner     = document.getElementById("page-spinner");
+const viewSetup       = document.getElementById("view-setup");
+const viewNearlyDone  = document.getElementById("view-nearly-completed");
+const viewSubtitle    = document.getElementById("view-subtitle");
+const cacheInfo       = document.getElementById("cache-info");
+const setupError      = document.getElementById("setup-error");
+const accountsList    = document.getElementById("accounts-list");
+const addAccountForm  = document.getElementById("add-account-form");
+const newAccountError = document.getElementById("new-account-error");
 
-const setupPanel    = document.getElementById("setup-panel");
-const statusText    = document.getElementById("status-text");
-const resultsBody   = document.getElementById("results-body");
-const btnRefresh    = document.getElementById("btn-refresh");
-const btnSettings   = document.getElementById("btn-settings");
-const cacheInfo     = document.getElementById("cache-info");
-const pageSpinner   = document.getElementById("page-spinner");
-const tierToggle    = document.getElementById("tier-toggle");
-const setupKeyError = document.getElementById("setup-key-error");
-const settingsKeyError = document.getElementById("settings-key-error");
+// ── View routing ──────────────────────────────────────────────────────────────
+
+function showView(name) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active-view"));
+  document.querySelectorAll(".nav-item").forEach(n => {
+    n.classList.toggle("active", n.dataset.view === name);
+  });
+  if (name === "setup")             viewSetup.classList.add("active-view");
+  if (name === "nearly-completed")  viewNearlyDone.classList.add("active-view");
+}
+
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (!settings.accounts.length) return;
+    showView(item.dataset.view);
+  });
+});
+
+// ── Account select ────────────────────────────────────────────────────────────
+
+function rebuildAccountSelect() {
+  accountSelect.innerHTML = "";
+  if (!settings.accounts.length) {
+    const opt = document.createElement("option");
+    opt.textContent = "No accounts";
+    opt.disabled = true;
+    accountSelect.appendChild(opt);
+    btnRefresh.disabled = true;
+    return;
+  }
+  settings.accounts.forEach((acc, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = acc.name;
+    accountSelect.appendChild(opt);
+  });
+  accountSelect.value = settings.activeAccount;
+  btnRefresh.disabled = false;
+}
+
+accountSelect.addEventListener("change", () => {
+  settings.activeAccount = parseInt(accountSelect.value);
+  lastProgressMap = null;
+  saveSettings(settings);
+  doFetch();
+});
+
+// ── Setup ─────────────────────────────────────────────────────────────────────
+
+function checkSetup() {
+  rebuildAccountSelect();
+  if (!settings.accounts.length) {
+    showView("setup");
+  } else {
+    showView("nearly-completed");
+  }
+}
+
+document.getElementById("btn-setup-save").addEventListener("click", async () => {
+  const name = document.getElementById("setup-name").value.trim();
+  const key  = document.getElementById("setup-key").value.trim();
+  if (!name) { showError(setupError, "Please enter a name for this account."); return; }
+  if (!key)  { showError(setupError, "Please enter an API key."); return; }
+  clearError(setupError);
+
+  const btn = document.getElementById("btn-setup-save");
+  btn.disabled = true;
+  btn.textContent = "Validating…";
+  try {
+    await validateApiKey(key);
+    settings.accounts.push({ name, apiKey: key });
+    settings.activeAccount = settings.accounts.length - 1;
+    saveSettings(settings);
+    rebuildAccountSelect();
+    showView("nearly-completed");
+    doFetch();
+  } catch {
+    showError(setupError, "Invalid API key. Make sure account and progression permissions are enabled.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save & continue";
+  }
+});
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+
+function updateCacheInfo() {
+  const count = Object.keys(loadCache()).length;
+  cacheInfo.textContent = count ? `${count} entries cached` : "Cache is empty";
+}
+
+function renderAccountsList() {
+  accountsList.innerHTML = "";
+  if (!settings.accounts.length) {
+    accountsList.innerHTML = `<p style="font-size:12px;color:var(--muted);padding:4px 0">No accounts added yet.</p>`;
+    return;
+  }
+  settings.accounts.forEach((acc, i) => {
+    const masked = acc.apiKey.length > 12
+      ? acc.apiKey.slice(0, 8) + "••••••••" + acc.apiKey.slice(-4)
+      : "••••••••";
+    const row = document.createElement("div");
+    row.className = "account-row";
+    row.innerHTML = `
+      <div class="account-row-info">
+        <div class="account-row-name">${acc.name}</div>
+        <div class="account-row-key">${masked}</div>
+      </div>
+      <button class="account-row-delete" title="Remove account">${SVG_TRASH}</button>
+    `;
+    row.querySelector(".account-row-delete").addEventListener("click", () => {
+      settings.accounts.splice(i, 1);
+      if (settings.activeAccount >= settings.accounts.length) {
+        settings.activeAccount = Math.max(0, settings.accounts.length - 1);
+      }
+      saveSettings(settings);
+      renderAccountsList();
+      rebuildAccountSelect();
+      if (!settings.accounts.length) {
+        showView("setup");
+        closeModal("settings-overlay");
+      }
+    });
+    accountsList.appendChild(row);
+  });
+}
+
+btnSettings.addEventListener("click", () => {
+  document.getElementById("s-maxresults").value = settings.maxResults;
+  document.getElementById("s-threshold").value  = settings.thresholdPct;
+  document.getElementById("s-tier").value = settings.useFinalTier ? "last" : "next";
+  addAccountForm.classList.add("hidden");
+  clearError(newAccountError);
+  document.getElementById("new-account-name").value = "";
+  document.getElementById("new-account-key").value  = "";
+  document.getElementById("new-account-key").type   = "password";
+  document.querySelector('[data-target="new-account-key"]').innerHTML = SVG_EYE;
+  renderAccountsList();
+  updateCacheInfo();
+  openModal("settings-overlay");
+});
+
+document.getElementById("btn-add-account").addEventListener("click", () => {
+  addAccountForm.classList.toggle("hidden");
+});
+
+document.getElementById("btn-add-account-cancel").addEventListener("click", () => {
+  addAccountForm.classList.add("hidden");
+  clearError(newAccountError);
+});
+
+document.getElementById("btn-add-account-save").addEventListener("click", async () => {
+  const name = document.getElementById("new-account-name").value.trim();
+  const key  = document.getElementById("new-account-key").value.trim();
+  if (!name) { showError(newAccountError, "Please enter a name."); return; }
+  if (!key)  { showError(newAccountError, "Please enter an API key."); return; }
+  clearError(newAccountError);
+
+  const btn = document.getElementById("btn-add-account-save");
+  btn.disabled = true;
+  btn.textContent = "Validating…";
+  try {
+    await validateApiKey(key);
+    settings.accounts.push({ name, apiKey: key });
+    saveSettings(settings);
+    renderAccountsList();
+    rebuildAccountSelect();
+    addAccountForm.classList.add("hidden");
+    document.getElementById("new-account-name").value = "";
+    document.getElementById("new-account-key").value  = "";
+  } catch {
+    showError(newAccountError, "Invalid API key. Make sure account and progression permissions are enabled.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save account";
+  }
+});
+
+document.getElementById("btn-settings-close").addEventListener("click",  () => closeModal("settings-overlay"));
+document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
+
+document.getElementById("btn-settings-save").addEventListener("click", () => {
+  settings.maxResults   = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
+  settings.thresholdPct = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
+  settings.useFinalTier = document.getElementById("s-tier").value === "last";
+  saveSettings(settings);
+  closeModal("settings-overlay");
+});
+
+document.getElementById("btn-cache-clear").addEventListener("click", () => {
+  clearCache();
+  updateCacheInfo();
+  setStatus("Cache cleared.");
+});
+
+// ── Legal & GitHub ────────────────────────────────────────────────────────────
+
+btnLegal.addEventListener("click", () => openModal("legal-overlay"));
+btnGithub.addEventListener("click", () => window.open("https://github.com/odizinne/GW2AchTracker", "_blank", "noopener"));
+document.getElementById("btn-legal-close").addEventListener("click",        () => closeModal("legal-overlay"));
+document.getElementById("btn-legal-close-bottom").addEventListener("click", () => closeModal("legal-overlay"));
 
 // ── Modal helpers ─────────────────────────────────────────────────────────────
 
@@ -212,120 +441,31 @@ function closeModal(id) { document.getElementById(id).classList.remove("open"); 
 
 // ── Error helpers ─────────────────────────────────────────────────────────────
 
-function showError(el, msg) {
-  el.textContent = msg;
-  el.classList.remove("hidden");
-}
+function showError(el, msg) { el.textContent = msg; el.classList.remove("hidden"); }
+function clearError(el)     { el.textContent = ""; el.classList.add("hidden"); }
 
-function clearError(el) {
-  el.textContent = "";
-  el.classList.add("hidden");
-}
+// ── Eye toggles ───────────────────────────────────────────────────────────────
 
-// ── Setup panel ───────────────────────────────────────────────────────────────
-
-function checkSetup() {
-  const hasValidKey = settings.apiKey && settings.validated;
-  setupPanel.classList.toggle("hidden", hasValidKey);
-  btnRefresh.disabled = !hasValidKey;
-}
-
-document.getElementById("btn-setup-save").addEventListener("click", async () => {
-  const key = document.getElementById("setup-key").value.trim();
-  if (!key) { showError(setupKeyError, "Please enter an API key."); return; }
-  clearError(setupKeyError);
-  const btn = document.getElementById("btn-setup-save");
-  btn.disabled = true;
-  btn.textContent = "Validating…";
-  try {
-    await validateApiKey(key);
-    settings.apiKey = key;
-    settings.validated = true;
-    saveSettings(settings);
-    checkSetup();
-    doFetch();
-  } catch {
-    showError(setupKeyError, "Invalid API key. Make sure account and progression permissions are enabled.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Save & Continue";
-  }
+document.querySelectorAll(".eye-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const input = document.getElementById(btn.dataset.target);
+    const show  = input.type === "password";
+    input.type  = show ? "text" : "password";
+    btn.innerHTML = show ? SVG_EYE_OFF : SVG_EYE;
+  });
 });
 
-// ── Settings modal ────────────────────────────────────────────────────────────
+// ── Number spinners ───────────────────────────────────────────────────────────
 
-function updateCacheInfo() {
-  const count = Object.keys(loadCache()).length;
-  cacheInfo.textContent = count ? `${count} entries cached` : "";
-}
-
-btnSettings.addEventListener("click", () => {
-  const apikeyInput = document.getElementById("s-apikey");
-  apikeyInput.value = settings.apiKey;
-  apikeyInput.type = "password";
-  document.querySelector('[data-target="s-apikey"]').innerHTML = SVG_EYE;
-  document.getElementById("s-maxresults").value = settings.maxResults;
-  document.getElementById("s-threshold").value = settings.thresholdPct;
-  clearError(settingsKeyError);
-  updateCacheInfo();
-  openModal("settings-overlay");
+document.querySelectorAll(".number-spin button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const input  = document.getElementById(btn.dataset.target);
+    const min    = parseFloat(input.min);
+    const max    = parseFloat(input.max);
+    const newVal = Math.min(max, Math.max(min, (parseFloat(input.value) || 0) + parseFloat(btn.dataset.delta)));
+    input.value  = newVal;
+  });
 });
-
-// Changing the key field invalidates the stored validation
-document.getElementById("s-apikey").addEventListener("input", () => {
-  clearError(settingsKeyError);
-});
-
-document.getElementById("btn-settings-close").addEventListener("click", () => closeModal("settings-overlay"));
-document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
-
-document.getElementById("btn-settings-save").addEventListener("click", async () => {
-  const key = document.getElementById("s-apikey").value.trim();
-  const saveBtn = document.getElementById("btn-settings-save");
-  clearError(settingsKeyError);
-
-  // If the key changed, validate it
-  if (key && key !== settings.apiKey) {
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Validating…";
-    try {
-      await validateApiKey(key);
-      settings.apiKey = key;
-      settings.validated = true;
-    } catch {
-      showError(settingsKeyError, "Invalid API key. Make sure account and progression permissions are enabled.");
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Save";
-      return;
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Save";
-    }
-  } else if (!key && !settings.apiKey) {
-    showError(settingsKeyError, "Please enter an API key.");
-    return;
-  }
-
-  settings.maxResults   = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
-  settings.thresholdPct = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
-  saveSettings(settings);
-  closeModal("settings-overlay");
-  checkSetup();
-  updateCacheInfo();
-});
-
-document.getElementById("btn-cache-clear").addEventListener("click", () => {
-  clearCache();
-  updateCacheInfo();
-  updateFetchLabel();
-  setStatus("Cache cleared.");
-});
-
-// ── Legal modal ───────────────────────────────────────────────────────────────
-
-document.getElementById("btn-legal").addEventListener("click", () => openModal("legal-overlay"));
-document.getElementById("btn-legal-close").addEventListener("click", () => closeModal("legal-overlay"));
-document.getElementById("btn-legal-close-bottom").addEventListener("click", () => closeModal("legal-overlay"));
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 
@@ -338,11 +478,11 @@ function pctClass(pct) {
 }
 
 function barColor(pct) {
-  if (pct < 90) return `hsl(0, 0%, 55%)`;
-  const t = Math.max(0, Math.min(1, (pct - 90) / 10));
+  if (pct < 90) return "hsl(0,0%,50%)";
+  const t   = Math.max(0, Math.min(1, (pct - 90) / 10));
   const lit = Math.round(50 + t * 20);
   const sat = Math.round(40 + t * 35);
-  return `hsl(30, ${sat}%, ${lit}%)`;
+  return `hsl(30,${sat}%,${lit}%)`;
 }
 
 function renderRows(rows) {
@@ -374,22 +514,30 @@ function renderRows(rows) {
 }
 
 function setFetching(active) {
-  btnRefresh.disabled  = active || !settings.validated;
-  btnSettings.disabled = active;
-  tierToggle.disabled  = active;
+  btnRefresh.disabled = active || !settings.accounts.length;
   pageSpinner.classList.toggle("hidden", !active);
 }
 
+function updateSubtitle(count) {
+  const acc  = settings.accounts[settings.activeAccount];
+  const name = acc ? acc.name : "";
+  viewSubtitle.textContent = count != null
+    ? `${count} achievement${count !== 1 ? "s" : ""} · ${name}`
+    : name;
+}
+
 async function doFetch() {
-  if (!settings.apiKey || !settings.validated) return;
+  const key = activeApiKey();
+  if (!key) return;
   setFetching(true);
+  updateSubtitle(null);
   resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
   try {
-    const rows = await fetchAchievements(settings, msg => setStatus(msg));
+    const rows = await fetchAchievements(key, settings, msg => setStatus(msg));
     renderRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
+    updateSubtitle(rows.length);
     updateCacheInfo();
-    updateFetchLabel();
   } catch (e) {
     setStatus(e.message);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
@@ -398,143 +546,15 @@ async function doFetch() {
   }
 }
 
-btnRefresh.addEventListener("click", doFetch);
-
-// ── Tier toggle ───────────────────────────────────────────────────────────────
-
-tierToggle.value = settings.useFinalTier ? "last" : "next";
-
-tierToggle.addEventListener("change", async () => {
-  settings.useFinalTier = tierToggle.value === "last";
-  saveSettings(settings);
-  if (!lastProgressMap || !settings.apiKey || !settings.validated) return;
-  setFetching(true);
-  try {
-    const rows = await fetchAchievements(settings, msg => setStatus(msg), true);
-    renderRows(rows);
-    setStatus(`Loaded ${rows.length} achievements.`);
-  } catch (e) {
-    setStatus(e.message);
-  } finally {
-    setFetching(false);
-  }
+btnRefresh.addEventListener("click", () => {
+  lastProgressMap = null;
+  doFetch();
 });
-
-document.querySelectorAll(".number-spin button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const input = document.getElementById(btn.dataset.target);
-    const min = parseFloat(input.min);
-    const max = parseFloat(input.max);
-    const step = parseFloat(input.step) || 1;
-    const newVal = Math.min(max, Math.max(min, (parseFloat(input.value) || 0) + parseFloat(btn.dataset.delta) * step));
-    input.value = newVal;
-  });
-});
-
-// ── Eye toggles ───────────────────────────────────────────────────────────────
-
-document.querySelectorAll(".eye-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const input = document.getElementById(btn.dataset.target);
-    const show = input.type === "password";
-    input.type = show ? "text" : "password";
-    btn.innerHTML = show ? SVG_EYE_OFF : SVG_EYE;
-  });
-});
-
-function updateFetchLabel() {
-  const count = Object.keys(loadCache()).length;
-  btnRefresh.textContent = count ? "Update" : "Fetch";
-}
-
-// ── Scrollbar ─────────────────────────────────────────────────────────────────
-
-const scrollTrack   = document.getElementById("custom-scrollbar");
-const scrollThumb   = document.getElementById("custom-scrollbar-thumb");
-const scrollTrackEl = document.getElementById("custom-scrollbar-track");
-const scrollArrowUp = document.getElementById("scrollbar-arrow-up");
-const scrollArrowDn = document.getElementById("scrollbar-arrow-down");
-
-const SCROLL_STEP = 120;
-let sbScrollTimer;
-let sbDragging = false;
-let sbDragStartY, sbDragStartTop;
-let sbArrowInterval;
-
-function updateScrollThumb() {
-  const scrollTop    = window.scrollY;
-  const scrollHeight = document.documentElement.scrollHeight;
-  const clientHeight = window.innerHeight;
-  const trackH       = scrollTrackEl.clientHeight;
-  const canScroll    = scrollHeight > clientHeight;
-
-  scrollTrack.classList.toggle("active", canScroll);
-  scrollArrowUp.disabled = !canScroll || scrollTop <= 0;
-  scrollArrowDn.disabled = !canScroll || scrollTop >= scrollHeight - clientHeight;
-
-  if (!canScroll) {
-    scrollThumb.style.height = "0px";
-    scrollThumb.style.top    = "0px";
-    return;
-  }
-
-  const thumbH = Math.max(24, (clientHeight / scrollHeight) * trackH);
-  const maxTop = trackH - thumbH;
-  const top    = (scrollTop / (scrollHeight - clientHeight)) * maxTop;
-  scrollThumb.style.height = thumbH + "px";
-  scrollThumb.style.top    = top + "px";
-}
-
-window.addEventListener("scroll", () => {
-  updateScrollThumb();
-  scrollTrack.classList.add("scrolling");
-  clearTimeout(sbScrollTimer);
-  sbScrollTimer = setTimeout(() => scrollTrack.classList.remove("scrolling"), 800);
-});
-
-function startArrowScroll(delta) {
-  window.scrollBy({ top: delta, behavior: "smooth" });
-  sbArrowInterval = setInterval(() => window.scrollBy({ top: delta, behavior: "smooth" }), 150);
-}
-
-function stopArrowScroll() { clearInterval(sbArrowInterval); }
-
-scrollArrowUp.addEventListener("mousedown", e => { e.preventDefault(); startArrowScroll(-SCROLL_STEP); });
-scrollArrowDn.addEventListener("mousedown", e => { e.preventDefault(); startArrowScroll(SCROLL_STEP); });
-document.addEventListener("mouseup", stopArrowScroll);
-
-scrollThumb.addEventListener("mousedown", e => {
-  if (!scrollTrack.classList.contains("active")) return;
-  sbDragging     = true;
-  sbDragStartY   = e.clientY;
-  sbDragStartTop = parseFloat(scrollThumb.style.top) || 0;
-  e.preventDefault();
-});
-
-document.addEventListener("mousemove", e => {
-  if (!sbDragging) return;
-  const scrollHeight = document.documentElement.scrollHeight;
-  const clientHeight = window.innerHeight;
-  const trackH       = scrollTrackEl.clientHeight;
-  const thumbH       = parseFloat(scrollThumb.style.height) || 0;
-  const maxTop       = trackH - thumbH;
-  const newTop       = Math.max(0, Math.min(maxTop, sbDragStartTop + (e.clientY - sbDragStartY)));
-  window.scrollTo(0, (newTop / maxTop) * (scrollHeight - clientHeight));
-});
-
-document.addEventListener("mousemove", e => { if (!sbDragging) return; });
-document.addEventListener("mouseup", () => { sbDragging = false; });
-
-new ResizeObserver(updateScrollThumb).observe(document.body);
-window.addEventListener("resize", updateScrollThumb);
-
-updateScrollThumb();
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 checkSetup();
 updateCacheInfo();
-updateFetchLabel();
+if (settings.accounts.length) doFetch();
 
-if (settings.apiKey && settings.validated) doFetch();
 });
