@@ -60,6 +60,19 @@
 
     <main id="main-content">
 
+      <!-- Persistent top bar (title + search, survives view switches) -->
+      <div id="main-topbar">
+        <div id="main-topbar-left">
+          <h2 id="view-title">Nearly completed</h2>
+          <span id="view-subtitle" class="view-sub"></span>
+        </div>
+        <div id="global-search-wrap" class="global-search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="global-search-input" placeholder="Search achievements…" autocomplete="off" />
+          <div id="global-search-results" class="global-search-results hidden"></div>
+        </div>
+      </div>
+
       <!-- Setup view -->
       <div id="view-setup" class="view">
         <div class="setup-inner">
@@ -88,12 +101,6 @@
 
       <!-- Nearly completed view -->
       <div id="view-nearly-completed" class="view">
-        <div class="view-header">
-          <div>
-            <h2 id="view-title">Nearly completed</h2>
-            <span id="view-subtitle" class="view-sub"></span>
-          </div>
-        </div>
         <div class="table-wrap">
           <div id="page-spinner" class="spinner-overlay hidden">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
@@ -122,7 +129,7 @@
 
       <!-- Browse view -->
       <div id="view-browser" class="view">
-        <div class="view-header">
+        <div class="browser-view-header">
           <div>
             <h2 id="browser-cat-title">Browse achievements</h2>
             <span id="browser-cat-subtitle" class="view-sub">Select a category from the sidebar</span>
@@ -246,6 +253,32 @@
       <div class="modal-footer">
         <button id="btn-settings-cancel" class="btn">Cancel</button>
         <button id="btn-settings-save" class="btn primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement detail modal -->
+  <div class="modal-overlay" id="ach-modal-overlay">
+    <div class="modal ach-modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="ach-modal-title"></h2>
+        <div class="ach-modal-header-actions">
+          <button class="btn small" id="ach-modal-wiki-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Wiki
+          </button>
+          <button class="modal-close" id="ach-modal-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body ach-modal-body">
+        <div id="ach-modal-flags" class="ach-modal-flags hidden"></div>
+        <p id="ach-modal-desc" class="ach-modal-desc hidden"></p>
+        <p id="ach-modal-req" class="ach-modal-req hidden"></p>
+        <div id="ach-modal-progress-section" class="hidden"></div>
+        <div id="ach-modal-bits-section" class="hidden"></div>
+        <div id="ach-modal-rewards-section" class="hidden"></div>
       </div>
     </div>
   </div>

@@ -16,6 +16,8 @@ import {
   showError, clearError,
   showView, pctClass, barColor, rewardHtml,
 } from "./ui.js";
+import { openAchievementModal, initAchModal, setModalProgressMap } from "./ach-modal.js";
+import { initSearch } from "./search.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -54,6 +56,7 @@ const browserTitle      = document.getElementById("browser-cat-title");
 const browserSubtitle   = document.getElementById("browser-cat-subtitle");
 const browserSpinner    = document.getElementById("browser-spinner");
 const browserStatusText = document.getElementById("browser-status-text");
+const viewTitle         = document.getElementById("view-title");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -82,13 +85,26 @@ function updateSubtitle(count) {
     : name;
 }
 
+function openAchFromCache(id) {
+  const cache = loadCache();
+  const ach = cache[id];
+  if (ach) openAchievementModal(ach, null);
+}
+
 // ── View routing ──────────────────────────────────────────────────────────────
 
 function navigateTo(name) {
   currentView = name;
   showView(name);
   browserTree.classList.toggle("hidden", name !== "browser");
-  if (name === "browser") initBrowser();
+  // Update topbar title for nearly-completed; browser has its own sub-header
+  if (name === "nearly-completed") {
+    viewTitle.textContent = "Nearly completed";
+  } else if (name === "browser") {
+    viewTitle.textContent = "Browse";
+    viewSubtitle.textContent = "";
+    initBrowser();
+  }
 }
 
 document.querySelectorAll(".nav-item[data-view]").forEach(item => {
@@ -184,7 +200,6 @@ function renderNearlyDoneRows(rows) {
   resultsBody.classList.remove("fade-in");
   void resultsBody.offsetWidth;
   resultsBody.innerHTML = visible.map(row => {
-    const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const pct     = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
     return `<tr>
@@ -198,11 +213,14 @@ function renderNearlyDoneRows(rows) {
         </div>
       </td>
       <td class="col-name">
-        <a class="ach-link" href="${wikiUrl}" target="_blank" rel="noopener">${row.name}</a>
+        <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
       </td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
     </tr>`;
   }).join("");
+  resultsBody.querySelectorAll(".ach-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
   resultsBody.classList.add("fade-in");
 }
 
@@ -216,6 +234,7 @@ async function doFetch() {
     const rows = await fetchNearlyDone(key, settings, msg => setStatus(msg));
     lastNearlyDoneRows = rows;
     setProgressMap(getProgressMap());
+    setModalProgressMap(getProgressMap());
     recomputeCatDoneStates(settings.hideCompleted);
     renderNearlyDoneRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
@@ -256,6 +275,7 @@ async function initBrowser(forceRefresh = false) {
         setBrowserStatus("Fetching account progression…");
         await fetchNearlyDone(key, settings, () => {});
         setProgressMap(getProgressMap());
+        setModalProgressMap(getProgressMap());
       }
     }
 
@@ -312,7 +332,6 @@ function renderBrowserRows(rows) {
   void browserBody.offsetWidth;
 
   browserBody.innerHTML = visible.map(row => {
-    const wikiUrl     = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const hasProgress = row.percent !== null;
     const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
 
@@ -337,11 +356,15 @@ function renderBrowserRows(rows) {
       <td class="col-pct">${pctCell}</td>
       <td class="col-prog">${progCell}</td>
       <td class="col-name">
-        <a class="ach-link" href="${wikiUrl}" target="_blank" rel="noopener">${row.name}</a>
+        <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
       </td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
     </tr>`;
   }).join("");
+
+  browserBody.querySelectorAll(".ach-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
 
   browserBody.classList.add("fade-in");
 }
@@ -442,8 +465,7 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   settings.useFinalTier  = document.getElementById("s-tier").value === "last";
   settings.hideCompleted = document.getElementById("s-hide-completed").checked;
   saveSettings(settings);
-  recomputeCatDoneStates(settings.hideCompleted);  // ← add this
-  // Also re-render current view rows if browser is open
+  recomputeCatDoneStates(settings.hideCompleted);
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
   if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
   closeModal("settings-overlay");
@@ -497,6 +519,8 @@ document.querySelectorAll(".number-spin button").forEach(btn => {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
+initAchModal();
+initSearch(ach => openAchievementModal(ach, null));
 checkSetup();
 updateCacheInfo();
 if (settings.accounts.length) doFetch();
