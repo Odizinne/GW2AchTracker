@@ -1,5 +1,5 @@
 import { rewardHtml } from "./ui.js";
-import { persistentItemNameMap, persistentTitleNameMap } from "./cache.js";
+import { persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap } from "./cache.js";
 
 let _progressMap = null;
 export function setModalProgressMap(map) { _progressMap = map; }
@@ -21,15 +21,7 @@ export function openAchievementModal(ach, progressEntry) {
   reqEl.textContent = ach.requirement || "";
   reqEl.classList.toggle("hidden", !ach.requirement);
 
-  // ── Flags / type ──────────────────────────────────────────────────────────
-  const flagsEl = document.getElementById("ach-modal-flags");
-  const SHOWN_FLAGS = new Set(["Daily", "Weekly", "Monthly", "Repeatable"]);
-  const badgeFlags = (ach.flags || []).filter(f => SHOWN_FLAGS.has(f));
-  if (ach.type && ach.type !== "Default") badgeFlags.unshift(ach.type);
-  flagsEl.innerHTML = badgeFlags.map(f =>
-    `<span class="ach-badge">${f}</span>`
-  ).join("");
-  flagsEl.classList.toggle("hidden", !badgeFlags.length);
+  document.getElementById("ach-modal-flags").classList.add("hidden");
 
   // ── Progress ──────────────────────────────────────────────────────────────
   const progressSection = document.getElementById("ach-modal-progress-section");
@@ -83,7 +75,7 @@ export function openAchievementModal(ach, progressEntry) {
       if      (bit.type === "Text")    label = bit.text || `Step ${i + 1}`;
       else if (bit.type === "Item")    label = persistentItemNameMap[bit.id] || `Item #${bit.id}`;
       else if (bit.type === "Minipet") label = persistentItemNameMap[bit.id] || `Minipet #${bit.id}`;
-      else if (bit.type === "Skin")    label = `Skin #${bit.id}`;
+      else if (bit.type === "Skin")    label = persistentSkinNameMap[bit.id]  || `Skin #${bit.id}`;
       else                             label = `Step ${i + 1}`;
       return `<div class="ach-bit ${done ? "bit-done" : ""}">
         <span class="bit-check">${done ? "✓" : "○"}</span>

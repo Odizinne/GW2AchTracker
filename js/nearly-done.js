@@ -1,8 +1,8 @@
 import { apiFetch, fetchInBatches, formatRewards } from "./api.js";
 import {
   loadCache, saveCache,
-  persistentItemNameMap, persistentTitleNameMap,
-  saveItemNamesCache, saveTitleNamesCache,
+  persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap,
+  saveItemNamesCache, saveTitleNamesCache, saveSkinNamesCache,
 } from "./cache.js";
 
 let lastProgressMap = null;
@@ -31,12 +31,17 @@ export async function ensureDefinitionCache(onStatus) {
   }
 }
 
-// Step 1b — pre-fetch all reward item/title names across every cached achievement.
+// Step 1b — pre-fetch all reward item/title names and bit item/skin names.
 export async function ensureRewardNames(onStatus) {
   const cache   = loadCache();
-  const rewards = Object.values(cache).flatMap(ach => ach.rewards || []);
+  const achs    = Object.values(cache);
+  const rewards = achs.flatMap(ach => ach.rewards || []);
+  const bits    = achs.flatMap(ach => ach.bits    || []);
 
-  const itemIds    = [...new Set(rewards.filter(r => r.type === "Item"  && r.id).map(r => r.id))];
+  const itemIds = [...new Set([
+    ...rewards.filter(r => r.type === "Item" && r.id).map(r => r.id),
+    ...bits.filter(b => (b.type === "Item" || b.type === "Minipet") && b.id).map(b => b.id),
+  ])];
   const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
   if (newItemIds.length) {
     onStatus(`Fetching names for ${newItemIds.length} items…`);
@@ -52,6 +57,21 @@ export async function ensureRewardNames(onStatus) {
     const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang: "en" });
     for (const title of titles) persistentTitleNameMap[title.id] = title.name;
     saveTitleNamesCache();
+  }
+
+  const skinIds    = [...new Set(bits.filter(b => b.type === "Skin" && b.id).map(b => b.id))];
+  const newSkinIds = skinIds.filter(id => !(id in persistentSkinNameMap));
+  if (newSkinIds.length) {
+    onStatus(`Fetching names for ${newSkinIds.length} skins…`);
+    try {
+      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang: "en" });
+      const found = new Set(skins.map(s => s.id));
+      for (const skin of skins) persistentSkinNameMap[skin.id] = skin.name;
+      for (const id of newSkinIds) if (!found.has(id)) persistentSkinNameMap[id] = null;
+    } catch {
+      for (const id of newSkinIds) persistentSkinNameMap[id] = null;
+    }
+    saveSkinNamesCache();
   }
 }
 

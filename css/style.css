@@ -67,9 +67,11 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg2);
-  border-right: 1px solid var(--border);
-  height: 100vh;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 14px 0 14px 16px;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .sb-logo {
@@ -378,6 +380,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  padding: 14px 16px;
 }
 
 /* ── Persistent top bar ── */
@@ -389,9 +392,12 @@ body {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg2);
   min-height: 60px;
+  box-shadow: var(--shadow);
 }
 
 #main-topbar-left {
@@ -411,11 +417,19 @@ body {
   overflow: hidden;
   display: none;
   min-height: 0;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .view.active-view { display: flex; }
 
 /* ── Setup view ── */
+#view-setup {
+  border-color: transparent;
+}
+
 .setup-inner {
   flex: 1;
   display: flex;

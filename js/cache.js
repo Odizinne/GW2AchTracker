@@ -4,12 +4,16 @@ function _loadJson(key) {
 
 export let persistentItemNameMap  = _loadJson("gw2_item_names");
 export let persistentTitleNameMap = _loadJson("gw2_title_names");
+export let persistentSkinNameMap  = _loadJson("gw2_skin_names");
 
 export function saveItemNamesCache()  {
   try { localStorage.setItem("gw2_item_names",  JSON.stringify(persistentItemNameMap));  } catch {}
 }
 export function saveTitleNamesCache() {
   try { localStorage.setItem("gw2_title_names", JSON.stringify(persistentTitleNameMap)); } catch {}
+}
+export function saveSkinNamesCache()  {
+  try { localStorage.setItem("gw2_skin_names",  JSON.stringify(persistentSkinNameMap));  } catch {}
 }
 
 let _memCache = null;
@@ -44,8 +48,10 @@ export function clearCache() {
   localStorage.removeItem("gw2_categories_cache");
   localStorage.removeItem("gw2_item_names");
   localStorage.removeItem("gw2_title_names");
+  localStorage.removeItem("gw2_skin_names");
   persistentItemNameMap  = {};
   persistentTitleNameMap = {};
+  persistentSkinNameMap  = {};
 }
 
 export function loadGroupsCache() {
