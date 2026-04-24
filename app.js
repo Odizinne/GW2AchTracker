@@ -6,8 +6,19 @@ const DEFAULT_SETTINGS = {
 };
 
 function loadSettings() {
-  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("gw2_settings") || "{}") }; }
-  catch { return { ...DEFAULT_SETTINGS }; }
+  try {
+    const stored = JSON.parse(localStorage.getItem("gw2_settings") || "{}");
+    const merged = { ...DEFAULT_SETTINGS, ...stored };
+    // Migrate: if a key exists from before the validated flag was introduced,
+    // trust it rather than forcing re-validation on every update.
+    if (stored.apiKey && !("validated" in stored)) {
+      merged.validated = true;
+      localStorage.setItem("gw2_settings", JSON.stringify(merged));
+    }
+    return merged;
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
 }
 function saveSettings(s) { localStorage.setItem("gw2_settings", JSON.stringify(s)); }
 
