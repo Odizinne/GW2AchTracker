@@ -436,6 +436,89 @@ function updateFetchLabel() {
   btnRefresh.textContent = count ? "Update" : "Fetch";
 }
 
+// ── Scrollbar ─────────────────────────────────────────────────────────────────
+
+const scrollTrack   = document.getElementById("custom-scrollbar");
+const scrollThumb   = document.getElementById("custom-scrollbar-thumb");
+const scrollTrackEl = document.getElementById("custom-scrollbar-track");
+const scrollArrowUp = document.getElementById("scrollbar-arrow-up");
+const scrollArrowDn = document.getElementById("scrollbar-arrow-down");
+
+const SCROLL_STEP = 120;
+let sbScrollTimer;
+let sbDragging = false;
+let sbDragStartY, sbDragStartTop;
+let sbArrowInterval;
+
+function updateScrollThumb() {
+  const scrollTop    = window.scrollY;
+  const scrollHeight = document.documentElement.scrollHeight;
+  const clientHeight = window.innerHeight;
+  const trackH       = scrollTrackEl.clientHeight;
+  const canScroll    = scrollHeight > clientHeight;
+
+  scrollTrack.classList.toggle("active", canScroll);
+  scrollArrowUp.disabled = !canScroll || scrollTop <= 0;
+  scrollArrowDn.disabled = !canScroll || scrollTop >= scrollHeight - clientHeight;
+
+  if (!canScroll) {
+    scrollThumb.style.height = "0px";
+    scrollThumb.style.top    = "0px";
+    return;
+  }
+
+  const thumbH = Math.max(24, (clientHeight / scrollHeight) * trackH);
+  const maxTop = trackH - thumbH;
+  const top    = (scrollTop / (scrollHeight - clientHeight)) * maxTop;
+  scrollThumb.style.height = thumbH + "px";
+  scrollThumb.style.top    = top + "px";
+}
+
+window.addEventListener("scroll", () => {
+  updateScrollThumb();
+  scrollTrack.classList.add("scrolling");
+  clearTimeout(sbScrollTimer);
+  sbScrollTimer = setTimeout(() => scrollTrack.classList.remove("scrolling"), 800);
+});
+
+function startArrowScroll(delta) {
+  window.scrollBy({ top: delta, behavior: "smooth" });
+  sbArrowInterval = setInterval(() => window.scrollBy({ top: delta, behavior: "smooth" }), 150);
+}
+
+function stopArrowScroll() { clearInterval(sbArrowInterval); }
+
+scrollArrowUp.addEventListener("mousedown", e => { e.preventDefault(); startArrowScroll(-SCROLL_STEP); });
+scrollArrowDn.addEventListener("mousedown", e => { e.preventDefault(); startArrowScroll(SCROLL_STEP); });
+document.addEventListener("mouseup", stopArrowScroll);
+
+scrollThumb.addEventListener("mousedown", e => {
+  if (!scrollTrack.classList.contains("active")) return;
+  sbDragging     = true;
+  sbDragStartY   = e.clientY;
+  sbDragStartTop = parseFloat(scrollThumb.style.top) || 0;
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove", e => {
+  if (!sbDragging) return;
+  const scrollHeight = document.documentElement.scrollHeight;
+  const clientHeight = window.innerHeight;
+  const trackH       = scrollTrackEl.clientHeight;
+  const thumbH       = parseFloat(scrollThumb.style.height) || 0;
+  const maxTop       = trackH - thumbH;
+  const newTop       = Math.max(0, Math.min(maxTop, sbDragStartTop + (e.clientY - sbDragStartY)));
+  window.scrollTo(0, (newTop / maxTop) * (scrollHeight - clientHeight));
+});
+
+document.addEventListener("mousemove", e => { if (!sbDragging) return; });
+document.addEventListener("mouseup", () => { sbDragging = false; });
+
+new ResizeObserver(updateScrollThumb).observe(document.body);
+window.addEventListener("resize", updateScrollThumb);
+
+updateScrollThumb();
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 checkSetup();

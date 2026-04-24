@@ -417,6 +417,85 @@ option {
   max-width: 280px;
 }
 
+html {
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-scrollbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 14px;
+  bottom: 0;
+  background: var(--bg3);
+  border-left: 1px solid var(--border-soft);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollbar-arrow {
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
+  flex-shrink: 0;
+  background: var(--bg3);
+  border: none;
+  border-radius: 0;
+  color: var(--muted);
+  font-size: 8px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.scrollbar-arrow:hover:not(:disabled) {
+  background: var(--bg4);
+  color: var(--text);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.scrollbar-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.custom-scrollbar-track {
+  flex: 1;
+  position: relative;
+}
+
+.custom-scrollbar-thumb {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  min-height: 24px;
+  background: var(--muted);
+  border-radius: 99px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+  cursor: default;
+  pointer-events: none;
+}
+
+.custom-scrollbar.active .custom-scrollbar-thumb {
+  opacity: 0.7;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.custom-scrollbar.scrolling .custom-scrollbar-thumb {
+  opacity: 1;
+}
+
 /* ── Results table ── */
 #results-panel {
   overflow-x: auto;
@@ -453,6 +532,16 @@ option {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.footer-link img {
+  opacity: 0.55;
+  filter: invert(1);
+  transition: opacity 0.15s;
+}
+
+.footer-link:hover img {
+  opacity: 1;
 }
 
 #results-table tbody tr:nth-child(odd)  td { background: var(--stripe-odd); }
