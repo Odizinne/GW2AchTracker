@@ -80,18 +80,21 @@
       </div>
 
       <div id="view-nearly-completed" class="view">
-        <div class="view-header">
-          <div>
-            <h2 id="view-title">Nearly completed</h2>
-            <span id="view-subtitle" class="view-sub"></span>
-          </div>
-          <div id="page-spinner" class="spinner hidden">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            <span id="status-text"></span>
-          </div>
+      <div class="view-header">
+        <div>
+          <h2 id="view-title">Nearly completed</h2>
+          <span id="view-subtitle" class="view-sub"></span>
         </div>
-        <div class="table-wrap">
-          <table id="results-table">
+      </div>
+      <div class="table-wrap">
+        <div id="page-spinner" class="spinner-overlay hidden">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+          </svg>
+          <span id="status-text"></span>
+        </div>
+        <table id="results-table">
             <thead>
               <tr>
                 <th class="col-pct">%</th>

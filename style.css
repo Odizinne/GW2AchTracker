@@ -212,6 +212,20 @@ body {
   color: var(--muted);
 }
 
+.spinner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  z-index: 2;
+}
+
 .sb-link svg,
 .sb-link-icon {
   flex-shrink: 0;
@@ -365,6 +379,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative; /* ADD THIS */
   scrollbar-width: thin;
   scrollbar-color: var(--bg4) transparent;
 }

@@ -531,7 +531,7 @@ async function doFetch() {
   if (!key) return;
   setFetching(true);
   updateSubtitle(null);
-  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
+  resultsBody.innerHTML = "";
   try {
     const rows = await fetchAchievements(key, settings, msg => setStatus(msg));
     renderRows(rows);
