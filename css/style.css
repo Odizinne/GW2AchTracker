@@ -733,6 +733,23 @@ input:focus { border-color: var(--accent); }
   gap: 12px;
 }
 
+.settings-grid select {
+  width: 100%;
+  padding: 6px 28px 6px 9px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+
+.settings-grid select:focus { outline: none; border-color: var(--accent); }
+
 /* ── Accounts list ── */
 .accounts-list {
   display: flex;
@@ -781,6 +798,29 @@ input:focus { border-color: var(--accent); }
 .form-row { display: flex; gap: 10px; margin-bottom: 0.75rem; }
 .form-row .form-field { flex: 1; margin-bottom: 0; }
 .form-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; }
+
+.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* prevent the generic input rule from stretching the checkbox */
+.checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
 
 /* ── Cache row ── */
 .cache-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

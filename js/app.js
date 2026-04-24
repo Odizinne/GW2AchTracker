@@ -25,6 +25,7 @@ let settings           = loadSettings();
 let currentView        = "nearly-completed";
 let browserInitialized = false;
 let activeCat          = null;
+let lastNearlyDoneRows = [];
 
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
@@ -175,13 +176,14 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
 // ── Nearly completed ──────────────────────────────────────────────────────────
 
 function renderNearlyDoneRows(rows) {
-  if (!rows.length) {
+  const visible = settings.hideCompleted ? rows.filter(r => r.percent < 100) : rows;
+  if (!visible.length) {
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
     return;
   }
   resultsBody.classList.remove("fade-in");
   void resultsBody.offsetWidth;
-  resultsBody.innerHTML = rows.map(row => {
+  resultsBody.innerHTML = visible.map(row => {
     const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const pct     = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
@@ -212,14 +214,14 @@ async function doFetch() {
   resultsBody.innerHTML = "";
   try {
     const rows = await fetchNearlyDone(key, settings, msg => setStatus(msg));
+    lastNearlyDoneRows = rows;
     setProgressMap(getProgressMap());
-    recomputeCatDoneStates();
+    recomputeCatDoneStates(settings.hideCompleted);
     renderNearlyDoneRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
     updateSubtitle(rows.length);
     updateCacheInfo();
 
-    // If browser is open on a category, refresh it with the new progress
     if (currentView === "browser" && activeCat) {
       selectCategory(activeCat);
     }
@@ -248,7 +250,6 @@ async function initBrowser(forceRefresh = false) {
   try {
     await ensureBrowserData(msg => setBrowserStatus(msg));
 
-    // If no progress map yet, fetch silently so tints are available immediately
     if (!getProgressMap()) {
       const key = activeApiKey();
       if (key) {
@@ -260,7 +261,7 @@ async function initBrowser(forceRefresh = false) {
 
     browserTree.innerHTML = "";
     renderBrowserTree(browserTree, cat => selectCategory(cat));
-    recomputeCatDoneStates();
+    recomputeCatDoneStates(settings.hideCompleted);
     browserInitialized = true;
     setBrowserStatus("");
 
@@ -301,7 +302,8 @@ async function selectCategory(cat) {
 }
 
 function renderBrowserRows(rows) {
-  if (!rows.length) {
+  const visible = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+  if (!visible.length) {
     browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements in this category.</td></tr>`;
     return;
   }
@@ -309,7 +311,7 @@ function renderBrowserRows(rows) {
   browserBody.classList.remove("fade-in");
   void browserBody.offsetWidth;
 
-  browserBody.innerHTML = rows.map(row => {
+  browserBody.innerHTML = visible.map(row => {
     const wikiUrl     = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const hasProgress = row.percent !== null;
     const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
@@ -383,9 +385,10 @@ function renderAccountsList() {
 }
 
 btnSettings.addEventListener("click", () => {
-  document.getElementById("s-maxresults").value = settings.maxResults;
-  document.getElementById("s-threshold").value  = settings.thresholdPct;
-  document.getElementById("s-tier").value = settings.useFinalTier ? "last" : "next";
+  document.getElementById("s-maxresults").value    = settings.maxResults;
+  document.getElementById("s-threshold").value     = settings.thresholdPct;
+  document.getElementById("s-tier").value          = settings.useFinalTier ? "last" : "next";
+  document.getElementById("s-hide-completed").checked = settings.hideCompleted;
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -434,10 +437,15 @@ document.getElementById("btn-settings-close").addEventListener("click",  () => c
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
 document.getElementById("btn-settings-save").addEventListener("click", () => {
-  settings.maxResults   = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
-  settings.thresholdPct = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
-  settings.useFinalTier = document.getElementById("s-tier").value === "last";
+  settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
+  settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
+  settings.useFinalTier  = document.getElementById("s-tier").value === "last";
+  settings.hideCompleted = document.getElementById("s-hide-completed").checked;
   saveSettings(settings);
+  recomputeCatDoneStates(settings.hideCompleted);  // ← add this
+  // Also re-render current view rows if browser is open
+  if (currentView === "browser" && activeCat) selectCategory(activeCat);
+  if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
   closeModal("settings-overlay");
 });
 

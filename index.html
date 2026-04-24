@@ -39,7 +39,6 @@
           Browse
         </button>
 
-        <!-- Browser tree — shown only when Browse is active -->
         <div id="browser-tree" class="browser-tree hidden"></div>
       </nav>
 
@@ -221,12 +220,18 @@
               </div>
             </label>
             <label class="field-label">Tier target
-              <select id="s-tier">
-                <option value="next">Next tier</option>
-                <option value="last">Final tier</option>
-              </select>
+              <div class="sb-select-wrap">
+                <select id="s-tier">
+                  <option value="next">Next tier</option>
+                  <option value="last">Final tier</option>
+                </select>
+              </div>
             </label>
           </div>
+          <label class="field-label checkbox-label">
+            <input type="checkbox" id="s-hide-completed" />
+            Hide completed achievements
+          </label>
         </section>
 
         <section class="settings-section">

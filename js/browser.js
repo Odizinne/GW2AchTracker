@@ -141,7 +141,7 @@ function _updateGroupDoneClass(groupEl) {
 // Walk all categories against the current progressMap and update catDoneMap
 // + live sidebar buttons. Call this after every fetch so tints appear without
 // requiring the user to click each category first.
-export function recomputeCatDoneStates() {
+export function recomputeCatDoneStates(hideCompleted = false) {
   if (!progressMap || !groups || !categories) return;
 
   for (const group of groups) {
@@ -157,10 +157,12 @@ export function recomputeCatDoneStates() {
       catDoneMap[cat.id] = allDone;
 
       const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
-      if (btn) btn.classList.toggle("done-cat", allDone);
+      if (btn) {
+        btn.classList.toggle("done-cat", allDone);
+        btn.classList.toggle("hidden", hideCompleted && allDone);
+      }
     }
 
-    // Update group header
     const header = document.querySelector(`.browser-group-header[data-group-id="${group.id}"]`);
     if (header) {
       const allCatsDone = catNodes.length > 0 && catNodes.every(c => catDoneMap[c.id] === true);

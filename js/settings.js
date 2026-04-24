@@ -4,6 +4,7 @@ const DEFAULT_SETTINGS = {
   maxResults: 40,
   thresholdPct: 80,
   useFinalTier: false,
+  hideCompleted: false,
 };
 
 export function loadSettings() {
