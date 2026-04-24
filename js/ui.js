@@ -7,7 +7,7 @@ export function closeModal(id) { document.getElementById(id).classList.remove("o
 export function showError(el, msg) { el.textContent = msg; el.classList.remove("hidden"); }
 export function clearError(el)     { el.textContent = ""; el.classList.add("hidden"); }
 
-export function showView(name, settings) {
+export function showView(name) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active-view"));
   document.querySelectorAll(".nav-item[data-view]").forEach(n => {
     n.classList.toggle("active", n.dataset.view === name);
@@ -37,6 +37,9 @@ export function barColor(pct) {
 
 export function rewardHtml(rewardStr) {
   return rewardStr
-    .replace(/AP:(\d+)/, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
+    .replace(/AP:(\d+)/g, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
+    .replace(/MASTERY:([A-Za-z_]+)/g, (_, file) =>
+      `<img src="assets/mastery/${file}.png" class="mastery-icon" alt="${file.replace(/_/g, " ")}">`
+    )
     .replace(/\[([^\]]+)\]/g, '[<em>$1</em>]');
 }

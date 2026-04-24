@@ -1,5 +1,16 @@
 const BASE = "https://api.guildwars2.com/v2";
 
+const MASTERY_REGION_MAP = {
+  Tyria:   "Tyria",
+  Maguuma: "Heart_of_Thorns",
+  Desert:  "Path_of_Fire",
+  Tundra:  "Icebrood_Saga",
+  Jade:    "End_of_Dragons",
+  Sky:     "Secrets_of_the_Obscure",
+  Wild:    "Janthir_Wilds",
+  Magic:   "Visions_of_Eternity",
+};
+
 export async function apiFetch(endpoint, params = {}, apiKey = "") {
   const url = new URL(BASE + endpoint);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
@@ -36,13 +47,12 @@ export function formatRewards(rewards, itemNameMap, titleNameMap, points) {
       const name = itemNameMap[r.id] || `Item#${r.id}`;
       parts.push(r.count > 1 ? `${r.count}x ${name}` : name);
     } else if (r.type === "Mastery") {
-      parts.push(`Mastery(${r.region || "?"})`);
+      const file = MASTERY_REGION_MAP[r.region] || "Tyria";
+      parts.push(`MASTERY:${file}`);
     } else if (r.type === "Title") {
       const name = titleNameMap[r.id];
-      parts.push(name ? `[${name}]` : `[Title]`);
-    } else {
-      parts.push(`[${r.type}]`);
+      parts.push(name ? `[${name}]` : `[Title#${r.id}]`);
     }
   }
-  return parts.join(" | ") || "—";
+  return parts.join(" · ");
 }

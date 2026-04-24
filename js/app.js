@@ -1,12 +1,14 @@
-import { validateApiKey }                              from "./api.js";
-import { clearCache, loadCache }                       from "./cache.js";
-import { loadSettings, saveSettings }                  from "./settings.js";
-import { fetchNearlyDone, resetProgress, getProgressMap } from "./nearly-done.js";
+import { validateApiKey }                                  from "./api.js";
+import { clearCache, loadCache }                           from "./cache.js";
+import { loadSettings, saveSettings }                      from "./settings.js";
+import { fetchNearlyDone, resetProgress, getProgressMap }  from "./nearly-done.js";
 import {
   ensureBrowserData,
   loadCategoryAchievements,
   renderBrowserTree,
   setProgressMap,
+  resetBrowserState,
+  recomputeCatDoneStates,
 } from "./browser.js";
 import {
   SVG_EYE, SVG_EYE_OFF, SVG_TRASH,
@@ -19,9 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
-let settings = loadSettings();
-let currentView = "nearly-completed";
+let settings           = loadSettings();
+let currentView        = "nearly-completed";
 let browserInitialized = false;
+let activeCat          = null;
 
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
@@ -121,12 +124,13 @@ accountSelect.addEventListener("change", () => {
   saveSettings(settings);
   resetProgress();
   setProgressMap(null);
+  activeCat = null;
+  browserInitialized = false;
+  resetBrowserState();
   if (currentView === "nearly-completed") {
     doFetch();
   } else if (currentView === "browser") {
-    // Re-init browser with fresh progress for the new account
-    browserInitialized = false;
-    initBrowser();
+    initBrowser(true);
   }
 });
 
@@ -208,11 +212,17 @@ async function doFetch() {
   resultsBody.innerHTML = "";
   try {
     const rows = await fetchNearlyDone(key, settings, msg => setStatus(msg));
-    setProgressMap(getProgressMap()); // share with browser module
+    setProgressMap(getProgressMap());
+    recomputeCatDoneStates();
     renderNearlyDoneRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
     updateSubtitle(rows.length);
     updateCacheInfo();
+
+    // If browser is open on a category, refresh it with the new progress
+    if (currentView === "browser" && activeCat) {
+      selectCategory(activeCat);
+    }
   } catch (e) {
     setStatus(e.message);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
@@ -229,8 +239,8 @@ btnRefresh.addEventListener("click", () => {
 
 // ── Browser ───────────────────────────────────────────────────────────────────
 
-async function initBrowser() {
-  if (browserInitialized) return;
+async function initBrowser(forceRefresh = false) {
+  if (browserInitialized && !forceRefresh) return;
 
   setBrowserFetching(true);
   setBrowserStatus("Loading achievement tree…");
@@ -238,21 +248,29 @@ async function initBrowser() {
   try {
     await ensureBrowserData(msg => setBrowserStatus(msg));
 
-    // If no progress yet (user went to browser before nearly-done loaded),
-    // fetch it now so the browser can show per-achievement progress.
+    // If no progress map yet, fetch silently so tints are available immediately
     if (!getProgressMap()) {
       const key = activeApiKey();
       if (key) {
         setBrowserStatus("Fetching account progression…");
-        // Trigger a silent nearly-done fetch just to populate the progress map.
         await fetchNearlyDone(key, settings, () => {});
         setProgressMap(getProgressMap());
       }
     }
 
+    browserTree.innerHTML = "";
     renderBrowserTree(browserTree, cat => selectCategory(cat));
+    recomputeCatDoneStates();
     browserInitialized = true;
     setBrowserStatus("");
+
+    if (activeCat) {
+      selectCategory(activeCat);
+    } else {
+      browserTitle.textContent    = "Browse achievements";
+      browserSubtitle.textContent = "Select a category from the sidebar";
+      browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">Select a category from the sidebar to browse.</td></tr>`;
+    }
   } catch (e) {
     setBrowserStatus("Failed to load: " + e.message);
   } finally {
@@ -261,6 +279,7 @@ async function initBrowser() {
 }
 
 async function selectCategory(cat) {
+  activeCat = cat;
   browserTitle.textContent    = cat.name;
   browserSubtitle.textContent = "";
   browserBody.innerHTML       = "";
@@ -291,11 +310,11 @@ function renderBrowserRows(rows) {
   void browserBody.offsetWidth;
 
   browserBody.innerHTML = rows.map(row => {
-    const wikiUrl  = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
+    const wikiUrl     = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(row.name.replace(/ /g, "_"))}`;
     const hasProgress = row.percent !== null;
-    const fillPct  = hasProgress ? Math.min(100, row.percent) : 0;
+    const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
 
-    const pctCell  = row.done
+    const pctCell = row.done
       ? `<span class="pct-done">✓</span>`
       : hasProgress
         ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
@@ -393,10 +412,8 @@ document.getElementById("btn-add-account-save").addEventListener("click", async 
   if (!name) { showError(newAccountError, "Please enter a name."); return; }
   if (!key)  { showError(newAccountError, "Please enter an API key."); return; }
   clearError(newAccountError);
-
   const btn = document.getElementById("btn-add-account-save");
-  btn.disabled = true;
-  btn.textContent = "Validating…";
+  btn.disabled = true; btn.textContent = "Validating…";
   try {
     await validateApiKey(key);
     settings.accounts.push({ name, apiKey: key });
@@ -409,8 +426,7 @@ document.getElementById("btn-add-account-save").addEventListener("click", async 
   } catch {
     showError(newAccountError, "Invalid API key. Make sure account and progression permissions are enabled.");
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Save account";
+    btn.disabled = false; btn.textContent = "Save account";
   }
 });
 
@@ -428,10 +444,11 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
 document.getElementById("btn-cache-clear").addEventListener("click", () => {
   clearCache();
   browserInitialized = false;
+  activeCat = null;
+  resetBrowserState();
+  browserTree.innerHTML = "";
   updateCacheInfo();
   setStatus("Cache cleared.");
-  // Rebuild tree container so it's empty and ready for re-init
-  browserTree.innerHTML = "";
 });
 
 // ── Legal & GitHub ────────────────────────────────────────────────────────────
