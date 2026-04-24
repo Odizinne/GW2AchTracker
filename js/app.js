@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let settings           = loadSettings();
+applyTheme(settings.theme);
 let currentView        = "nearly-completed";
 let browserInitialized = false;
 let activeCat          = null;
@@ -89,6 +90,10 @@ function openAchFromCache(id) {
   const cache = loadCache();
   const ach = cache[id];
   if (ach) openAchievementModal(ach, null);
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
 }
 
 // ── View routing ──────────────────────────────────────────────────────────────
@@ -412,6 +417,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-threshold").value     = settings.thresholdPct;
   document.getElementById("s-tier").value          = settings.useFinalTier ? "last" : "next";
   document.getElementById("s-hide-completed").checked = settings.hideCompleted;
+  document.getElementById("s-light-mode").checked = settings.theme === "light";
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -464,6 +470,8 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
   settings.useFinalTier  = document.getElementById("s-tier").value === "last";
   settings.hideCompleted = document.getElementById("s-hide-completed").checked;
+  settings.theme = document.getElementById("s-light-mode").checked ? "light" : "dark";
+  applyTheme(settings.theme);
   saveSettings(settings);
   recomputeCatDoneStates(settings.hideCompleted);
   if (currentView === "browser" && activeCat) selectCategory(activeCat);

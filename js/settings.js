@@ -5,6 +5,7 @@ const DEFAULT_SETTINGS = {
   thresholdPct: 80,
   useFinalTier: false,
   hideCompleted: false,
+  theme: "dark",
 };
 
 export function loadSettings() {
