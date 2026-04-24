@@ -73,6 +73,7 @@
           <input type="text" id="global-search-input" placeholder="Search achievements…" autocomplete="off" />
           <div id="global-search-results" class="global-search-results hidden"></div>
         </div>
+        <div id="loading-bar" class="hidden"></div>
       </div>
 
       <!-- Setup view -->
@@ -104,13 +105,6 @@
       <!-- Nearly completed view -->
       <div id="view-nearly-completed" class="view">
         <div class="table-wrap">
-          <div id="page-spinner" class="spinner-overlay hidden">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
-              <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
-              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-            </svg>
-            <span id="status-text"></span>
-          </div>
           <table id="results-table">
             <thead>
               <tr>
@@ -138,13 +132,6 @@
           </div>
         </div>
         <div class="table-wrap">
-          <div id="browser-spinner" class="spinner-overlay hidden">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
-              <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
-              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-            </svg>
-            <span id="browser-status-text"></span>
-          </div>
           <table id="browser-table">
             <thead>
               <tr>

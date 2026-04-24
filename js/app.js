@@ -43,8 +43,7 @@ const btnSettings       = document.getElementById("btn-settings");
 const btnGithub         = document.getElementById("btn-github");
 const btnLegal          = document.getElementById("btn-legal");
 const resultsBody       = document.getElementById("results-body");
-const statusText        = document.getElementById("status-text");
-const pageSpinner       = document.getElementById("page-spinner");
+const loadingBar        = document.getElementById("loading-bar");
 const viewSubtitle      = document.getElementById("view-subtitle");
 const cacheInfo         = document.getElementById("cache-info");
 const setupError        = document.getElementById("setup-error");
@@ -55,22 +54,20 @@ const browserTree       = document.getElementById("browser-tree");
 const browserBody       = document.getElementById("browser-body");
 const browserTitle      = document.getElementById("browser-cat-title");
 const browserSubtitle   = document.getElementById("browser-cat-subtitle");
-const browserSpinner    = document.getElementById("browser-spinner");
-const browserStatusText = document.getElementById("browser-status-text");
 const viewTitle         = document.getElementById("view-title");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function setStatus(msg)        { statusText.textContent = msg; }
-function setBrowserStatus(msg) { browserStatusText.textContent = msg; }
+function setStatus(msg)        {}
+function setBrowserStatus(msg) {}
 
 function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
-  pageSpinner.classList.toggle("hidden", !active);
+  loadingBar.classList.toggle("hidden", !active);
 }
 
 function setBrowserFetching(active) {
-  browserSpinner.classList.toggle("hidden", !active);
+  loadingBar.classList.toggle("hidden", !active);
 }
 
 function updateCacheInfo() {
