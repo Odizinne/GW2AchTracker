@@ -440,15 +440,6 @@ body {
 .setup-card p  { color: var(--muted); line-height: 1.6; font-size: 13px; }
 .setup-card a  { color: var(--accent); }
 
-/* ── Browser view sub-header ── */
-.browser-view-header {
-  flex-shrink: 0;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.browser-view-header h2 { font-size: 15px; font-weight: 600; }
 
 /* ── Shared view-sub ── */
 .view-sub {
@@ -1237,4 +1228,5 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 }
 
 #results-body.fade-in,
-#browser-body.fade-in { animation: fadeIn 0.2s ease forwards; }
+#browser-body.fade-in  { animation: fadeIn 0.2s ease forwards; }
+

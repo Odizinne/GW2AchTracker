@@ -1,10 +1,10 @@
 import { validateApiKey }                                  from "./api.js";
 import { clearCache, loadCache }                           from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
-import { fetchNearlyDone, resetProgress, getProgressMap }  from "./nearly-done.js";
+import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone, resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import {
   ensureBrowserData,
-  loadCategoryAchievements,
+  getCategoryRows,
   renderBrowserTree,
   setProgressMap,
   resetBrowserState,
@@ -29,6 +29,8 @@ let currentView        = "nearly-completed";
 let browserInitialized = false;
 let activeCat          = null;
 let lastNearlyDoneRows = [];
+let nearlyDoneFirstRender = true;
+let lastResultCount = null;
 
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
@@ -52,8 +54,6 @@ const addAccountForm    = document.getElementById("add-account-form");
 const newAccountError   = document.getElementById("new-account-error");
 const browserTree       = document.getElementById("browser-tree");
 const browserBody       = document.getElementById("browser-body");
-const browserTitle      = document.getElementById("browser-cat-title");
-const browserSubtitle   = document.getElementById("browser-cat-subtitle");
 const viewTitle         = document.getElementById("view-title");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -63,6 +63,8 @@ function setBrowserStatus(msg) {}
 
 function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
+  accountSelect.disabled = active;
+  document.querySelectorAll(".nav-item").forEach(el => { el.disabled = active; });
   loadingBar.classList.toggle("hidden", !active);
 }
 
@@ -102,6 +104,7 @@ function navigateTo(name) {
   // Update topbar title for nearly-completed; browser has its own sub-header
   if (name === "nearly-completed") {
     viewTitle.textContent = "Nearly completed";
+    updateSubtitle(lastResultCount);
   } else if (name === "browser") {
     viewTitle.textContent = "Browse";
     viewSubtitle.textContent = "";
@@ -145,6 +148,7 @@ accountSelect.addEventListener("change", () => {
   setProgressMap(null);
   activeCat = null;
   browserInitialized = false;
+  nearlyDoneFirstRender = true;
   resetBrowserState();
   if (currentView === "nearly-completed") {
     doFetch();
@@ -199,8 +203,12 @@ function renderNearlyDoneRows(rows) {
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
     return;
   }
-  resultsBody.classList.remove("fade-in");
-  void resultsBody.offsetWidth;
+  if (nearlyDoneFirstRender) {
+    resultsBody.classList.remove("fade-in");
+    void resultsBody.offsetWidth;
+    resultsBody.classList.add("fade-in");
+    nearlyDoneFirstRender = false;
+  }
   resultsBody.innerHTML = visible.map(row => {
     const pct     = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
@@ -223,31 +231,33 @@ function renderNearlyDoneRows(rows) {
   resultsBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
-  resultsBody.classList.add("fade-in");
 }
 
 async function doFetch() {
   const key = activeApiKey();
   if (!key) return;
   setFetching(true);
-  updateSubtitle(null);
-  resultsBody.innerHTML = "";
+  if (currentView === "nearly-completed") updateSubtitle(null);
   try {
-    const rows = await fetchNearlyDone(key, settings, msg => setStatus(msg));
+    try {
+      await ensureDefinitionCache(msg => setStatus(msg));
+      await ensureRewardNames(msg => setStatus(msg));
+    } catch (e) {
+      console.warn("Cache update failed, proceeding with existing data:", e);
+    }
+    await fetchProgress(key);
+    const rows = computeNearlyDone(getProgressMap(), settings);
     lastNearlyDoneRows = rows;
+    lastResultCount = rows.length;
+    await resolveRewardNames(rows, key);
     setProgressMap(getProgressMap());
     setModalProgressMap(getProgressMap());
     recomputeCatDoneStates(settings.hideCompleted);
     renderNearlyDoneRows(rows);
-    setStatus(`Loaded ${rows.length} achievements.`);
-    updateSubtitle(rows.length);
+    if (currentView === "nearly-completed") updateSubtitle(rows.length);
     updateCacheInfo();
-
-    if (currentView === "browser" && activeCat) {
-      selectCategory(activeCat);
-    }
+    if (currentView === "browser" && activeCat) selectCategory(activeCat);
   } catch (e) {
-    setStatus(e.message);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
   } finally {
     setFetching(false);
@@ -255,8 +265,6 @@ async function doFetch() {
 }
 
 btnRefresh.addEventListener("click", () => {
-  resetProgress();
-  setProgressMap(null);
   doFetch();
 });
 
@@ -274,10 +282,9 @@ async function initBrowser(forceRefresh = false) {
     if (!getProgressMap()) {
       const key = activeApiKey();
       if (key) {
-        setBrowserStatus("Fetching account progression…");
-        await fetchNearlyDone(key, settings, () => {});
-        setProgressMap(getProgressMap());
-        setModalProgressMap(getProgressMap());
+        const map = await fetchProgress(key);
+        setProgressMap(map);
+        setModalProgressMap(map);
       }
     }
 
@@ -290,8 +297,8 @@ async function initBrowser(forceRefresh = false) {
     if (activeCat) {
       selectCategory(activeCat);
     } else {
-      browserTitle.textContent    = "Browse achievements";
-      browserSubtitle.textContent = "Select a category from the sidebar";
+      viewTitle.textContent    = "Browse achievements";
+      viewSubtitle.textContent = "Select a category from the sidebar";
       browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">Select a category from the sidebar to browse.</td></tr>`;
     }
   } catch (e) {
@@ -301,26 +308,22 @@ async function initBrowser(forceRefresh = false) {
   }
 }
 
-async function selectCategory(cat) {
+function selectCategory(cat) {
+  const changed = activeCat !== cat;
   activeCat = cat;
-  browserTitle.textContent    = cat.name;
-  browserSubtitle.textContent = "";
-  browserBody.innerHTML       = "";
-  setBrowserFetching(true);
-  setBrowserStatus("Loading achievements…");
+  viewTitle.textContent    = cat.name;
+  viewSubtitle.textContent = "";
 
-  try {
-    const key  = activeApiKey();
-    const rows = await loadCategoryAchievements(cat.id, key, msg => setBrowserStatus(msg));
-    renderBrowserRows(rows);
-    browserSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
-    setBrowserStatus("");
-    updateCacheInfo();
-  } catch (e) {
-    setBrowserStatus("Error: " + e.message);
-  } finally {
-    setBrowserFetching(false);
+  const rows = getCategoryRows(cat.id);
+  if (changed) {
+    browserBody.classList.remove("fade-in");
+    void browserBody.offsetWidth;
   }
+  browserBody.innerHTML = "";
+  renderBrowserRows(rows);
+  if (changed) browserBody.classList.add("fade-in");
+  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
+  updateCacheInfo();
 }
 
 function renderBrowserRows(rows) {
@@ -329,9 +332,6 @@ function renderBrowserRows(rows) {
     browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements in this category.</td></tr>`;
     return;
   }
-
-  browserBody.classList.remove("fade-in");
-  void browserBody.offsetWidth;
 
   browserBody.innerHTML = visible.map(row => {
     const hasProgress = row.percent !== null;
@@ -367,8 +367,6 @@ function renderBrowserRows(rows) {
   browserBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
-
-  browserBody.classList.add("fade-in");
 }
 
 // ── Settings modal ────────────────────────────────────────────────────────────
