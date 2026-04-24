@@ -332,6 +332,9 @@ body {
 
 .sb-link:hover { background: var(--bg3); color: var(--muted); }
 
+.sb-donate svg { color: #e05878; opacity: 1 !important; }
+.sb-donate:hover svg { color: #f07090; }
+
 .sb-link svg {
   flex-shrink: 0;
   opacity: 0.6;
@@ -1219,6 +1222,76 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   font-size: 13px;
   color: var(--text);
 }
+
+/* ── Modal action buttons (star, hide) ── */
+.modal-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.1s, background 0.1s;
+  flex-shrink: 0;
+}
+.modal-action-btn:hover { color: var(--text); background: var(--bg3); }
+#ach-modal-fav-btn.active  { color: var(--gold); }
+#ach-modal-fav-btn.active svg { fill: currentColor; }
+#ach-modal-hide-btn.active { color: var(--red); }
+
+/* ── Topbar right group ── */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#btn-show-hidden.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── Hidden rows in nearly-done ── */
+tr.row-hidden td { opacity: 0.35; }
+tr.row-hidden:hover td { opacity: 0.65; }
+
+/* ── Favorites table (mirrors results/browser tables) ── */
+#favorites-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+#favorites-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+#favorites-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#favorites-table tbody tr:nth-child(even):not(.row-done) td { background: var(--bg3); }
+#favorites-table tbody tr:hover td { background: var(--bg4); }
+#favorites-table tbody tr:last-child td { border-bottom: none; }
+#favorites-table tbody tr.row-done td { background: var(--gold-bg); }
+#favorites-table tbody tr.row-done:hover td { background: rgba(180,140,40,0.20); }
 
 /* ── Misc ── */
 .muted  { color: var(--muted); font-size: 12px; }

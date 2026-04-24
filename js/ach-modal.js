@@ -1,14 +1,25 @@
 import { rewardHtml } from "./ui.js";
-import { persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap } from "./cache.js";
+import {
+  persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap,
+  favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
+} from "./cache.js";
 
-let _progressMap = null;
+let _progressMap   = null;
+let _currentAchId  = null;
+let _onStateChange = null;
+
 export function setModalProgressMap(map) { _progressMap = map; }
+export function setModalStateCallback(fn) { _onStateChange = fn; }
 
 export function openAchievementModal(ach, progressEntry) {
   const entry = progressEntry || _progressMap?.[ach.id] || {};
 
+  _currentAchId = ach.id;
+
   // ── Header ────────────────────────────────────────────────────────────────
   document.getElementById("ach-modal-title").textContent = ach.name;
+  document.getElementById("ach-modal-fav-btn").classList.toggle("active",  favoritesSet.has(ach.id));
+  document.getElementById("ach-modal-hide-btn").classList.toggle("active", hiddenSet.has(ach.id));
 
   const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(ach.name.replace(/ /g, "_"))}`;
   document.getElementById("ach-modal-wiki-btn").onclick = () => window.open(wikiUrl, "_blank", "noopener");
@@ -155,5 +166,19 @@ export function initAchModal() {
   document.getElementById("ach-modal-overlay").addEventListener("click", e => {
     if (e.target.id === "ach-modal-overlay")
       document.getElementById("ach-modal-overlay").classList.remove("open");
+  });
+
+  document.getElementById("ach-modal-fav-btn").addEventListener("click", () => {
+    if (_currentAchId == null) return;
+    toggleFavorite(_currentAchId);
+    document.getElementById("ach-modal-fav-btn").classList.toggle("active", favoritesSet.has(_currentAchId));
+    _onStateChange?.(_currentAchId, "favorite");
+  });
+
+  document.getElementById("ach-modal-hide-btn").addEventListener("click", () => {
+    if (_currentAchId == null) return;
+    toggleHidden(_currentAchId);
+    document.getElementById("ach-modal-hide-btn").classList.toggle("active", hiddenSet.has(_currentAchId));
+    _onStateChange?.(_currentAchId, "hidden");
   });
 }

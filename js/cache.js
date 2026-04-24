@@ -75,3 +75,20 @@ export function loadCategoriesCache() {
 export function saveCategoriesCache(data) {
   try { localStorage.setItem("gw2_categories_cache", JSON.stringify(data)); } catch {}
 }
+
+function _loadSet(key) {
+  try { const r = localStorage.getItem(key); return new Set(r ? JSON.parse(r) : []); } catch { return new Set(); }
+}
+
+export let favoritesSet = _loadSet("gw2_favorites");
+export let hiddenSet    = _loadSet("gw2_hidden");
+
+export function toggleFavorite(id) {
+  if (favoritesSet.has(id)) favoritesSet.delete(id); else favoritesSet.add(id);
+  try { localStorage.setItem("gw2_favorites", JSON.stringify([...favoritesSet])); } catch {}
+}
+
+export function toggleHidden(id) {
+  if (hiddenSet.has(id)) hiddenSet.delete(id); else hiddenSet.add(id);
+  try { localStorage.setItem("gw2_hidden", JSON.stringify([...hiddenSet])); } catch {}
+}

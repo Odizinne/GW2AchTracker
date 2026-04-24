@@ -1,5 +1,5 @@
-import { validateApiKey }                                  from "./api.js";
-import { clearCache, loadCache }                           from "./cache.js";
+import { validateApiKey, formatRewards }                   from "./api.js";
+import { clearCache, loadCache, favoritesSet, hiddenSet, persistentItemNameMap, persistentTitleNameMap } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone, resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import {
@@ -16,7 +16,7 @@ import {
   showError, clearError,
   showView, pctClass, barColor, rewardHtml,
 } from "./ui.js";
-import { openAchievementModal, initAchModal, setModalProgressMap } from "./ach-modal.js";
+import { openAchievementModal, initAchModal, setModalProgressMap, setModalStateCallback } from "./ach-modal.js";
 import { initSearch } from "./search.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,12 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let settings           = loadSettings();
 applyTheme(settings.theme);
-let currentView        = "nearly-completed";
+let currentView        = "favorites";
 let browserInitialized = false;
 let activeCat          = null;
 let lastNearlyDoneRows = [];
 let nearlyDoneFirstRender = true;
 let lastResultCount = null;
+let showHidden      = false;
 
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
@@ -55,6 +56,8 @@ const newAccountError   = document.getElementById("new-account-error");
 const browserTree       = document.getElementById("browser-tree");
 const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
+const btnShowHidden     = document.getElementById("btn-show-hidden");
+const favoritesBody     = document.getElementById("favorites-body");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -101,7 +104,7 @@ function navigateTo(name) {
   currentView = name;
   showView(name);
   browserTree.classList.toggle("hidden", name !== "browser");
-  // Update topbar title for nearly-completed; browser has its own sub-header
+  btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
   if (name === "nearly-completed") {
     viewTitle.textContent = "Nearly completed";
     updateSubtitle(lastResultCount);
@@ -109,6 +112,9 @@ function navigateTo(name) {
     viewTitle.textContent = "Browse";
     viewSubtitle.textContent = "";
     initBrowser();
+  } else if (name === "favorites") {
+    viewTitle.textContent = "Favorites";
+    renderFavoritesView();
   }
 }
 
@@ -165,7 +171,7 @@ function checkSetup() {
     showView("setup");
     browserTree.classList.add("hidden");
   } else {
-    showView("nearly-completed");
+    navigateTo("favorites");
   }
 }
 
@@ -195,10 +201,74 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
   }
 });
 
+// ── Favorites ─────────────────────────────────────────────────────────────────
+
+function renderFavoritesView() {
+  const cache = loadCache();
+  const pm    = getProgressMap();
+  const ids   = [...favoritesSet];
+
+  if (!ids.length) {
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
+    viewSubtitle.textContent = "";
+    return;
+  }
+
+  const rows = ids.flatMap(id => {
+    const ach = cache[id];
+    if (!ach) return [];
+    const entry    = pm?.[id] || {};
+    const tiers    = ach.tiers || [];
+    const progress = entry.current || 0;
+    const done     = entry.done    || false;
+    const maxTier  = tiers[tiers.length - 1];
+    const required = maxTier?.count ?? null;
+    const pct      = done ? 100
+      : required ? Math.min(100, Math.round((progress / required) * 1000) / 10)
+      : null;
+    const totalPts = ach.point_cap ?? tiers.reduce((s, t) => s + (t.points || 0), 0);
+    return [{ id, name: ach.name, progress, required, percent: pct, done,
+      rewardStr: formatRewards(ach.rewards || [], persistentItemNameMap, persistentTitleNameMap, totalPts) }];
+  });
+
+  if (!rows.length) {
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">Achievement data not loaded — press Update first.</td></tr>`;
+    return;
+  }
+
+  favoritesBody.innerHTML = rows.map(row => {
+    const hasProgress = row.percent !== null;
+    const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
+    const pctCell  = row.done
+      ? `<span class="pct-done">✓</span>`
+      : hasProgress ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
+      : `<span class="pct-na">—</span>`;
+    const progCell = row.done
+      ? `<span class="muted">Completed</span>`
+      : hasProgress && row.required
+        ? `<div class="prog-wrap"><span>${row.progress}/${row.required}</span>
+             <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent)}"></div></div>
+           </div>`
+        : `<span class="muted">—</span>`;
+    return `<tr class="${row.done ? "row-done" : ""}">
+      <td class="col-pct">${pctCell}</td>
+      <td class="col-prog">${progCell}</td>
+      <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
+      <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+    </tr>`;
+  }).join("");
+
+  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
+  favoritesBody.querySelectorAll(".ach-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
+}
+
 // ── Nearly completed ──────────────────────────────────────────────────────────
 
 function renderNearlyDoneRows(rows) {
-  const visible = settings.hideCompleted ? rows.filter(r => r.percent < 100) : rows;
+  let visible = settings.hideCompleted ? rows.filter(r => r.percent < 100) : rows;
+  if (!showHidden) visible = visible.filter(r => !hiddenSet.has(r.id));
   if (!visible.length) {
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
     return;
@@ -212,7 +282,7 @@ function renderNearlyDoneRows(rows) {
   resultsBody.innerHTML = visible.map(row => {
     const pct     = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
-    return `<tr>
+    return `<tr class="${hiddenSet.has(row.id) ? "row-hidden" : ""}">
       <td class="col-pct ${pctClass(row.percent)}">${pct}%</td>
       <td class="col-prog">
         <div class="prog-wrap">
@@ -255,6 +325,7 @@ async function doFetch() {
     recomputeCatDoneStates(settings.hideCompleted);
     renderNearlyDoneRows(rows);
     if (currentView === "nearly-completed") updateSubtitle(rows.length);
+    if (currentView === "favorites")        renderFavoritesView();
     updateCacheInfo();
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
   } catch (e) {
@@ -486,6 +557,7 @@ document.getElementById("btn-cache-clear").addEventListener("click", () => {
 
 // ── Legal & GitHub ────────────────────────────────────────────────────────────
 
+document.getElementById("btn-donate").addEventListener("click", () => window.open("https://ko-fi.com/odizinne", "_blank", "noopener"));
 btnLegal.addEventListener("click", () => openModal("legal-overlay"));
 btnGithub.addEventListener("click", () => window.open("https://github.com/odizinne/GW2AchTracker", "_blank", "noopener"));
 document.getElementById("btn-legal-close").addEventListener("click",        () => closeModal("legal-overlay"));
@@ -520,9 +592,21 @@ document.querySelectorAll(".number-spin button").forEach(btn => {
   });
 });
 
+// ── Show hidden toggle ────────────────────────────────────────────────────────
+
+btnShowHidden.addEventListener("click", () => {
+  showHidden = !showHidden;
+  btnShowHidden.classList.toggle("active", showHidden);
+  renderNearlyDoneRows(lastNearlyDoneRows);
+});
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 initAchModal();
+setModalStateCallback((_achId, type) => {
+  if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
+  if (currentView === "favorites")        renderFavoritesView();
+});
 initSearch(ach => openAchievementModal(ach, null));
 checkSetup();
 updateCacheInfo();

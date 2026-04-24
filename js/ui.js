@@ -14,6 +14,7 @@ export function showView(name) {
   });
   const viewMap = {
     "setup":            "view-setup",
+    "favorites":        "view-favorites",
     "nearly-completed": "view-nearly-completed",
     "browser":          "view-browser",
   };
