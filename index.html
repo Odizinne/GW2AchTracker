@@ -34,6 +34,13 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Nearly completed
         </button>
+        <button class="nav-item" data-view="browser">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Browse
+        </button>
+
+        <!-- Browser tree — shown only when Browse is active -->
+        <div id="browser-tree" class="browser-tree hidden"></div>
       </nav>
 
       <div class="sb-bottom">
@@ -54,6 +61,7 @@
 
     <main id="main-content">
 
+      <!-- Setup view -->
       <div id="view-setup" class="view">
         <div class="setup-inner">
           <div class="setup-card">
@@ -79,22 +87,23 @@
         </div>
       </div>
 
+      <!-- Nearly completed view -->
       <div id="view-nearly-completed" class="view">
-      <div class="view-header">
-        <div>
-          <h2 id="view-title">Nearly completed</h2>
-          <span id="view-subtitle" class="view-sub"></span>
+        <div class="view-header">
+          <div>
+            <h2 id="view-title">Nearly completed</h2>
+            <span id="view-subtitle" class="view-sub"></span>
+          </div>
         </div>
-      </div>
-      <div class="table-wrap">
-        <div id="page-spinner" class="spinner-overlay hidden">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
-            <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
-            <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-          </svg>
-          <span id="status-text"></span>
-        </div>
-        <table id="results-table">
+        <div class="table-wrap">
+          <div id="page-spinner" class="spinner-overlay hidden">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+            </svg>
+            <span id="status-text"></span>
+          </div>
+          <table id="results-table">
             <thead>
               <tr>
                 <th class="col-pct">%</th>
@@ -106,6 +115,40 @@
             <tbody id="results-body">
               <tr class="empty-row">
                 <td colspan="4">Press <strong>Update</strong> to load your achievements.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Browse view -->
+      <div id="view-browser" class="view">
+        <div class="view-header">
+          <div>
+            <h2 id="browser-cat-title">Browse achievements</h2>
+            <span id="browser-cat-subtitle" class="view-sub">Select a category from the sidebar</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div id="browser-spinner" class="spinner-overlay hidden">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+            </svg>
+            <span id="browser-status-text"></span>
+          </div>
+          <table id="browser-table">
+            <thead>
+              <tr>
+                <th class="col-pct">%</th>
+                <th class="col-prog">Progress</th>
+                <th class="col-name">Achievement</th>
+                <th class="col-reward">Rewards</th>
+              </tr>
+            </thead>
+            <tbody id="browser-body">
+              <tr class="empty-row">
+                <td colspan="4">Select a category from the sidebar to browse.</td>
               </tr>
             </tbody>
           </table>
@@ -223,11 +266,6 @@
           <p>This project is released under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>. You are free to use, study, and modify it. Any modified version you distribute must also be released under GPLv3 and make its source code available.</p>
         </section>
         <section>
-          <h3>Icon credits</h3>
-          <p>Icons made by <a href="https://www.flaticon.com/authors/dinosoftlabs" target="_blank" rel="noopener">DinosoftLabs</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
-          <p>Icons made by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">Flaticon</a>.</p>
-        </section>
-        <section>
           <h3>Disclaimer</h3>
           <p>This project is not affiliated with or endorsed by ArenaNet or NCSoft. Guild Wars 2 is a trademark of ArenaNet, LLC.</p>
         </section>
@@ -238,6 +276,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
