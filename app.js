@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const BASE = "https://api.guildwars2.com/v2";
 
 const DEFAULT_SETTINGS = {
-  apiKey: "", maxResults: 40, thresholdPct: 80, useFinalTier: false,
+  apiKey: "", maxResults: 40, thresholdPct: 80, useFinalTier: false, validated: false,
 };
 
 function loadSettings() {
@@ -50,6 +50,10 @@ async function fetchInBatches(endpoint, ids, apiKey, batchSize = 150, extraParam
   for (let i = 0; i < ids.length; i += batchSize) batches.push(ids.slice(i, i + batchSize));
   const results = await Promise.all(batches.map(b => apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey)));
   return results.flat();
+}
+
+async function validateApiKey(key) {
+  await apiFetch("/account", {}, key);
 }
 
 function getCurrentTier(tiers, progress) {
@@ -173,14 +177,16 @@ async function fetchAchievements(s, onStatus, reuseProgress = false) {
 const SVG_EYE     = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const SVG_EYE_OFF = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
-const setupPanel  = document.getElementById("setup-panel");
-const statusText  = document.getElementById("status-text");
-const resultsBody = document.getElementById("results-body");
-const btnRefresh  = document.getElementById("btn-refresh");
-const btnSettings = document.getElementById("btn-settings");
-const cacheInfo   = document.getElementById("cache-info");
-const pageSpinner = document.getElementById("page-spinner");
-const tierToggle  = document.getElementById("tier-toggle");
+const setupPanel    = document.getElementById("setup-panel");
+const statusText    = document.getElementById("status-text");
+const resultsBody   = document.getElementById("results-body");
+const btnRefresh    = document.getElementById("btn-refresh");
+const btnSettings   = document.getElementById("btn-settings");
+const cacheInfo     = document.getElementById("cache-info");
+const pageSpinner   = document.getElementById("page-spinner");
+const tierToggle    = document.getElementById("tier-toggle");
+const setupKeyError = document.getElementById("setup-key-error");
+const settingsKeyError = document.getElementById("settings-key-error");
 
 // ── Modal helpers ─────────────────────────────────────────────────────────────
 
@@ -193,19 +199,46 @@ function closeModal(id) { document.getElementById(id).classList.remove("open"); 
   });
 });
 
+// ── Error helpers ─────────────────────────────────────────────────────────────
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+function clearError(el) {
+  el.textContent = "";
+  el.classList.add("hidden");
+}
+
 // ── Setup panel ───────────────────────────────────────────────────────────────
 
 function checkSetup() {
-  setupPanel.classList.toggle("hidden", !!settings.apiKey);
-  btnRefresh.disabled = !settings.apiKey;
+  const hasValidKey = settings.apiKey && settings.validated;
+  setupPanel.classList.toggle("hidden", hasValidKey);
+  btnRefresh.disabled = !hasValidKey;
 }
 
-document.getElementById("btn-setup-save").addEventListener("click", () => {
+document.getElementById("btn-setup-save").addEventListener("click", async () => {
   const key = document.getElementById("setup-key").value.trim();
-  if (!key) return;
-  settings.apiKey = key;
-  saveSettings(settings);
-  checkSetup();
+  if (!key) { showError(setupKeyError, "Please enter an API key."); return; }
+  clearError(setupKeyError);
+  const btn = document.getElementById("btn-setup-save");
+  btn.disabled = true;
+  btn.textContent = "Validating…";
+  try {
+    await validateApiKey(key);
+    settings.apiKey = key;
+    settings.validated = true;
+    saveSettings(settings);
+    checkSetup();
+    doFetch();
+  } catch {
+    showError(setupKeyError, "Invalid API key. Make sure account and progression permissions are enabled.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save & Continue";
+  }
 });
 
 // ── Settings modal ────────────────────────────────────────────────────────────
@@ -222,16 +255,46 @@ btnSettings.addEventListener("click", () => {
   document.querySelector('[data-target="s-apikey"]').innerHTML = SVG_EYE;
   document.getElementById("s-maxresults").value = settings.maxResults;
   document.getElementById("s-threshold").value = settings.thresholdPct;
+  clearError(settingsKeyError);
   updateCacheInfo();
   openModal("settings-overlay");
+});
+
+// Changing the key field invalidates the stored validation
+document.getElementById("s-apikey").addEventListener("input", () => {
+  clearError(settingsKeyError);
 });
 
 document.getElementById("btn-settings-close").addEventListener("click", () => closeModal("settings-overlay"));
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
-document.getElementById("btn-settings-save").addEventListener("click", () => {
+document.getElementById("btn-settings-save").addEventListener("click", async () => {
   const key = document.getElementById("s-apikey").value.trim();
-  if (key) settings.apiKey = key;
+  const saveBtn = document.getElementById("btn-settings-save");
+  clearError(settingsKeyError);
+
+  // If the key changed, validate it
+  if (key && key !== settings.apiKey) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Validating…";
+    try {
+      await validateApiKey(key);
+      settings.apiKey = key;
+      settings.validated = true;
+    } catch {
+      showError(settingsKeyError, "Invalid API key. Make sure account and progression permissions are enabled.");
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save";
+      return;
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save";
+    }
+  } else if (!key && !settings.apiKey) {
+    showError(settingsKeyError, "Please enter an API key.");
+    return;
+  }
+
   settings.maxResults   = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
   settings.thresholdPct = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
   saveSettings(settings);
@@ -243,6 +306,7 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
 document.getElementById("btn-cache-clear").addEventListener("click", () => {
   clearCache();
   updateCacheInfo();
+  updateFetchLabel();
   setStatus("Cache cleared.");
 });
 
@@ -299,28 +363,31 @@ function renderRows(rows) {
 }
 
 function setFetching(active) {
-  btnRefresh.disabled  = active;
+  btnRefresh.disabled  = active || !settings.validated;
   btnSettings.disabled = active;
   tierToggle.disabled  = active;
   pageSpinner.classList.toggle("hidden", !active);
 }
 
-btnRefresh.addEventListener("click", async () => {
-  if (!settings.apiKey) return;
+async function doFetch() {
+  if (!settings.apiKey || !settings.validated) return;
   setFetching(true);
   resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
   try {
     const rows = await fetchAchievements(settings, msg => setStatus(msg));
     renderRows(rows);
     setStatus(`Loaded ${rows.length} achievements.`);
-    setFetching(false);
     updateCacheInfo();
+    updateFetchLabel();
   } catch (e) {
     setStatus(e.message);
-    setFetching(false);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
+  } finally {
+    setFetching(false);
   }
-});
+}
+
+btnRefresh.addEventListener("click", doFetch);
 
 // ── Tier toggle ───────────────────────────────────────────────────────────────
 
@@ -329,7 +396,7 @@ tierToggle.value = settings.useFinalTier ? "last" : "next";
 tierToggle.addEventListener("change", async () => {
   settings.useFinalTier = tierToggle.value === "last";
   saveSettings(settings);
-  if (!lastProgressMap || !settings.apiKey) return;
+  if (!lastProgressMap || !settings.apiKey || !settings.validated) return;
   setFetching(true);
   try {
     const rows = await fetchAchievements(settings, msg => setStatus(msg), true);
@@ -364,8 +431,16 @@ document.querySelectorAll(".eye-btn").forEach(btn => {
   });
 });
 
+function updateFetchLabel() {
+  const count = Object.keys(loadCache()).length;
+  btnRefresh.textContent = count ? "Update" : "Fetch";
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 checkSetup();
 updateCacheInfo();
+updateFetchLabel();
+
+if (settings.apiKey && settings.validated) doFetch();
 });

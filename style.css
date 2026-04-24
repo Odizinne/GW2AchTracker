@@ -248,6 +248,14 @@ option {
 }
 .field-row input { flex: 1; margin-top: 0; }
 
+/* ── Field error ── */
+.field-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 0.4rem;
+  min-height: 1em;
+}
+
 /* ── Modal overlay ── */
 .modal-overlay {
   position: fixed;
@@ -621,3 +629,5 @@ input[type="number"]::-webkit-inner-spin-button {
 .number-spin button:first-child {
   border-bottom: 1px solid var(--border);
 }
+
+.panel p.field-error { color: var(--red); }
