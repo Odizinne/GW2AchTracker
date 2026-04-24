@@ -34,8 +34,8 @@ export async function ensureBrowserData(onStatus) {
 
   onStatus("Fetching achievement categories…");
   const [rawGroups, rawCats] = await Promise.all([
-    apiFetch("/achievements/groups", { ids: "all" }),
-    apiFetch("/achievements/categories", { ids: "all" }),
+    apiFetch("/achievements/groups", { ids: "all", lang: "en" }),
+    apiFetch("/achievements/categories", { ids: "all", lang: "en" }),
   ]);
 
   groups = rawGroups
