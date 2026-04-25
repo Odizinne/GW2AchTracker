@@ -18,14 +18,24 @@ function getCurrentTier(tiers, progress) {
 }
 
 // Step 1a — fetch all definitions (public, no key). Only downloads what's missing.
+// Repeatable/daily/weekly achievements are always re-fetched so their state stays fresh.
 export async function ensureDefinitionCache(onStatus) {
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
   const allIds    = await apiFetch("/achievements", { lang: "en" });
-  const missing   = allIds.filter(id => !cachedIds.has(id));
-  if (missing.length) {
-    onStatus(`Fetching ${missing.length} achievement definitions…`);
-    const fresh = await fetchInBatches("/achievements", missing, null, 150, { lang: "en" });
+
+  const missing = allIds.filter(id => !cachedIds.has(id));
+
+  const repeatableIds = allIds.filter(id => {
+    const ach = cache[id];
+    return ach && (ach.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
+  });
+
+  const toFetch = [...new Set([...missing, ...repeatableIds])];
+
+  if (toFetch.length) {
+    onStatus(`Fetching ${toFetch.length} achievement definitions…`);
+    const fresh = await fetchInBatches("/achievements", toFetch, null, 150, { lang: "en" });
     for (const ach of fresh) cache[ach.id] = ach;
     saveCache(cache);
   }
@@ -82,7 +92,7 @@ export async function fetchProgress(apiKey) {
   return lastProgressMap;
 }
 
-// Step 3 — pure sync computation from in-memory state.
+// Step 3 — pure sync computation from in-memory state. No API calls.
 export function computeNearlyDone(progressMap, settings) {
   const { thresholdPct, maxResults, useFinalTier } = settings;
   const threshold = thresholdPct / 100;
@@ -93,7 +103,10 @@ export function computeNearlyDone(progressMap, settings) {
     const ach = cache[Number(idStr)];
     if (!ach) continue;
     if ((ach.flags || []).includes("IgnoreNearlyComplete")) continue;
-    if (entry.done) continue;
+
+    const isRepeatable = (ach.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
+    if (entry.done && !isRepeatable) continue;
+
     const tiers = ach.tiers || [];
     if (!tiers.length) continue;
     const progress = entry.current || 0;
@@ -103,6 +116,7 @@ export function computeNearlyDone(progressMap, settings) {
     if (!targetTier.count) continue;
     const ratio = progress / targetTier.count;
     if (ratio < threshold) continue;
+    if (ratio >= 1.0) continue;
     rows.push({
       id: ach.id,
       name: ach.name,

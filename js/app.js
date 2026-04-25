@@ -398,7 +398,10 @@ function selectCategory(cat) {
 }
 
 function renderBrowserRows(rows) {
-  const visible = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+  const visible = settings.hideCompleted
+    ? rows.filter(r => !r.done || r.repeatable)
+    : rows;
+
   if (!visible.length) {
     browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements in this category.</td></tr>`;
     return;

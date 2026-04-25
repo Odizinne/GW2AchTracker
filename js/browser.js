@@ -48,8 +48,6 @@ export async function ensureBrowserData(onStatus) {
     saveCategoriesCache(categories);
   }
 
-  // Some categories (e.g. Festivals) are referenced by groups but absent from
-  // the ids=all response — fetch them individually so they appear in the tree.
   const missingIds = [...new Set(
     groups.flatMap(g => g.categories || []).filter(id => !categories[id])
   )];
@@ -58,6 +56,10 @@ export async function ensureBrowserData(onStatus) {
     for (const c of extra) categories[c.id] = c;
     saveCategoriesCache(categories);
   }
+}
+
+function _isRepeatable(ach) {
+  return (ach?.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
 }
 
 function _buildRows(categoryId) {
@@ -71,13 +73,14 @@ function _buildRows(categoryId) {
     const ach = cache[id];
     if (!ach) continue;
 
-    const entry    = progressMap?.[id] || {};
-    const tiers    = ach.tiers || [];
-    const progress = entry.current || 0;
-    const done     = entry.done    || false;
-    const maxTier  = tiers[tiers.length - 1];
-    const required = maxTier?.count ?? null;
-    const percent  = done
+    const repeatable = _isRepeatable(ach);
+    const entry      = progressMap?.[id] || {};
+    const tiers      = ach.tiers || [];
+    const progress   = entry.current || 0;
+    const done       = entry.done    || false;
+    const maxTier    = tiers[tiers.length - 1];
+    const required   = maxTier?.count ?? null;
+    const percent    = done
       ? 100
       : required
         ? Math.min(100, Math.round((progress / required) * 1000) / 10)
@@ -86,6 +89,7 @@ function _buildRows(categoryId) {
     rows.push({
       id, name: ach.name,
       progress, required, percent, done,
+      repeatable,
       rewards:   ach.rewards || [],
       points:    ach.point_cap ?? ach.tiers?.reduce((s, t) => s + (t.points || 0), 0) ?? 0,
       rewardStr: "",
@@ -97,8 +101,12 @@ function _buildRows(categoryId) {
   }
 
   if (progressMap) {
+    const cache = loadCache();
     const hasAnyProgress = rows.some(r => progressMap[r.id]);
-    const allDone = hasAnyProgress && rows.every(r => !r.required || r.done);
+    const allDone = hasAnyProgress && rows.every(r => {
+      const ach = cache[r.id];
+      return _isRepeatable(ach) || r.done;
+    });
     catDoneMap[categoryId] = allDone;
 
     const btn = document.querySelector(`.browser-cat-item[data-cat-id="${categoryId}"]`);
@@ -185,11 +193,10 @@ function _updateGroupDoneClass(groupEl) {
     ?.classList.toggle("done-group", allDone);
 }
 
-// Walk all categories against the current progressMap and update catDoneMap
-// + live sidebar buttons. Call this after every fetch so tints appear without
-// requiring the user to click each category first.
 export function recomputeCatDoneStates(hideCompleted = false) {
   if (!progressMap || !groups || !categories) return;
+
+  const cache = loadCache();
 
   for (const group of groups) {
     const catNodes = group.categories.map(id => categories[id]).filter(Boolean);
@@ -200,7 +207,10 @@ export function recomputeCatDoneStates(hideCompleted = false) {
       const hasAnyProgress = cat.achievements.some(id => progressMap[id]);
       if (!hasAnyProgress) continue;
 
-      const allDone = cat.achievements.every(id => progressMap[id]?.done === true);
+      const allDone = cat.achievements.every(id => {
+        const ach = cache[id];
+        return _isRepeatable(ach) || progressMap[id]?.done === true;
+      });
       catDoneMap[cat.id] = allDone;
 
       const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
