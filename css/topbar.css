@@ -1,0 +1,218 @@
+/* ── Main content shell ── */
+#main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+/* ── Topbar ── */
+#main-topbar {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg2);
+  min-height: 60px;
+  box-shadow: var(--shadow);
+}
+
+#main-topbar-left {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+#main-topbar-left h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.view-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ── Topbar right ── */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#btn-show-hidden.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── View toggle buttons ── */
+.view-toggle-btn {
+  padding: 0.28rem 0.45rem;
+}
+
+.view-toggle-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── Global search ── */
+.global-search-wrap {
+  position: relative;
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--muted);
+  pointer-events: none;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+#global-search-input {
+  width: 100%;
+  padding: 7px 12px 7px 32px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+#global-search-input:focus {
+  border-color: var(--accent);
+  background: var(--bg2);
+}
+
+#global-search-input::placeholder { color: var(--muted); }
+
+.global-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 200;
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+.global-search-results::-webkit-scrollbar { width: 4px; }
+.global-search-results::-webkit-scrollbar-track { background: transparent; }
+.global-search-results::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+.search-result-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--bg3); color: var(--accent); }
+
+.search-empty {
+  padding: 14px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Loading bar ── */
+#loading-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  background: transparent;
+}
+
+#loading-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 40%;
+  background: var(--accent);
+  animation: loading-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* ── Views ── */
+.view {
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  display: none;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.view.active-view { display: flex; }
+
+/* ── Setup view ── */
+#view-setup { border-color: transparent; }
+
+.setup-inner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.setup-card h2 { font-size: 16px; font-weight: 600; }
+.setup-card p  { color: var(--muted); line-height: 1.6; font-size: 13px; }
+.setup-card a  { color: var(--accent); }

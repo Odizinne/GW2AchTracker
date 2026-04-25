@@ -8,6 +8,7 @@ import {
   renderBrowserTree,
   setProgressMap,
   resetBrowserState,
+  resetBrowserCache,
   recomputeCatDoneStates,
 } from "./browser.js";
 import {
@@ -32,6 +33,7 @@ let lastNearlyDoneRows = [];
 let nearlyDoneFirstRender = true;
 let lastResultCount = null;
 let showHidden      = false;
+let viewMode = settings.viewMode ?? "list";
 
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
@@ -58,7 +60,11 @@ const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
 const btnShowHidden     = document.getElementById("btn-show-hidden");
 const favoritesBody     = document.getElementById("favorites-body");
+const btnViewList       = document.getElementById("btn-view-list");
+const btnViewTile       = document.getElementById("btn-view-tile");
 
+btnViewList.classList.toggle("active", viewMode === "list");
+btnViewTile.classList.toggle("active", viewMode === "tile");
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function setStatus(msg)        {}
@@ -96,6 +102,102 @@ function openAchFromCache(id) {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
+}
+
+// ── View mode toggle ──────────────────────────────────────────────────────────
+
+function setViewMode(mode) {
+  viewMode = mode;
+  settings.viewMode = mode;
+  saveSettings(settings);
+  btnViewList.classList.toggle("active", mode === "list");
+  btnViewTile.classList.toggle("active", mode === "tile");
+  if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
+  else if (currentView === "browser" && activeCat) selectCategory(activeCat);
+  else if (currentView === "favorites") renderFavoritesView();
+}
+
+btnViewList.addEventListener("click", () => setViewMode("list"));
+btnViewTile.addEventListener("click", () => setViewMode("tile"));
+
+// ── Tile rendering ────────────────────────────────────────────────────────────
+
+function buildTileHtml(rows, opts = {}) {
+  if (!rows.length) return "";
+
+  const cache = loadCache();
+
+  return rows.map(row => {
+    const isHid  = hiddenSet.has(row.id);
+    const isDone = row.done || (row.percent !== null && row.percent >= 100);
+    const hasProgress = row.percent !== null && row.percent !== undefined;
+    const fillPct = hasProgress ? Math.min(100, row.percent) : 0;
+
+    const pctLabel = isDone
+      ? `<span class="tile-pct pct-done">✓</span>`
+      : hasProgress
+        ? `<span class="tile-pct ${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
+        : `<span class="tile-pct pct-na">—</span>`;
+
+    const progBar = hasProgress && row.required
+      ? `<div class="prog-bar-bg" style="flex:1;height:3px;border-radius:99px;overflow:hidden;background:var(--bg4)">
+           <div class="prog-bar-fill" style="width:${fillPct}%;height:100%;border-radius:99px;background:${isDone ? "var(--green)" : barColor(row.percent)}"></div>
+         </div>
+         <span class="tile-prog-nums">${row.progress}/${row.required}</span>`
+      : `<div style="flex:1"></div>`;
+
+    const ach  = cache[row.id];
+    const desc = ach?.description || ach?.requirement || "";
+
+    const rewardParts = row.rewardStr
+      ? row.rewardStr.split(" · ").map(part =>
+          `<span class="tile-reward-chip">${rewardHtml(part)}</span>`
+        ).join("")
+      : "";
+
+    const classes = [
+      "ach-tile",
+      isDone    ? "tile-done"   : "",
+      isHid     ? "tile-hidden" : "",
+    ].filter(Boolean).join(" ");
+
+    return `<div class="${classes}">
+      <div class="tile-body">
+        <button class="tile-name ach-row-btn" data-id="${row.id}">${row.name}</button>
+        <div class="tile-desc">${desc}</div>
+        <div class="tile-prog-row">
+          ${progBar}
+          ${pctLabel}
+        </div>
+      </div>
+      <div class="tile-sep"></div>
+      <div class="tile-rewards">${rewardParts}</div>
+    </div>`;
+  }).join("");
+}
+
+function attachTileListeners(grid) {
+  grid.querySelectorAll(".ach-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
+}
+
+function renderTileView(viewEl, rows, opts = {}) {
+  viewEl.querySelector(".table-wrap").style.display = "none";
+  let grid = viewEl.querySelector(".tile-grid");
+  if (!grid) {
+    grid = document.createElement("div");
+    grid.className = "tile-grid";
+    viewEl.appendChild(grid);
+  }
+  const html = buildTileHtml(rows, opts);
+  grid.innerHTML = html || `<div class="tile-empty">No achievements matched the current filters.</div>`;
+  attachTileListeners(grid);
+}
+
+function renderListView(viewEl) {
+  viewEl.querySelector(".table-wrap").style.display = "";
+  viewEl.querySelector(".tile-grid")?.remove();
 }
 
 // ── View routing ──────────────────────────────────────────────────────────────
@@ -204,11 +306,13 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
 function renderFavoritesView() {
-  const cache = loadCache();
-  const pm    = getProgressMap();
-  const ids   = [...favoritesSet];
+  const viewEl = document.getElementById("view-favorites");
+  const cache  = loadCache();
+  const pm     = getProgressMap();
+  const ids    = [...favoritesSet];
 
   if (!ids.length) {
+    renderListView(viewEl);
     favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
     viewSubtitle.textContent = "";
     return;
@@ -232,9 +336,19 @@ function renderFavoritesView() {
   });
 
   if (!rows.length) {
+    renderListView(viewEl);
     favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">Achievement data not loaded — press Update first.</td></tr>`;
     return;
   }
+
+  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
+
+  if (viewMode === "tile") {
+    renderTileView(viewEl, rows);
+    return;
+  }
+
+  renderListView(viewEl);
 
   favoritesBody.innerHTML = rows.map(row => {
     const hasProgress = row.percent !== null;
@@ -258,7 +372,6 @@ function renderFavoritesView() {
     </tr>`;
   }).join("");
 
-  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
   favoritesBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
@@ -267,18 +380,31 @@ function renderFavoritesView() {
 // ── Nearly completed ──────────────────────────────────────────────────────────
 
 function renderNearlyDoneRows(rows) {
+  const viewEl = document.getElementById("view-nearly-completed");
+
   let visible = settings.hideCompleted ? rows.filter(r => r.percent < 100) : rows;
   if (!showHidden) visible = visible.filter(r => !hiddenSet.has(r.id));
+
   if (!visible.length) {
+    renderListView(viewEl);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
     return;
   }
+
+  if (viewMode === "tile") {
+    renderTileView(viewEl, visible, { isHiddenVisible: showHidden });
+    return;
+  }
+
+  renderListView(viewEl);
+
   if (nearlyDoneFirstRender) {
     resultsBody.classList.remove("fade-in");
     void resultsBody.offsetWidth;
     resultsBody.classList.add("fade-in");
     nearlyDoneFirstRender = false;
   }
+
   resultsBody.innerHTML = visible.map(row => {
     const pct     = row.percent.toFixed(1);
     const fillPct = Math.min(100, row.percent);
@@ -298,6 +424,7 @@ function renderNearlyDoneRows(rows) {
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
     </tr>`;
   }).join("");
+
   resultsBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
@@ -385,14 +512,21 @@ function selectCategory(cat) {
   viewTitle.textContent    = cat.name;
   viewSubtitle.textContent = "";
 
-  const rows = getCategoryRows(cat.id);
-  if (changed) {
-    browserBody.classList.remove("fade-in");
-    void browserBody.offsetWidth;
+  const rows   = getCategoryRows(cat.id);
+  const viewEl = document.getElementById("view-browser");
+
+  if (viewMode === "tile") {
+    renderTileView(viewEl, rows);
+  } else {
+    if (changed) {
+      browserBody.classList.remove("fade-in");
+      void browserBody.offsetWidth;
+    }
+    renderListView(viewEl);
+    renderBrowserRows(rows);
+    if (changed) browserBody.classList.add("fade-in");
   }
-  browserBody.innerHTML = "";
-  renderBrowserRows(rows);
-  if (changed) browserBody.classList.add("fade-in");
+
   viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
   updateCacheInfo();
 }
@@ -550,12 +684,22 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
 
 document.getElementById("btn-cache-clear").addEventListener("click", () => {
   clearCache();
+  resetBrowserCache();          // <-- wipes in-memory groups/categories too
   browserInitialized = false;
   activeCat = null;
+  lastNearlyDoneRows = [];
+  lastResultCount = null;
   resetBrowserState();
   browserTree.innerHTML = "";
   updateCacheInfo();
-  setStatus("Cache cleared.");
+  // Clear any tile grids left on screen
+  document.querySelectorAll(".tile-grid").forEach(g => g.remove());
+  // Reset table bodies to empty state
+  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Press <strong>Update</strong> to load your achievements.</td></tr>`;
+  favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
+  document.getElementById("view-nearly-completed").querySelector(".table-wrap").style.display = "";
+  document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
+  document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
 });
 
 // ── Legal & GitHub ────────────────────────────────────────────────────────────

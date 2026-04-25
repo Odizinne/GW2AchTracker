@@ -1,0 +1,142 @@
+/* ── Table wrap ── */
+.table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+.table-wrap::-webkit-scrollbar { width: 4px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+/* ── Shared table base ── */
+#results-table,
+#browser-table,
+#favorites-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#results-table th,
+#browser-table th,
+#favorites-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#results-table td,
+#browser-table td,
+#favorites-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#results-table tbody tr:nth-child(even):not(.row-done) td,
+#browser-table  tbody tr:nth-child(even):not(.row-done) td,
+#favorites-table tbody tr:nth-child(even):not(.row-done) td { background: var(--bg3); }
+
+#results-table tbody tr:hover td,
+#browser-table  tbody tr:hover td,
+#favorites-table tbody tr:hover td { background: var(--bg4); }
+
+#results-table tbody tr:last-child td,
+#browser-table  tbody tr:last-child td,
+#favorites-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── Completed row gold tint ── */
+#results-table tbody tr.row-done td,
+#browser-table  tbody tr.row-done td,
+#favorites-table tbody tr.row-done td { background: var(--gold-bg); }
+
+#results-table tbody tr.row-done:hover td,
+#browser-table  tbody tr.row-done:hover td,
+#favorites-table tbody tr.row-done:hover td { background: rgba(180,140,40,0.20); }
+
+#results-table tbody tr.row-done:nth-child(even) td,
+#browser-table  tbody tr.row-done:nth-child(even) td,
+#favorites-table tbody tr.row-done:nth-child(even) td { background: rgba(240,220,100,0.18); }
+
+#browser-table tbody tr.row-done td { opacity: 0.55; }
+#browser-table tbody tr.row-done:hover td { opacity: 0.8; }
+
+/* ── Column widths ── */
+.col-pct    { width: 70px; }
+.col-prog   { width: 160px; }
+.col-name   { width: auto; }
+.col-reward { width: 260px; }
+
+td.col-pct {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+td.col-prog   { color: var(--muted); font-variant-numeric: tabular-nums; }
+td.col-reward { color: var(--muted); font-size: 13px; }
+
+/* ── Percent classes ── */
+.pct-high { color: var(--green); }
+.pct-med  { color: var(--yellow); }
+.pct-low  { color: var(--text); }
+.pct-done { color: var(--green); font-size: 12px; }
+.pct-na   { color: var(--muted); }
+
+/* ── Reward icons ── */
+.ap-icon      { width: 20px; height: 20px; vertical-align: -5px; margin-right: 2px; }
+.mastery-icon { width: 24px; height: 24px; vertical-align: -5px; margin-right: 2px; }
+
+/* ── Row name button ── */
+.ach-row-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.1s;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.ach-row-btn:hover { color: var(--accent); }
+
+/* ── Empty row ── */
+.empty-row td {
+  text-align: center;
+  color: var(--muted);
+  padding: 4rem 0;
+  border: none;
+  background: transparent !important;
+}
+
+/* ── Progress bar ── */
+.prog-wrap     { display: flex; flex-direction: column; gap: 4px; width: 100%; font-size: 12px; }
+.prog-bar-bg   { width: 100%; height: 4px; background: var(--bg4); border-radius: 99px; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
+
+/* ── Hidden rows ── */
+tr.row-hidden td { opacity: 0.35; }
+tr.row-hidden:hover td { opacity: 0.65; }

@@ -1,0 +1,221 @@
+/* ── Generic buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: var(--control-h);
+  padding: 0 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font);
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn:hover:not(:disabled) { background: var(--bg4); border-color: var(--muted); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.primary  { background: var(--accent-dim); border-color: var(--accent); color: #fff; }
+.btn.primary:hover:not(:disabled) { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.btn.danger   { border-color: var(--red); color: var(--red); background: transparent; }
+.btn.danger:hover:not(:disabled) { background: var(--danger-hover-bg); }
+.btn.small    { font-size: 11px; padding: 0 0.55rem; }
+
+/* ── View toggle buttons ── */
+.view-toggle-btn {
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.view-toggle-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.view-toggle-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── Form fields ── */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 0.85rem;
+}
+
+.field-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: -4px;
+}
+
+/* ── Inputs ── */
+input[type="text"],
+input[type="password"],
+input[type="number"] {
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+input:focus { border-color: var(--accent); }
+
+.api-key-wrap { position: relative; }
+.api-key-wrap input { padding-right: 34px; }
+
+.eye-btn {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.1s;
+}
+
+.eye-btn:hover { color: var(--text); }
+
+/* ── Checkbox ── */
+.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.checkbox-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.checkbox-label input[type="checkbox"]:focus { outline: none; border-color: var(--accent); }
+
+/* ── Number spinner ── */
+input[type="number"] { -moz-appearance: textfield; padding-right: 1.5rem; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.number-wrap { position: relative; }
+.number-wrap input { width: 100%; }
+
+.number-spin {
+  position: absolute;
+  right: 1px; top: 1px; bottom: 1px;
+  width: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  overflow: hidden;
+}
+
+.number-spin button {
+  flex: 1;
+  padding: 0; margin: 0;
+  border: none; border-radius: 0;
+  background: var(--bg3);
+  color: var(--muted);
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  transition: background 0.12s, color 0.12s;
+}
+
+.number-spin button:hover { background: var(--bg4); color: var(--text); }
+.number-spin button:first-child { border-bottom: 1px solid var(--border); }
+
+/* ── Misc ── */
+.muted  { color: var(--muted); font-size: 12px; }
+.hidden { display: none !important; }
+
+/* ── Animations ── */
+@keyframes overlayIn {
+  from { background: rgba(0,0,0,0); }
+  to   { background: rgba(0,0,0,0.6); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#results-body.fade-in,
+#browser-body.fade-in { animation: fadeIn 0.2s ease forwards; }

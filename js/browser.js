@@ -62,6 +62,14 @@ function _isRepeatable(ach) {
   return (ach?.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
 }
 
+// An achievement counts as "permanently done" for category-completion purposes
+// only if it is NOT a repeatable/daily/weekly AND its progress entry says done.
+function _isPermanentlyDone(ach, progressEntry) {
+  if (!ach) return false;
+  if (_isRepeatable(ach)) return false;
+  return progressEntry?.done === true;
+}
+
 function _buildRows(categoryId) {
   const cat = categories?.[categoryId];
   if (!cat || !cat.achievements?.length) return [];
@@ -101,12 +109,18 @@ function _buildRows(categoryId) {
   }
 
   if (progressMap) {
-    const cache = loadCache();
-    const hasAnyProgress = rows.some(r => progressMap[r.id]);
-    const allDone = hasAnyProgress && rows.every(r => {
-      const ach = cache[r.id];
-      return _isRepeatable(ach) || r.done;
+    // Category is "done" only when every non-repeatable achievement is permanently done.
+    // Repeatables are excluded from this check entirely — they reset and should never
+    // block or trigger the golden state.
+    const nonRepeatables = cat.achievements.filter(id => {
+      const ach = cache[id];
+      return ach && !_isRepeatable(ach);
     });
+
+    const allDone = nonRepeatables.length > 0 && nonRepeatables.every(id => {
+      return progressMap[id]?.done === true;
+    });
+
     catDoneMap[categoryId] = allDone;
 
     const btn = document.querySelector(`.browser-cat-item[data-cat-id="${categoryId}"]`);
@@ -204,13 +218,24 @@ export function recomputeCatDoneStates(hideCompleted = false) {
     for (const cat of catNodes) {
       if (!cat.achievements?.length) continue;
 
-      const hasAnyProgress = cat.achievements.some(id => progressMap[id]);
+      // Only consider non-repeatable achievements for category done state.
+      // A daily/weekly/repeatable having done=true means it was completed before,
+      // not that it's currently done — so it must never color the category golden.
+      const nonRepeatables = cat.achievements.filter(id => {
+        const ach = cache[id];
+        return ach && !_isRepeatable(ach);
+      });
+
+      // If a category has no non-repeatables at all, skip it — we can't
+      // determine done state meaningfully (e.g. pure daily categories).
+      if (!nonRepeatables.length) continue;
+
+      // Require at least one non-repeatable to have progress before going golden,
+      // so categories we've never touched don't light up.
+      const hasAnyProgress = nonRepeatables.some(id => progressMap[id]);
       if (!hasAnyProgress) continue;
 
-      const allDone = cat.achievements.every(id => {
-        const ach = cache[id];
-        return _isRepeatable(ach) || progressMap[id]?.done === true;
-      });
+      const allDone = nonRepeatables.every(id => progressMap[id]?.done === true);
       catDoneMap[cat.id] = allDone;
 
       const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
@@ -258,7 +283,7 @@ export function renderBrowserTree(container, onSelectCategory) {
     groupEl.className = "browser-group";
 
     const header = document.createElement("button");
-    header.className      = "browser-group-header" + (isExpanded ? " expanded" : "") + (groupDone ? " done-group" : "");
+    header.className       = "browser-group-header" + (isExpanded ? " expanded" : "") + (groupDone ? " done-group" : "");
     header.dataset.groupId = group.id;
     header.innerHTML = `
       <svg class="browser-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"
@@ -282,8 +307,8 @@ export function renderBrowserTree(container, onSelectCategory) {
       const isDone = catDoneMap[cat.id] === true;
 
       const btn = document.createElement("button");
-      btn.className      = "browser-cat-item" + (cat.id === activeCatId ? " active" : "") + (isDone ? " done-cat" : "");
-      btn.dataset.catId  = cat.id;
+      btn.className     = "browser-cat-item" + (cat.id === activeCatId ? " active" : "") + (isDone ? " done-cat" : "");
+      btn.dataset.catId = cat.id;
 
       const label = document.createElement("span");
       label.className   = "browser-cat-item-label";
@@ -310,4 +335,9 @@ export function renderBrowserTree(container, onSelectCategory) {
 export function resetBrowserState() {
   expandedGroups.clear();
   activeCatId = null;
+}
+
+export function resetBrowserCache() {
+  groups     = null;
+  categories = null;
 }

@@ -1,0 +1,148 @@
+/* ── Tile grid ── */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-auto-rows: 152px;
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  align-content: start;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+.tile-grid::-webkit-scrollbar { width: 4px; }
+.tile-grid::-webkit-scrollbar-track { background: transparent; }
+.tile-grid::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+.tile-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted);
+  padding: 4rem 0;
+  font-size: 13px;
+}
+
+/* ── Tile card ── */
+.ach-tile {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  min-width: 0;
+  height: 100%;
+}
+
+.ach-tile:hover { border-color: var(--muted); }
+
+.ach-tile.tile-done {
+  background: var(--gold-bg);
+  border-color: rgba(201,168,76,0.3);
+}
+
+.ach-tile.tile-done:hover { border-color: rgba(201,168,76,0.6); }
+
+.ach-tile.tile-hidden { opacity: 0.35; }
+.ach-tile.tile-hidden:hover { opacity: 0.65; }
+
+/* ── Tile body (top section) ── */
+.tile-body {
+  padding: 10px 12px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tile-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: var(--font);
+  width: 100%;
+  display: block;
+  transition: color 0.1s;
+  flex-shrink: 0;
+}
+
+.tile-name:hover { color: var(--accent); }
+
+.tile-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 4px;
+  flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.tile-prog-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.tile-pct {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tile-prog-nums {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Tile separator ── */
+.tile-sep {
+  height: 1px;
+  background: var(--border-soft);
+  flex-shrink: 0;
+}
+
+/* ── Tile rewards (bottom section) ── */
+.tile-rewards {
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 32px;
+  overflow: hidden;
+}
+
+.tile-rewards .ap-icon      { width: 14px; height: 14px; vertical-align: -2px; margin-right: 1px; }
+.tile-rewards .mastery-icon { width: 16px; height: 16px; vertical-align: -3px; margin-right: 1px; }
+
+.tile-reward-chip {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

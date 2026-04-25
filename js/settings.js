@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS = {
   useFinalTier: false,
   hideCompleted: false,
   theme: "dark",
+  viewMode: "list",
 };
 
 export function loadSettings() {
