@@ -61,7 +61,7 @@
 }
 
 .tile-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
@@ -136,8 +136,21 @@
   overflow: hidden;
 }
 
-.tile-rewards .ap-icon      { width: 14px; height: 14px; vertical-align: -2px; margin-right: 1px; }
-.tile-rewards .mastery-icon { width: 16px; height: 16px; vertical-align: -3px; margin-right: 1px; }
+.tile-rewards .ap-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 2px;
+  display: inline-block;
+}
+
+.tile-rewards .mastery-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 2px;
+  display: inline-block;
+}
 
 .tile-reward-chip {
   font-size: 11px;
@@ -145,4 +158,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }

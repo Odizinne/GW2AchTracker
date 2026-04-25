@@ -89,7 +89,7 @@ export function openAchievementModal(ach, progressEntry) {
       else if (bit.type === "Skin")    label = persistentSkinNameMap[bit.id]  || `Skin #${bit.id}`;
       else                             label = `Step ${i + 1}`;
       return `<div class="ach-bit ${done ? "bit-done" : ""}">
-        <span class="bit-check">${done ? "✓" : "○"}</span>
+        <span class="bit-checkbox" aria-hidden="true"></span>
         <span class="bit-label">${label}</span>
       </div>`;
     }).join("");

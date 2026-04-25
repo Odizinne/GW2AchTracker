@@ -306,15 +306,38 @@
 
 .ach-bit.bit-done { color: var(--text); border-color: var(--border-soft); }
 
-.bit-check {
-  font-size: 11px;
+/* ── Bit checkbox ── */
+.bit-checkbox {
   flex-shrink: 0;
-  width: 14px;
-  text-align: center;
-  color: var(--muted);
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  background: var(--bg4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.ach-bit.bit-done .bit-check { color: var(--green); }
+.ach-bit.bit-done .bit-checkbox {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.ach-bit.bit-done .bit-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
 
 .bit-label {
   flex: 1;
