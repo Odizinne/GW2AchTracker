@@ -183,6 +183,11 @@ function attachTileListeners(grid) {
 }
 
 function renderTileView(viewEl, rows, opts = {}) {
+  const { hideCompleted = false } = opts;
+  const visible = hideCompleted
+    ? rows.filter(r => !r.done || r.repeatable)
+    : rows;
+
   viewEl.querySelector(".table-wrap").style.display = "none";
   let grid = viewEl.querySelector(".tile-grid");
   if (!grid) {
@@ -190,7 +195,7 @@ function renderTileView(viewEl, rows, opts = {}) {
     grid.className = "tile-grid";
     viewEl.appendChild(grid);
   }
-  const html = buildTileHtml(rows, opts);
+  const html = buildTileHtml(visible, opts);  // use visible, not rows
   grid.innerHTML = html || `<div class="tile-empty">No achievements matched the current filters.</div>`;
   attachTileListeners(grid);
 }
@@ -344,7 +349,7 @@ function renderFavoritesView() {
   viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
 
   if (viewMode === "tile") {
-    renderTileView(viewEl, rows);
+    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
     return;
   }
 
@@ -392,7 +397,7 @@ function renderNearlyDoneRows(rows) {
   }
 
   if (viewMode === "tile") {
-    renderTileView(viewEl, visible, { isHiddenVisible: showHidden });
+    renderTileView(viewEl, visible, { isHiddenVisible: showHidden, hideCompleted: settings.hideCompleted });
     return;
   }
 
@@ -516,7 +521,7 @@ function selectCategory(cat) {
   const viewEl = document.getElementById("view-browser");
 
   if (viewMode === "tile") {
-    renderTileView(viewEl, rows);
+    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted })
   } else {
     if (changed) {
       browserBody.classList.remove("fade-in");
