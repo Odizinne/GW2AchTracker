@@ -78,10 +78,11 @@
 #browser-table tbody tr.row-done:hover td { opacity: 0.8; }
 
 /* ── Column widths ── */
-.col-pct    { width: 70px; }
-.col-prog   { width: 160px; }
-.col-name   { width: auto; }
-.col-reward { width: 260px; }
+.col-pct     { width: 70px; }
+.col-prog    { width: 160px; }
+.col-name    { width: auto; }
+.col-reward  { width: 240px; }
+.col-actions { width: 100px; }
 
 td.col-pct {
   text-align: right;
@@ -89,8 +90,15 @@ td.col-pct {
   font-weight: 600;
 }
 
-td.col-prog   { color: var(--muted); font-variant-numeric: tabular-nums; }
-td.col-reward { color: var(--muted); font-size: 13px; }
+td.col-prog    { color: var(--muted); font-variant-numeric: tabular-nums; }
+td.col-reward  { color: var(--muted); font-size: 13px; }
+
+td.col-actions {
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 8px;
+  overflow: visible;
+}
 
 /* ── Percent classes ── */
 .pct-high { color: var(--green); }
@@ -140,3 +148,26 @@ td.col-reward { color: var(--muted); font-size: 13px; }
 /* ── Hidden rows ── */
 tr.row-hidden td { opacity: 0.35; }
 tr.row-hidden:hover td { opacity: 0.65; }
+
+/* ── Row action buttons ── */
+.row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.1s, background 0.1s;
+  vertical-align: middle;
+}
+
+.row-action-btn:hover                { color: var(--text); background: var(--bg4); }
+.row-action-btn.active.row-fav-btn   { color: var(--gold); }
+.row-action-btn.active.row-fav-btn svg { fill: currentColor; }
+.row-action-btn.active.row-hide-btn  { color: var(--red); }

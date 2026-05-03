@@ -62,8 +62,6 @@ function _isRepeatable(ach) {
   return (ach?.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
 }
 
-// An achievement counts as "permanently done" for category-completion purposes
-// only if it is NOT a repeatable/daily/weekly AND its progress entry says done.
 function _isPermanentlyDone(ach, progressEntry) {
   if (!ach) return false;
   if (_isRepeatable(ach)) return false;
@@ -109,9 +107,6 @@ function _buildRows(categoryId) {
   }
 
   if (progressMap) {
-    // Category is "done" only when every non-repeatable achievement is permanently done.
-    // Repeatables are excluded from this check entirely — they reset and should never
-    // block or trigger the golden state.
     const nonRepeatables = cat.achievements.filter(id => {
       const ach = cache[id];
       return ach && !_isRepeatable(ach);
@@ -136,6 +131,14 @@ function _buildRows(categoryId) {
 
 export function getCategoryRows(categoryId) {
   return _buildRows(categoryId);
+}
+
+// Returns true if a category has at least one achievement present in the cache.
+function _categoryHasCachedAchievements(categoryId) {
+  const cat = categories?.[categoryId];
+  if (!cat || !cat.achievements?.length) return false;
+  const cache = loadCache();
+  return cat.achievements.some(id => cache[id]);
 }
 
 export async function fetchMissingCategoryNames(rows, apiKey) {
@@ -218,20 +221,13 @@ export function recomputeCatDoneStates(hideCompleted = false) {
     for (const cat of catNodes) {
       if (!cat.achievements?.length) continue;
 
-      // Only consider non-repeatable achievements for category done state.
-      // A daily/weekly/repeatable having done=true means it was completed before,
-      // not that it's currently done — so it must never color the category golden.
       const nonRepeatables = cat.achievements.filter(id => {
         const ach = cache[id];
         return ach && !_isRepeatable(ach);
       });
 
-      // If a category has no non-repeatables at all, skip it — we can't
-      // determine done state meaningfully (e.g. pure daily categories).
       if (!nonRepeatables.length) continue;
 
-      // Require at least one non-repeatable to have progress before going golden,
-      // so categories we've never touched don't light up.
       const hasAnyProgress = nonRepeatables.some(id => progressMap[id]);
       if (!hasAnyProgress) continue;
 
@@ -272,6 +268,7 @@ export function renderBrowserTree(container, onSelectCategory) {
     const catNodes = group.categories
       .map(id => categories[id])
       .filter(c => c && !isHidden(c.name))
+      .filter(c => _categoryHasCachedAchievements(c.id))  // hide empty categories
       .sort((a, b) => a.order - b.order);
 
     if (!catNodes.length) continue;

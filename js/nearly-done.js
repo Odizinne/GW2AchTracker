@@ -17,16 +17,44 @@ function getCurrentTier(tiers, progress) {
   return { idx: tiers.length - 1, tier: tiers[tiers.length - 1] };
 }
 
-// Step 1a — fetch all definitions (public, no key). Only downloads what's missing.
-// Repeatable/daily/weekly achievements are always re-fetched so their state stays fresh.
-export async function ensureDefinitionCache(onStatus) {
+// Step 1a — fetch achievement definitions.
+// If fetchAccountOnly=true: fetches only IDs the account has interacted with,
+// prunes any cached definitions outside that set, then downloads missing ones.
+// If fetchAccountOnly=false: fetches all public IDs and downloads missing ones.
+// Repeatable/daily/weekly achievements are always re-fetched to stay fresh.
+export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountOnly = false) {
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
-  const allIds    = await apiFetch("/achievements", { lang: "en" });
 
-  const missing = allIds.filter(id => !cachedIds.has(id));
+  let candidateIds;
 
-  const repeatableIds = allIds.filter(id => {
+  if (fetchAccountOnly && apiKey) {
+    onStatus("Fetching your account achievements…");
+    const accountData = await apiFetch("/account/achievements", {}, apiKey);
+    candidateIds = accountData.map(e => e.id);
+
+    // Prune entries that don't belong to this account so the cache
+    // doesn't silently retain thousands of full-fetch leftovers.
+    const accountSet = new Set(candidateIds);
+    let pruned = false;
+    for (const id of cachedIds) {
+      if (!accountSet.has(id)) {
+        delete cache[id];
+        pruned = true;
+      }
+    }
+    if (pruned) saveCache(cache);
+
+  } else {
+    candidateIds = await apiFetch("/achievements", { lang: "en" });
+  }
+
+  // Recompute cachedIds after potential pruning
+  const currentCachedIds = new Set(Object.keys(cache).map(Number));
+
+  const missing = candidateIds.filter(id => !currentCachedIds.has(id));
+
+  const repeatableIds = candidateIds.filter(id => {
     const ach = cache[id];
     return ach && (ach.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
   });

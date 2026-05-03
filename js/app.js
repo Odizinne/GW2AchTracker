@@ -1,5 +1,5 @@
 import { validateApiKey, formatRewards }                   from "./api.js";
-import { clearCache, loadCache, favoritesSet, hiddenSet, persistentItemNameMap, persistentTitleNameMap } from "./cache.js";
+import { clearCache, loadCache, favoritesSet, hiddenSet, persistentItemNameMap, persistentTitleNameMap, toggleFavorite, toggleHidden } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone, resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import {
@@ -65,6 +65,7 @@ const btnViewTile       = document.getElementById("btn-view-tile");
 
 btnViewList.classList.toggle("active", viewMode === "list");
 btnViewTile.classList.toggle("active", viewMode === "tile");
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function setStatus(msg)        {}
@@ -102,6 +103,70 @@ function openAchFromCache(id) {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
+}
+
+// ── Cache reset helper ────────────────────────────────────────────────────────
+
+function resetAllCachedState() {
+  clearCache();
+  resetBrowserCache();
+  browserInitialized = false;
+  activeCat = null;
+  lastNearlyDoneRows = [];
+  lastResultCount = null;
+  nearlyDoneFirstRender = true;
+  resetBrowserState();
+  browserTree.innerHTML = "";
+  document.querySelectorAll(".tile-grid").forEach(g => g.remove());
+  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Press <strong>Update</strong> to load your achievements.</td></tr>`;
+  favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
+  document.getElementById("view-nearly-completed").querySelector(".table-wrap").style.display = "";
+  document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
+  document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
+  updateCacheInfo();
+}
+
+// ── Row action buttons ────────────────────────────────────────────────────────
+
+const SVG_STAR     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const SVG_HIDE     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+const SVG_WIKI     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+function buildActionButtons(id, achName) {
+  const isFav  = favoritesSet.has(id);
+  const isHid  = hiddenSet.has(id);
+  const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(achName.replace(/ /g, "_"))}`;
+  return `
+    <button class="row-action-btn row-fav-btn ${isFav ? "active" : ""}" data-id="${id}" title="Favorite">
+      ${SVG_STAR}
+    </button>
+    <button class="row-action-btn row-hide-btn ${isHid ? "active" : ""}" data-id="${id}" title="Hide">
+      ${SVG_HIDE}
+    </button>
+    <a class="row-action-btn" href="${wikiUrl}" target="_blank" rel="noopener" title="Wiki">
+      ${SVG_WIKI}
+    </a>`;
+}
+
+function attachActionListeners(tbody, onStateChange) {
+  tbody.querySelectorAll(".row-fav-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.id);
+      toggleFavorite(id);
+      btn.classList.toggle("active", favoritesSet.has(id));
+      onStateChange?.(id, "favorite");
+    });
+  });
+  tbody.querySelectorAll(".row-hide-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.id);
+      toggleHidden(id);
+      btn.classList.toggle("active", hiddenSet.has(id));
+      onStateChange?.(id, "hidden");
+    });
+  });
 }
 
 // ── View mode toggle ──────────────────────────────────────────────────────────
@@ -195,7 +260,7 @@ function renderTileView(viewEl, rows, opts = {}) {
     grid.className = "tile-grid";
     viewEl.appendChild(grid);
   }
-  const html = buildTileHtml(visible, opts);  // use visible, not rows
+  const html = buildTileHtml(visible, opts);
   grid.innerHTML = html || `<div class="tile-empty">No achievements matched the current filters.</div>`;
   attachTileListeners(grid);
 }
@@ -318,7 +383,7 @@ function renderFavoritesView() {
 
   if (!ids.length) {
     renderListView(viewEl);
-    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
     viewSubtitle.textContent = "";
     return;
   }
@@ -342,7 +407,7 @@ function renderFavoritesView() {
 
   if (!rows.length) {
     renderListView(viewEl);
-    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">Achievement data not loaded — press Update first.</td></tr>`;
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">Achievement data not loaded — press Update first.</td></tr>`;
     return;
   }
 
@@ -374,12 +439,14 @@ function renderFavoritesView() {
       <td class="col-prog">${progCell}</td>
       <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");
 
   favoritesBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
+  attachActionListeners(favoritesBody, (_id, _type) => renderFavoritesView());
 }
 
 // ── Nearly completed ──────────────────────────────────────────────────────────
@@ -392,7 +459,7 @@ function renderNearlyDoneRows(rows) {
 
   if (!visible.length) {
     renderListView(viewEl);
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements matched the current filters.</td></tr>`;
+    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements matched the current filters.</td></tr>`;
     return;
   }
 
@@ -427,11 +494,16 @@ function renderNearlyDoneRows(rows) {
         <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
       </td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");
 
   resultsBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
+  attachActionListeners(resultsBody, (_id, type) => {
+    if (type === "hidden") renderNearlyDoneRows(lastNearlyDoneRows);
+    else if (type === "favorite") renderFavoritesView();
   });
 }
 
@@ -442,11 +514,19 @@ async function doFetch() {
   if (currentView === "nearly-completed") updateSubtitle(null);
   try {
     try {
-      await ensureDefinitionCache(msg => setStatus(msg));
+      await Promise.all([
+        ensureDefinitionCache(
+          msg => setStatus(msg),
+          key,
+          settings.fetchAccountOnly !== false,
+        ),
+        ensureBrowserData(msg => setStatus(msg)),
+      ]);
       await ensureRewardNames(msg => setStatus(msg));
     } catch (e) {
       console.warn("Cache update failed, proceeding with existing data:", e);
     }
+
     await fetchProgress(key);
     const rows = computeNearlyDone(getProgressMap(), settings);
     lastNearlyDoneRows = rows;
@@ -455,14 +535,21 @@ async function doFetch() {
     setProgressMap(getProgressMap());
     setModalProgressMap(getProgressMap());
     recomputeCatDoneStates(settings.hideCompleted);
+
+    if (browserInitialized) {
+      browserTree.innerHTML = "";
+      renderBrowserTree(browserTree, cat => selectCategory(cat));
+      recomputeCatDoneStates(settings.hideCompleted);
+    }
+
     renderNearlyDoneRows(rows);
     if (currentView === "nearly-completed") updateSubtitle(rows.length);
     if (currentView === "favorites")        renderFavoritesView();
-    updateCacheInfo();
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
   } catch (e) {
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Error — check your API key and try again.</td></tr>`;
+    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Error — check your API key and try again.</td></tr>`;
   } finally {
+    updateCacheInfo();
     setFetching(false);
   }
 }
@@ -502,7 +589,7 @@ async function initBrowser(forceRefresh = false) {
     } else {
       viewTitle.textContent    = "Browse achievements";
       viewSubtitle.textContent = "Select a category from the sidebar";
-      browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">Select a category from the sidebar to browse.</td></tr>`;
+      browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">Select a category from the sidebar to browse.</td></tr>`;
     }
   } catch (e) {
     setBrowserStatus("Failed to load: " + e.message);
@@ -521,7 +608,7 @@ function selectCategory(cat) {
   const viewEl = document.getElementById("view-browser");
 
   if (viewMode === "tile") {
-    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted })
+    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
   } else {
     if (changed) {
       browserBody.classList.remove("fade-in");
@@ -542,7 +629,7 @@ function renderBrowserRows(rows) {
     : rows;
 
   if (!visible.length) {
-    browserBody.innerHTML = `<tr class="empty-row"><td colspan="4">No achievements in this category.</td></tr>`;
+    browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements in this category.</td></tr>`;
     return;
   }
 
@@ -574,11 +661,15 @@ function renderBrowserRows(rows) {
         <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
       </td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");
 
   browserBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
+  });
+  attachActionListeners(browserBody, (_id, _type) => {
+    if (activeCat) selectCategory(activeCat);
   });
 }
 
@@ -621,11 +712,12 @@ function renderAccountsList() {
 }
 
 btnSettings.addEventListener("click", () => {
-  document.getElementById("s-maxresults").value    = settings.maxResults;
-  document.getElementById("s-threshold").value     = settings.thresholdPct;
-  document.getElementById("s-tier").value          = settings.useFinalTier ? "last" : "next";
-  document.getElementById("s-hide-completed").checked = settings.hideCompleted;
-  document.getElementById("s-light-mode").checked = settings.theme === "light";
+  document.getElementById("s-maxresults").value           = settings.maxResults;
+  document.getElementById("s-threshold").value            = settings.thresholdPct;
+  document.getElementById("s-tier").value                 = settings.useFinalTier ? "last" : "next";
+  document.getElementById("s-hide-completed").checked     = settings.hideCompleted;
+  document.getElementById("s-fetch-account-only").checked = settings.fetchAccountOnly !== false;
+  document.getElementById("s-light-mode").checked         = settings.theme === "light";
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -674,37 +766,34 @@ document.getElementById("btn-settings-close").addEventListener("click",  () => c
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
 document.getElementById("btn-settings-save").addEventListener("click", () => {
-  settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
-  settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
-  settings.useFinalTier  = document.getElementById("s-tier").value === "last";
-  settings.hideCompleted = document.getElementById("s-hide-completed").checked;
-  settings.theme = document.getElementById("s-light-mode").checked ? "light" : "dark";
+  const prevFetchAccountOnly = settings.fetchAccountOnly;
+
+  settings.maxResults       = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
+  settings.thresholdPct     = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
+  settings.useFinalTier     = document.getElementById("s-tier").value === "last";
+  settings.hideCompleted    = document.getElementById("s-hide-completed").checked;
+  settings.fetchAccountOnly = document.getElementById("s-fetch-account-only").checked;
+  settings.theme            = document.getElementById("s-light-mode").checked ? "light" : "dark";
   applyTheme(settings.theme);
   saveSettings(settings);
+
+  const fetchModeChanged = settings.fetchAccountOnly !== prevFetchAccountOnly;
+
   recomputeCatDoneStates(settings.hideCompleted);
-  if (currentView === "browser" && activeCat) selectCategory(activeCat);
-  if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
+  if (!fetchModeChanged) {
+    if (currentView === "browser" && activeCat) selectCategory(activeCat);
+    if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
+  }
   closeModal("settings-overlay");
+
+  if (fetchModeChanged) {
+    resetAllCachedState();
+    doFetch();
+  }
 });
 
 document.getElementById("btn-cache-clear").addEventListener("click", () => {
-  clearCache();
-  resetBrowserCache();          // <-- wipes in-memory groups/categories too
-  browserInitialized = false;
-  activeCat = null;
-  lastNearlyDoneRows = [];
-  lastResultCount = null;
-  resetBrowserState();
-  browserTree.innerHTML = "";
-  updateCacheInfo();
-  // Clear any tile grids left on screen
-  document.querySelectorAll(".tile-grid").forEach(g => g.remove());
-  // Reset table bodies to empty state
-  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="4">Press <strong>Update</strong> to load your achievements.</td></tr>`;
-  favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
-  document.getElementById("view-nearly-completed").querySelector(".table-wrap").style.display = "";
-  document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
-  document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
+  resetAllCachedState();
 });
 
 // ── Legal & GitHub ────────────────────────────────────────────────────────────
@@ -758,6 +847,7 @@ initAchModal();
 setModalStateCallback((_achId, type) => {
   if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
   if (currentView === "favorites")        renderFavoritesView();
+  if (currentView === "browser" && activeCat) selectCategory(activeCat);
 });
 initSearch(ach => openAchievementModal(ach, null));
 checkSetup();
