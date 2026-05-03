@@ -1,5 +1,5 @@
 import { validateApiKey, formatRewards }                   from "./api.js";
-import { clearCache, loadCache, favoritesSet, hiddenSet, persistentItemNameMap, persistentTitleNameMap, toggleFavorite, toggleHidden } from "./cache.js";
+import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap, toggleFavorite, toggleHidden } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone, resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import {
@@ -10,6 +10,7 @@ import {
   resetBrowserState,
   resetBrowserCache,
   recomputeCatDoneStates,
+  showBrowserSkeleton,
 } from "./browser.js";
 import {
   SVG_EYE, SVG_EYE_OFF, SVG_TRASH,
@@ -68,8 +69,17 @@ btnViewTile.classList.toggle("active", viewMode === "tile");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function setStatus(msg)        {}
-function setBrowserStatus(msg) {}
+function setStatus(msg) {
+  if (currentView === "nearly-completed" || currentView === "favorites") {
+    viewSubtitle.textContent = msg || "";
+  }
+}
+
+function setBrowserStatus(msg) {
+  if (currentView === "browser") {
+    viewSubtitle.textContent = msg || "";
+  }
+}
 
 function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
@@ -105,6 +115,34 @@ function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
 }
 
+// ── Progress cell helper ──────────────────────────────────────────────────────
+// Always renders a .prog-wrap so every row is the same height.
+// When there is no bar to show it renders one with visibility:hidden.
+
+function buildProgCell(row) {
+  const hasProgress = row.percent !== null && row.percent !== undefined;
+  const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
+
+  if (row.done) {
+    return `<div class="prog-wrap">
+      <span>Completed</span>
+      <div class="prog-bar-bg invisible"></div>
+    </div>`;
+  }
+  if (hasProgress && row.required) {
+    return `<div class="prog-wrap">
+      <span>${row.progress}/${row.required}</span>
+      <div class="prog-bar-bg">
+        <div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent)}"></div>
+      </div>
+    </div>`;
+  }
+  return `<div class="prog-wrap">
+    <span class="muted">—</span>
+    <div class="prog-bar-bg invisible"></div>
+  </div>`;
+}
+
 // ── Cache reset helper ────────────────────────────────────────────────────────
 
 function resetAllCachedState() {
@@ -128,24 +166,18 @@ function resetAllCachedState() {
 
 // ── Row action buttons ────────────────────────────────────────────────────────
 
-const SVG_STAR     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-const SVG_HIDE     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-const SVG_WIKI     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+const SVG_STAR = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const SVG_HIDE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+const SVG_WIKI = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
 function buildActionButtons(id, achName) {
   const isFav  = favoritesSet.has(id);
   const isHid  = hiddenSet.has(id);
   const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(achName.replace(/ /g, "_"))}`;
   return `
-    <button class="row-action-btn row-fav-btn ${isFav ? "active" : ""}" data-id="${id}" title="Favorite">
-      ${SVG_STAR}
-    </button>
-    <button class="row-action-btn row-hide-btn ${isHid ? "active" : ""}" data-id="${id}" title="Hide">
-      ${SVG_HIDE}
-    </button>
-    <a class="row-action-btn" href="${wikiUrl}" target="_blank" rel="noopener" title="Wiki">
-      ${SVG_WIKI}
-    </a>`;
+    <button class="row-action-btn row-fav-btn ${isFav ? "active" : ""}" data-id="${id}" title="Favorite">${SVG_STAR}</button>
+    <button class="row-action-btn row-hide-btn ${isHid ? "active" : ""}" data-id="${id}" title="Hide">${SVG_HIDE}</button>
+    <a class="row-action-btn" href="${wikiUrl}" target="_blank" rel="noopener" title="Wiki">${SVG_WIKI}</a>`;
 }
 
 function attachActionListeners(tbody, onStateChange) {
@@ -187,16 +219,14 @@ btnViewTile.addEventListener("click", () => setViewMode("tile"));
 
 // ── Tile rendering ────────────────────────────────────────────────────────────
 
-function buildTileHtml(rows, opts = {}) {
+function buildTileHtml(rows) {
   if (!rows.length) return "";
-
   const cache = loadCache();
-
   return rows.map(row => {
-    const isHid  = hiddenSet.has(row.id);
-    const isDone = row.done || (row.percent !== null && row.percent >= 100);
+    const isHid      = hiddenSet.has(row.id);
+    const isDone     = row.done || (row.percent !== null && row.percent >= 100);
     const hasProgress = row.percent !== null && row.percent !== undefined;
-    const fillPct = hasProgress ? Math.min(100, row.percent) : 0;
+    const fillPct    = hasProgress ? Math.min(100, row.percent) : 0;
 
     const pctLabel = isDone
       ? `<span class="tile-pct pct-done">✓</span>`
@@ -209,7 +239,7 @@ function buildTileHtml(rows, opts = {}) {
            <div class="prog-bar-fill" style="width:${fillPct}%;height:100%;border-radius:99px;background:${isDone ? "var(--green)" : barColor(row.percent)}"></div>
          </div>
          <span class="tile-prog-nums">${row.progress}/${row.required}</span>`
-      : `<div style="flex:1"></div>`;
+      : `<div style="flex:1;height:3px;border-radius:99px;background:var(--bg4);visibility:hidden"></div>`;
 
     const ach  = cache[row.id];
     const desc = ach?.description || ach?.requirement || "";
@@ -220,11 +250,7 @@ function buildTileHtml(rows, opts = {}) {
         ).join("")
       : "";
 
-    const classes = [
-      "ach-tile",
-      isDone    ? "tile-done"   : "",
-      isHid     ? "tile-hidden" : "",
-    ].filter(Boolean).join(" ");
+    const classes = ["ach-tile", isDone ? "tile-done" : "", isHid ? "tile-hidden" : ""].filter(Boolean).join(" ");
 
     return `<div class="${classes}">
       <div class="tile-body">
@@ -249,10 +275,7 @@ function attachTileListeners(grid) {
 
 function renderTileView(viewEl, rows, opts = {}) {
   const { hideCompleted = false } = opts;
-  const visible = hideCompleted
-    ? rows.filter(r => !r.done || r.repeatable)
-    : rows;
-
+  const visible = hideCompleted ? rows.filter(r => !r.done || r.repeatable) : rows;
   viewEl.querySelector(".table-wrap").style.display = "none";
   let grid = viewEl.querySelector(".tile-grid");
   if (!grid) {
@@ -260,9 +283,9 @@ function renderTileView(viewEl, rows, opts = {}) {
     grid.className = "tile-grid";
     viewEl.appendChild(grid);
   }
-  const html = buildTileHtml(visible, opts);
-  grid.innerHTML = html || `<div class="tile-empty">No achievements matched the current filters.</div>`;
+  grid.innerHTML = buildTileHtml(visible) || `<div class="tile-empty">No achievements matched the current filters.</div>`;
   attachTileListeners(grid);
+  return visible.length;
 }
 
 function renderListView(viewEl) {
@@ -353,7 +376,6 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
   if (!name) { showError(setupError, "Please enter a name for this account."); return; }
   if (!key)  { showError(setupError, "Please enter an API key."); return; }
   clearError(setupError);
-
   const btn = document.getElementById("btn-setup-save");
   btn.disabled = true;
   btn.textContent = "Validating…";
@@ -376,10 +398,12 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
 function renderFavoritesView() {
-  const viewEl = document.getElementById("view-favorites");
-  const cache  = loadCache();
-  const pm     = getProgressMap();
-  const ids    = [...favoritesSet];
+  const viewEl       = document.getElementById("view-favorites");
+  const cache        = loadCache();
+  const pm           = getProgressMap();
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+  const ids          = [...favoritesSet];
 
   if (!ids.length) {
     renderListView(viewEl);
@@ -402,7 +426,7 @@ function renderFavoritesView() {
       : null;
     const totalPts = ach.point_cap ?? tiers.reduce((s, t) => s + (t.points || 0), 0);
     return [{ id, name: ach.name, progress, required, percent: pct, done,
-      rewardStr: formatRewards(ach.rewards || [], persistentItemNameMap, persistentTitleNameMap, totalPts) }];
+      rewardStr: formatRewards(ach.rewards || [], itemNameMap, titleNameMap, totalPts) }];
   });
 
   if (!rows.length) {
@@ -411,32 +435,27 @@ function renderFavoritesView() {
     return;
   }
 
-  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
-
   if (viewMode === "tile") {
-    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
+    const visibleCount = renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
+    viewSubtitle.textContent = `${visibleCount} achievement${visibleCount !== 1 ? "s" : ""}`;
     return;
   }
 
   renderListView(viewEl);
 
-  favoritesBody.innerHTML = rows.map(row => {
+  const visible = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+  viewSubtitle.textContent = `${visible.length} achievement${visible.length !== 1 ? "s" : ""}`;
+
+  favoritesBody.innerHTML = visible.map(row => {
     const hasProgress = row.percent !== null;
-    const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
-    const pctCell  = row.done
+    const pctCell = row.done
       ? `<span class="pct-done">✓</span>`
-      : hasProgress ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
-      : `<span class="pct-na">—</span>`;
-    const progCell = row.done
-      ? `<span class="muted">Completed</span>`
-      : hasProgress && row.required
-        ? `<div class="prog-wrap"><span>${row.progress}/${row.required}</span>
-             <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent)}"></div></div>
-           </div>`
-        : `<span class="muted">—</span>`;
+      : hasProgress
+        ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
+        : `<span class="pct-na">—</span>`;
     return `<tr class="${row.done ? "row-done" : ""}">
       <td class="col-pct">${pctCell}</td>
-      <td class="col-prog">${progCell}</td>
+      <td class="col-prog">${buildProgCell(row)}</td>
       <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
@@ -460,11 +479,14 @@ function renderNearlyDoneRows(rows) {
   if (!visible.length) {
     renderListView(viewEl);
     resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements matched the current filters.</td></tr>`;
+    updateSubtitle(0);
     return;
   }
 
+  updateSubtitle(visible.length);
+
   if (viewMode === "tile") {
-    renderTileView(viewEl, visible, { isHiddenVisible: showHidden, hideCompleted: settings.hideCompleted });
+    renderTileView(viewEl, visible, { isHiddenVisible: showHidden, hideCompleted: false });
     return;
   }
 
@@ -478,21 +500,11 @@ function renderNearlyDoneRows(rows) {
   }
 
   resultsBody.innerHTML = visible.map(row => {
-    const pct     = row.percent.toFixed(1);
-    const fillPct = Math.min(100, row.percent);
+    const pctCell = `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`;
     return `<tr class="${hiddenSet.has(row.id) ? "row-hidden" : ""}">
-      <td class="col-pct ${pctClass(row.percent)}">${pct}%</td>
-      <td class="col-prog">
-        <div class="prog-wrap">
-          <span>${row.progress}/${row.required}</span>
-          <div class="prog-bar-bg">
-            <div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent)}"></div>
-          </div>
-        </div>
-      </td>
-      <td class="col-name">
-        <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
-      </td>
+      <td class="col-pct">${pctCell}</td>
+      <td class="col-prog">${buildProgCell(row)}</td>
+      <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
@@ -511,52 +523,70 @@ async function doFetch() {
   const key = activeApiKey();
   if (!key) return;
   setFetching(true);
-  if (currentView === "nearly-completed") updateSubtitle(null);
+  if (currentView === "nearly-completed") setStatus("Loading…");
+
+  let definitionsFailed = false;
   try {
-    try {
-      await Promise.all([
-        ensureDefinitionCache(
-          msg => setStatus(msg),
-          key,
-          settings.fetchAccountOnly !== false,
-        ),
-        ensureBrowserData(msg => setStatus(msg)),
-      ]);
-      await ensureRewardNames(msg => setStatus(msg));
-    } catch (e) {
-      console.warn("Cache update failed, proceeding with existing data:", e);
-    }
-
-    await fetchProgress(key);
-    const rows = computeNearlyDone(getProgressMap(), settings);
-    lastNearlyDoneRows = rows;
-    lastResultCount = rows.length;
-    await resolveRewardNames(rows, key);
-    setProgressMap(getProgressMap());
-    setModalProgressMap(getProgressMap());
-    recomputeCatDoneStates(settings.hideCompleted);
-
-    if (browserInitialized) {
-      browserTree.innerHTML = "";
-      renderBrowserTree(browserTree, cat => selectCategory(cat));
-      recomputeCatDoneStates(settings.hideCompleted);
-    }
-
-    renderNearlyDoneRows(rows);
-    if (currentView === "nearly-completed") updateSubtitle(rows.length);
-    if (currentView === "favorites")        renderFavoritesView();
-    if (currentView === "browser" && activeCat) selectCategory(activeCat);
+    await Promise.all([
+      ensureDefinitionCache(msg => setStatus(msg), key, settings.fetchAccountOnly !== false),
+      ensureBrowserData(msg => setStatus(msg)),
+    ]);
+    await ensureRewardNames(msg => setStatus(msg));
   } catch (e) {
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Error — check your API key and try again.</td></tr>`;
-  } finally {
-    updateCacheInfo();
-    setFetching(false);
+    console.warn("Definition/browser data update failed, continuing with cache:", e);
+    definitionsFailed = true;
   }
+
+  let progressFailed = false;
+  try {
+    await fetchProgress(key);
+  } catch (e) {
+    console.warn("Progress fetch failed:", e);
+    progressFailed = true;
+  }
+
+  if (progressFailed) {
+    if (currentView === "nearly-completed") {
+      resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Could not fetch progress — check your API key and connection, then try again.</td></tr>`;
+    }
+    setFetching(false);
+    updateCacheInfo();
+    return;
+  }
+
+  const rows = computeNearlyDone(getProgressMap(), settings);
+  lastNearlyDoneRows = rows;
+  lastResultCount = rows.length;
+
+  try {
+    await resolveRewardNames(rows, key);
+  } catch (e) {
+    console.warn("Reward name resolution failed (reward labels may be incomplete):", e);
+  }
+
+  setProgressMap(getProgressMap());
+  setModalProgressMap(getProgressMap());
+  recomputeCatDoneStates(settings.hideCompleted);
+
+  if (browserInitialized) {
+    browserTree.innerHTML = "";
+    renderBrowserTree(browserTree, cat => selectCategory(cat));
+    recomputeCatDoneStates(settings.hideCompleted);
+  }
+
+  renderNearlyDoneRows(rows);
+  if (currentView === "favorites") renderFavoritesView();
+  if (currentView === "browser" && activeCat) selectCategory(activeCat);
+
+  if (definitionsFailed && currentView === "nearly-completed") {
+    viewSubtitle.textContent += " · definitions may be stale";
+  }
+
+  updateCacheInfo();
+  setFetching(false);
 }
 
-btnRefresh.addEventListener("click", () => {
-  doFetch();
-});
+btnRefresh.addEventListener("click", () => { doFetch(); });
 
 // ── Browser ───────────────────────────────────────────────────────────────────
 
@@ -601,25 +631,32 @@ async function initBrowser(forceRefresh = false) {
 function selectCategory(cat) {
   const changed = activeCat !== cat;
   activeCat = cat;
-  viewTitle.textContent    = cat.name;
-  viewSubtitle.textContent = "";
+  viewTitle.textContent = cat.name;
 
   const rows   = getCategoryRows(cat.id);
   const viewEl = document.getElementById("view-browser");
 
+  if (!rows.length) {
+    renderListView(viewEl);
+    showBrowserSkeleton(browserBody);
+    viewSubtitle.textContent = "Loading…";
+    return;
+  }
+
   if (viewMode === "tile") {
-    renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
+    const visibleCount = renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
+    viewSubtitle.textContent = `${visibleCount} achievement${visibleCount !== 1 ? "s" : ""}`;
   } else {
     if (changed) {
       browserBody.classList.remove("fade-in");
       void browserBody.offsetWidth;
     }
     renderListView(viewEl);
-    renderBrowserRows(rows);
+    const visibleCount = renderBrowserRows(rows);
+    viewSubtitle.textContent = `${visibleCount} achievement${visibleCount !== 1 ? "s" : ""}`;
     if (changed) browserBody.classList.add("fade-in");
   }
 
-  viewSubtitle.textContent = `${rows.length} achievement${rows.length !== 1 ? "s" : ""}`;
   updateCacheInfo();
 }
 
@@ -630,36 +667,21 @@ function renderBrowserRows(rows) {
 
   if (!visible.length) {
     browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements in this category.</td></tr>`;
-    return;
+    return 0;
   }
 
   browserBody.innerHTML = visible.map(row => {
     const hasProgress = row.percent !== null;
-    const fillPct     = hasProgress ? Math.min(100, row.percent) : 0;
-
     const pctCell = row.done
       ? `<span class="pct-done">✓</span>`
       : hasProgress
         ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
         : `<span class="pct-na">—</span>`;
 
-    const progCell = row.done
-      ? `<span class="muted">Completed</span>`
-      : hasProgress && row.required
-        ? `<div class="prog-wrap">
-             <span>${row.progress}/${row.required}</span>
-             <div class="prog-bar-bg">
-               <div class="prog-bar-fill" style="width:${fillPct}%;background:${barColor(row.percent)}"></div>
-             </div>
-           </div>`
-        : `<span class="muted">—</span>`;
-
     return `<tr class="${row.done ? "row-done" : ""}">
       <td class="col-pct">${pctCell}</td>
-      <td class="col-prog">${progCell}</td>
-      <td class="col-name">
-        <button class="ach-row-btn" data-id="${row.id}">${row.name}</button>
-      </td>
+      <td class="col-prog">${buildProgCell(row)}</td>
+      <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
       <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
@@ -668,9 +690,11 @@ function renderBrowserRows(rows) {
   browserBody.querySelectorAll(".ach-row-btn").forEach(btn => {
     btn.addEventListener("click", () => openAchFromCache(btn.dataset.id));
   });
-  attachActionListeners(browserBody, (_id, _type) => {
+  attachActionListeners(browserBody, () => {
     if (activeCat) selectCategory(activeCat);
   });
+
+  return visible.length;
 }
 
 // ── Settings modal ────────────────────────────────────────────────────────────

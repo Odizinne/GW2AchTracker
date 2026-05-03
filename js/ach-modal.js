@@ -1,6 +1,6 @@
-import { rewardHtml } from "./ui.js";
+import { formatRewardsArray } from "./api.js";
 import {
-  persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap,
+  getItemNameMap, getTitleNameMap, getSkinNameMap,
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
 
@@ -78,15 +78,17 @@ export function openAchievementModal(ach, progressEntry) {
   // ── Bits (steps) ──────────────────────────────────────────────────────────
   const bitsSection = document.getElementById("ach-modal-bits-section");
   const bits = ach.bits || [];
+  const itemNameMap = getItemNameMap();
+  const skinNameMap = getSkinNameMap();
   if (bits.length) {
     const completedBits = new Set(entry.bits || []);
     const bitsHtml = bits.map((bit, i) => {
       const done = entry.done || completedBits.has(i);
       let label = "";
       if      (bit.type === "Text")    label = bit.text || `Step ${i + 1}`;
-      else if (bit.type === "Item")    label = persistentItemNameMap[bit.id] || `Item #${bit.id}`;
-      else if (bit.type === "Minipet") label = persistentItemNameMap[bit.id] || `Minipet #${bit.id}`;
-      else if (bit.type === "Skin")    label = persistentSkinNameMap[bit.id]  || `Skin #${bit.id}`;
+      else if (bit.type === "Item")    label = itemNameMap[bit.id] || `Item #${bit.id}`;
+      else if (bit.type === "Minipet") label = itemNameMap[bit.id] || `Minipet #${bit.id}`;
+      else if (bit.type === "Skin")    label = skinNameMap[bit.id]  || `Skin #${bit.id}`;
       else                             label = `Step ${i + 1}`;
       return `<div class="ach-bit ${done ? "bit-done" : ""}">
         <span class="bit-checkbox" aria-hidden="true"></span>
@@ -105,7 +107,12 @@ export function openAchievementModal(ach, progressEntry) {
   // ── Rewards ───────────────────────────────────────────────────────────────
   const rewardsSection = document.getElementById("ach-modal-rewards-section");
   const totalPoints = ach.point_cap ?? (ach.tiers || []).reduce((s, t) => s + (t.points || 0), 0);
-  const rewardLines = buildRewardLines(ach.rewards || [], totalPoints);
+  const rewardLines = formatRewardsArray(
+    ach.rewards || [],
+    getItemNameMap(),
+    getTitleNameMap(),
+    totalPoints,
+  );
   if (rewardLines.length) {
     const linesHtml = rewardLines.map(line =>
       `<div class="ach-modal-reward-row">${rewardHtml(line)}</div>`
@@ -122,41 +129,13 @@ export function openAchievementModal(ach, progressEntry) {
   document.getElementById("ach-modal-overlay").classList.add("open");
 }
 
-// Returns one formatted string per reward line (AP on its own line, then each reward)
-function buildRewardLines(rewards, points) {
-  const MASTERY_MAP = {
-    Tyria:   "Tyria",
-    Maguuma: "Heart_of_Thorns",
-    Desert:  "Path_of_Fire",
-    Tundra:  "Icebrood_Saga",
-    Jade:    "End_of_Dragons",
-    Sky:     "Secrets_of_the_Obscure",
-    Wild:    "Janthir_Wilds",
-    Magic:   "Visions_of_Eternity",
-  };
-
-  const lines = [];
-
-  if (points) lines.push(`AP:${points}`);
-
-  for (const r of rewards) {
-    if (r.type === "Coins") {
-      const g = Math.floor(r.count / 10000);
-      const s = Math.floor((r.count % 10000) / 100);
-      const c = r.count % 100;
-      lines.push([g && `${g}g`, s && `${s}s`, c && `${c}c`].filter(Boolean).join(" "));
-    } else if (r.type === "Item") {
-      const name = persistentItemNameMap[r.id] || `Item#${r.id}`;
-      lines.push(r.count > 1 ? `${r.count}x ${name}` : name);
-    } else if (r.type === "Mastery") {
-      lines.push(`MASTERY:${MASTERY_MAP[r.region] || "Tyria"}`);
-    } else if (r.type === "Title") {
-      const name = persistentTitleNameMap[r.id];
-      lines.push(name ? `[${name}]` : `[Title#${r.id}]`);
-    }
-  }
-
-  return lines;
+function rewardHtml(str) {
+  return str
+    .replace(/AP:(\d+)/g, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
+    .replace(/MASTERY:([A-Za-z_]+)/g, (_, file) =>
+      `<img src="assets/mastery/${file}.png" class="mastery-icon" alt="${file.replace(/_/g, " ")}">`
+    )
+    .replace(/\[([^\]]+)\]/g, '[<em>$1</em>]');
 }
 
 export function initAchModal() {

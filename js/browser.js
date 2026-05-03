@@ -3,7 +3,7 @@ import {
   loadCache, saveCache,
   loadGroupsCache, saveGroupsCache,
   loadCategoriesCache, saveCategoriesCache,
-  persistentItemNameMap, persistentTitleNameMap,
+  getItemNameMap, getTitleNameMap,
   saveItemNamesCache, saveTitleNamesCache,
 } from "./cache.js";
 
@@ -72,8 +72,10 @@ function _buildRows(categoryId) {
   const cat = categories?.[categoryId];
   if (!cat || !cat.achievements?.length) return [];
 
-  const cache = loadCache();
-  const rows  = [];
+  const cache        = loadCache();
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+  const rows         = [];
 
   for (const id of cat.achievements) {
     const ach = cache[id];
@@ -103,7 +105,7 @@ function _buildRows(categoryId) {
   }
 
   for (const row of rows) {
-    row.rewardStr = formatRewards(row.rewards, persistentItemNameMap, persistentTitleNameMap, row.points);
+    row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
   }
 
   if (progressMap) {
@@ -133,7 +135,6 @@ export function getCategoryRows(categoryId) {
   return _buildRows(categoryId);
 }
 
-// Returns true if a category has at least one achievement present in the cache.
 function _categoryHasCachedAchievements(categoryId) {
   const cat = categories?.[categoryId];
   if (!cat || !cat.achievements?.length) return false;
@@ -142,21 +143,24 @@ function _categoryHasCachedAchievements(categoryId) {
 }
 
 export async function fetchMissingCategoryNames(rows, apiKey) {
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+
   const itemIds     = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
-  const newItemIds  = itemIds.filter(id => !(id in persistentItemNameMap));
+  const newItemIds  = itemIds.filter(id => !(id in itemNameMap));
   const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
-  const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
+  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
 
   if (!newItemIds.length && !newTitleIds.length) return false;
 
   if (newItemIds.length) {
     const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
-    for (const item of items) persistentItemNameMap[item.id] = item.name;
+    for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
   if (newTitleIds.length) {
     const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
-    for (const title of titles) persistentTitleNameMap[title.id] = title.name;
+    for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
   return true;
@@ -178,27 +182,43 @@ export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
 
   const rows = _buildRows(categoryId);
 
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+
   const itemIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
-  const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
+  const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
     onStatus?.(`Fetching names for ${newItemIds.length} items…`);
     const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
-    for (const item of items) persistentItemNameMap[item.id] = item.name;
+    for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
-    for (const row of rows) row.rewardStr = formatRewards(row.rewards, persistentItemNameMap, persistentTitleNameMap, row.points);
+    for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
   }
 
   const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
-  const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
+  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
     onStatus?.(`Fetching names for ${newTitleIds.length} titles…`);
     const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
-    for (const title of titles) persistentTitleNameMap[title.id] = title.name;
+    for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
-    for (const row of rows) row.rewardStr = formatRewards(row.rewards, persistentItemNameMap, persistentTitleNameMap, row.points);
+    for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
   }
 
   return rows;
+}
+
+// ── Skeleton row ──────────────────────────────────────────────────────────────
+
+export function showBrowserSkeleton(tbody, count = 8) {
+  tbody.innerHTML = Array.from({ length: count }, () => `
+    <tr class="skeleton-row">
+      <td class="col-pct"><span class="skel skel-sm"></span></td>
+      <td class="col-prog"><span class="skel skel-md"></span></td>
+      <td class="col-name"><span class="skel skel-lg"></span></td>
+      <td class="col-reward"><span class="skel skel-md"></span></td>
+      <td class="col-actions"></td>
+    </tr>`).join("");
 }
 
 // ── Completion helpers ────────────────────────────────────────────────────────
@@ -268,7 +288,7 @@ export function renderBrowserTree(container, onSelectCategory) {
     const catNodes = group.categories
       .map(id => categories[id])
       .filter(c => c && !isHidden(c.name))
-      .filter(c => _categoryHasCachedAchievements(c.id))  // hide empty categories
+      .filter(c => _categoryHasCachedAchievements(c.id))
       .sort((a, b) => a.order - b.order);
 
     if (!catNodes.length) continue;

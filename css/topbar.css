@@ -21,25 +21,34 @@
   border-bottom: none;
   border-radius: var(--radius) var(--radius) 0 0;
   background: var(--bg2);
-  min-height: 60px;
   box-shadow: var(--shadow);
 }
 
 #main-topbar-left {
   flex-shrink: 0;
   min-width: 0;
+  /* Fixed height = h2 line-height + margin-top + subtitle line-height */
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 #main-topbar-left h2 {
   font-size: 15px;
   font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .view-sub {
   display: block;
   font-size: 11px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 4px;
+  line-height: 1;
+  height: 1em;          /* always occupies exactly one line, even when empty */
+  overflow: hidden;
 }
 
 /* ── Topbar right ── */

@@ -1,7 +1,7 @@
 import { apiFetch, fetchInBatches, formatRewards } from "./api.js";
 import {
   loadCache, saveCache,
-  persistentItemNameMap, persistentTitleNameMap, persistentSkinNameMap,
+  getItemNameMap, getTitleNameMap, getSkinNameMap,
   saveItemNamesCache, saveTitleNamesCache, saveSkinNamesCache,
 } from "./cache.js";
 
@@ -17,11 +17,6 @@ function getCurrentTier(tiers, progress) {
   return { idx: tiers.length - 1, tier: tiers[tiers.length - 1] };
 }
 
-// Step 1a — fetch achievement definitions.
-// If fetchAccountOnly=true: fetches only IDs the account has interacted with,
-// prunes any cached definitions outside that set, then downloads missing ones.
-// If fetchAccountOnly=false: fetches all public IDs and downloads missing ones.
-// Repeatable/daily/weekly achievements are always re-fetched to stay fresh.
 export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountOnly = false) {
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
@@ -33,8 +28,6 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountO
     const accountData = await apiFetch("/account/achievements", {}, apiKey);
     candidateIds = accountData.map(e => e.id);
 
-    // Prune entries that don't belong to this account so the cache
-    // doesn't silently retain thousands of full-fetch leftovers.
     const accountSet = new Set(candidateIds);
     let pruned = false;
     for (const id of cachedIds) {
@@ -49,9 +42,7 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountO
     candidateIds = await apiFetch("/achievements", { lang: "en" });
   }
 
-  // Recompute cachedIds after potential pruning
   const currentCachedIds = new Set(Object.keys(cache).map(Number));
-
   const missing = candidateIds.filter(id => !currentCachedIds.has(id));
 
   const repeatableIds = candidateIds.filter(id => {
@@ -69,58 +60,59 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountO
   }
 }
 
-// Step 1b — pre-fetch all reward item/title names and bit item/skin names.
 export async function ensureRewardNames(onStatus) {
   const cache   = loadCache();
   const achs    = Object.values(cache);
   const rewards = achs.flatMap(ach => ach.rewards || []);
   const bits    = achs.flatMap(ach => ach.bits    || []);
 
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+  const skinNameMap  = getSkinNameMap();
+
   const itemIds = [...new Set([
     ...rewards.filter(r => r.type === "Item" && r.id).map(r => r.id),
     ...bits.filter(b => (b.type === "Item" || b.type === "Minipet") && b.id).map(b => b.id),
   ])];
-  const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
+  const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
     onStatus(`Fetching names for ${newItemIds.length} items…`);
     const items = await fetchInBatches("/items", newItemIds, null, 150, { lang: "en" });
-    for (const item of items) persistentItemNameMap[item.id] = item.name;
+    for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
 
   const titleIds    = [...new Set(rewards.filter(r => r.type === "Title" && r.id).map(r => r.id))];
-  const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
+  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
     onStatus(`Fetching names for ${newTitleIds.length} titles…`);
     const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang: "en" });
-    for (const title of titles) persistentTitleNameMap[title.id] = title.name;
+    for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
 
   const skinIds    = [...new Set(bits.filter(b => b.type === "Skin" && b.id).map(b => b.id))];
-  const newSkinIds = skinIds.filter(id => !(id in persistentSkinNameMap));
+  const newSkinIds = skinIds.filter(id => !(id in skinNameMap));
   if (newSkinIds.length) {
     onStatus(`Fetching names for ${newSkinIds.length} skins…`);
     try {
       const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang: "en" });
       const found = new Set(skins.map(s => s.id));
-      for (const skin of skins) persistentSkinNameMap[skin.id] = skin.name;
-      for (const id of newSkinIds) if (!found.has(id)) persistentSkinNameMap[id] = null;
+      for (const skin of skins) skinNameMap[skin.id] = skin.name;
+      for (const id of newSkinIds) if (!found.has(id)) skinNameMap[id] = null;
     } catch {
-      for (const id of newSkinIds) persistentSkinNameMap[id] = null;
+      for (const id of newSkinIds) skinNameMap[id] = null;
     }
     saveSkinNamesCache();
   }
 }
 
-// Step 2 — fetch user progress (always fresh, needs API key).
 export async function fetchProgress(apiKey) {
   const accountData = await apiFetch("/account/achievements", {}, apiKey);
   lastProgressMap = Object.fromEntries(accountData.map(e => [e.id, e]));
   return lastProgressMap;
 }
 
-// Step 3 — pure sync computation from in-memory state. No API calls.
 export function computeNearlyDone(progressMap, settings) {
   const { thresholdPct, maxResults, useFinalTier } = settings;
   const threshold = thresholdPct / 100;
@@ -161,25 +153,27 @@ export function computeNearlyDone(progressMap, settings) {
   return rows.slice(0, maxResults);
 }
 
-// Resolves item/title reward names for a row list, persists new names to localStorage.
 export async function resolveRewardNames(rows, apiKey) {
+  const itemNameMap  = getItemNameMap();
+  const titleNameMap = getTitleNameMap();
+
   const itemIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
-  const newItemIds = itemIds.filter(id => !(id in persistentItemNameMap));
+  const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
     const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
-    for (const item of items) persistentItemNameMap[item.id] = item.name;
+    for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
 
   const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
-  const newTitleIds = titleIds.filter(id => !(id in persistentTitleNameMap));
+  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
     const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
-    for (const title of titles) persistentTitleNameMap[title.id] = title.name;
+    for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
 
   for (const row of rows) {
-    row.rewardStr = formatRewards(row.rewards, persistentItemNameMap, persistentTitleNameMap, row.points);
+    row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
   }
 }

@@ -34,7 +34,8 @@ export async function validateApiKey(key) {
   await apiFetch("/account", {}, key);
 }
 
-export function formatRewards(rewards, itemNameMap, titleNameMap, points) {
+// Returns one formatted string per reward line (AP on its own line, then each reward).
+export function formatRewardsArray(rewards, itemNameMap, titleNameMap, points) {
   const parts = [];
   if (points) parts.push(`AP:${points}`);
   for (const r of rewards) {
@@ -54,5 +55,10 @@ export function formatRewards(rewards, itemNameMap, titleNameMap, points) {
       parts.push(name ? `[${name}]` : `[Title#${r.id}]`);
     }
   }
-  return parts.join(" · ");
+  return parts;
+}
+
+// Convenience wrapper that joins the array for use in table cells / tile chips.
+export function formatRewards(rewards, itemNameMap, titleNameMap, points) {
+  return formatRewardsArray(rewards, itemNameMap, titleNameMap, points).join(" · ");
 }
