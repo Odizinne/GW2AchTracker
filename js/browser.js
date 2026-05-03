@@ -62,12 +62,6 @@ function _isRepeatable(ach) {
   return (ach?.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
 }
 
-function _isPermanentlyDone(ach, progressEntry) {
-  if (!ach) return false;
-  if (_isRepeatable(ach)) return false;
-  return progressEntry?.done === true;
-}
-
 function _buildRows(categoryId) {
   const cat = categories?.[categoryId];
   if (!cat || !cat.achievements?.length) return [];
@@ -105,10 +99,11 @@ function _buildRows(categoryId) {
   }
 
   for (const row of rows) {
-    row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
+    row.rewardStr = formatRewards(row.rewards, getItemNameMap(), getTitleNameMap(), row.points);
   }
 
   if (progressMap) {
+    const cache = loadCache();
     const nonRepeatables = cat.achievements.filter(id => {
       const ach = cache[id];
       return ach && !_isRepeatable(ach);
@@ -230,8 +225,13 @@ function _updateGroupDoneClass(groupEl) {
     ?.classList.toggle("done-group", allDone);
 }
 
-export function recomputeCatDoneStates(hideCompleted = false) {
+export function recomputeCatDoneStates(hideCompleted = false, fetchMode = "account-all") {
   if (!progressMap || !groups || !categories) return;
+
+  // In "account-started" mode we only know about achievements the account
+  // has touched, so we can't reliably determine whether a full category is
+  // complete — skip done-styling entirely.
+  const allowDoneStyling = fetchMode !== "account-started";
 
   const cache = loadCache();
 
@@ -240,6 +240,18 @@ export function recomputeCatDoneStates(hideCompleted = false) {
 
     for (const cat of catNodes) {
       if (!cat.achievements?.length) continue;
+
+      const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
+
+      if (!allowDoneStyling) {
+        // Remove any previously applied done styling
+        catDoneMap[cat.id] = false;
+        if (btn) {
+          btn.classList.remove("done-cat");
+          btn.classList.toggle("hidden", false);
+        }
+        continue;
+      }
 
       const nonRepeatables = cat.achievements.filter(id => {
         const ach = cache[id];
@@ -254,7 +266,6 @@ export function recomputeCatDoneStates(hideCompleted = false) {
       const allDone = nonRepeatables.every(id => progressMap[id]?.done === true);
       catDoneMap[cat.id] = allDone;
 
-      const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
       if (btn) {
         btn.classList.toggle("done-cat", allDone);
         btn.classList.toggle("hidden", hideCompleted && allDone);
@@ -263,7 +274,9 @@ export function recomputeCatDoneStates(hideCompleted = false) {
 
     const header = document.querySelector(`.browser-group-header[data-group-id="${group.id}"]`);
     if (header) {
-      const allCatsDone = catNodes.length > 0 && catNodes.every(c => catDoneMap[c.id] === true);
+      const allCatsDone = allowDoneStyling &&
+        catNodes.length > 0 &&
+        catNodes.every(c => catDoneMap[c.id] === true);
       header.classList.toggle("done-group", allCatsDone);
     }
   }
@@ -277,7 +290,7 @@ export function renderBrowserTree(container, onSelectCategory) {
     return;
   }
 
-  const HIDDEN_KEYWORDS = ["bonus event", "adventure guide", "story journal"];
+  const HIDDEN_KEYWORDS = ["bonus event", "adventure guide"];
   const isHidden = name => HIDDEN_KEYWORDS.some(kw => name.toLowerCase().includes(kw));
 
   container.innerHTML = "";

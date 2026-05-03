@@ -84,8 +84,15 @@ function setBrowserStatus(msg) {
 function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
   accountSelect.disabled = active;
+  btnShowHidden.disabled = active;
+  btnViewList.disabled = active;
+  btnViewTile.disabled = active;
+  document.getElementById("global-search-input").disabled = active;
   document.querySelectorAll(".nav-item").forEach(el => { el.disabled = active; });
+  document.querySelectorAll(".sb-link").forEach(el => { el.disabled = active; });
   loadingBar.classList.toggle("hidden", !active);
+  document.getElementById("sidebar").classList.toggle("fetching", active);
+  document.getElementById("main-topbar").classList.toggle("fetching", active);
 }
 
 function setBrowserFetching(active) {
@@ -116,8 +123,6 @@ function applyTheme(theme) {
 }
 
 // ── Progress cell helper ──────────────────────────────────────────────────────
-// Always renders a .prog-wrap so every row is the same height.
-// When there is no bar to show it renders one with visibility:hidden.
 
 function buildProgCell(row) {
   const hasProgress = row.percent !== null && row.percent !== undefined;
@@ -147,6 +152,9 @@ function buildProgCell(row) {
 
 function resetAllCachedState() {
   clearCache();
+  resetProgress();
+  setProgressMap(null);
+  setModalProgressMap(null);
   resetBrowserCache();
   browserInitialized = false;
   activeCat = null;
@@ -528,7 +536,7 @@ async function doFetch() {
   let definitionsFailed = false;
   try {
     await Promise.all([
-      ensureDefinitionCache(msg => setStatus(msg), key, settings.fetchAccountOnly !== false),
+      ensureDefinitionCache(msg => setStatus(msg), key, settings.fetchMode ?? "account-all"),
       ensureBrowserData(msg => setStatus(msg)),
     ]);
     await ensureRewardNames(msg => setStatus(msg));
@@ -566,12 +574,12 @@ async function doFetch() {
 
   setProgressMap(getProgressMap());
   setModalProgressMap(getProgressMap());
-  recomputeCatDoneStates(settings.hideCompleted);
+  recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode ?? "account-all");
 
   if (browserInitialized) {
     browserTree.innerHTML = "";
     renderBrowserTree(browserTree, cat => selectCategory(cat));
-    recomputeCatDoneStates(settings.hideCompleted);
+    recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode ?? "account-all");
   }
 
   renderNearlyDoneRows(rows);
@@ -610,7 +618,7 @@ async function initBrowser(forceRefresh = false) {
 
     browserTree.innerHTML = "";
     renderBrowserTree(browserTree, cat => selectCategory(cat));
-    recomputeCatDoneStates(settings.hideCompleted);
+    recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode ?? "account-all");
     browserInitialized = true;
     setBrowserStatus("");
 
@@ -736,12 +744,12 @@ function renderAccountsList() {
 }
 
 btnSettings.addEventListener("click", () => {
-  document.getElementById("s-maxresults").value           = settings.maxResults;
-  document.getElementById("s-threshold").value            = settings.thresholdPct;
-  document.getElementById("s-tier").value                 = settings.useFinalTier ? "last" : "next";
-  document.getElementById("s-hide-completed").checked     = settings.hideCompleted;
-  document.getElementById("s-fetch-account-only").checked = settings.fetchAccountOnly !== false;
-  document.getElementById("s-light-mode").checked         = settings.theme === "light";
+  document.getElementById("s-maxresults").value       = settings.maxResults;
+  document.getElementById("s-threshold").value        = settings.thresholdPct;
+  document.getElementById("s-tier").value             = settings.useFinalTier ? "last" : "next";
+  document.getElementById("s-fetch-mode").value       = settings.fetchMode ?? "account-all";
+  document.getElementById("s-hide-completed").checked = settings.hideCompleted;
+  document.getElementById("s-light-mode").checked     = settings.theme === "light";
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -790,20 +798,20 @@ document.getElementById("btn-settings-close").addEventListener("click",  () => c
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
 document.getElementById("btn-settings-save").addEventListener("click", () => {
-  const prevFetchAccountOnly = settings.fetchAccountOnly;
+  const prevFetchMode = settings.fetchMode ?? "account-all";
 
-  settings.maxResults       = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
-  settings.thresholdPct     = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
-  settings.useFinalTier     = document.getElementById("s-tier").value === "last";
-  settings.hideCompleted    = document.getElementById("s-hide-completed").checked;
-  settings.fetchAccountOnly = document.getElementById("s-fetch-account-only").checked;
-  settings.theme            = document.getElementById("s-light-mode").checked ? "light" : "dark";
+  settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
+  settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
+  settings.useFinalTier  = document.getElementById("s-tier").value === "last";
+  settings.fetchMode     = document.getElementById("s-fetch-mode").value;
+  settings.hideCompleted = document.getElementById("s-hide-completed").checked;
+  settings.theme         = document.getElementById("s-light-mode").checked ? "light" : "dark";
   applyTheme(settings.theme);
   saveSettings(settings);
 
-  const fetchModeChanged = settings.fetchAccountOnly !== prevFetchAccountOnly;
+  const fetchModeChanged = settings.fetchMode !== prevFetchMode;
 
-  recomputeCatDoneStates(settings.hideCompleted);
+  recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode);
   if (!fetchModeChanged) {
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
     if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);

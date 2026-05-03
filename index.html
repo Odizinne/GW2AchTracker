@@ -154,7 +154,7 @@
             </thead>
             <tbody id="favorites-body">
               <tr class="empty-row">
-                <td colspan="4">No favorites yet — open an achievement and click ★ to pin it here.</td>
+                <td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td>
               </tr>
             </tbody>
           </table>
@@ -176,7 +176,7 @@
             </thead>
             <tbody id="results-body">
               <tr class="empty-row">
-                <td colspan="4">Press <strong>Update</strong> to load your achievements.</td>
+                <td colspan="5">Press <strong>Update</strong> to load your achievements.</td>
               </tr>
             </tbody>
           </table>
@@ -198,7 +198,7 @@
             </thead>
             <tbody id="browser-body">
               <tr class="empty-row">
-                <td colspan="4">Select a category from the sidebar to browse.</td>
+                <td colspan="5">Select a category from the sidebar to browse.</td>
               </tr>
             </tbody>
           </table>
@@ -279,13 +279,18 @@
               </div>
             </label>
           </div>
-          <label class="field-label checkbox-label">
+          <label class="field-label" style="margin-top:8px">Achievements to fetch
+            <div class="sb-select-wrap" style="margin-top:4px">
+              <select id="s-fetch-mode">
+                <option value="account-started">Account — Started only</option>
+                <option value="account-all">Account — All categories</option>
+                <option value="all">All achievements</option>
+              </select>
+            </div>
+          </label>
+          <label class="field-label checkbox-label" style="margin-top:8px">
             <input type="checkbox" id="s-hide-completed" />
             Hide completed achievements
-          </label>
-          <label class="field-label checkbox-label" style="margin-top:4px">
-            <input type="checkbox" id="s-fetch-account-only" />
-            Fetch only account achievements (faster)
           </label>
           <label class="field-label checkbox-label" style="margin-top:4px">
             <input type="checkbox" id="s-light-mode" />

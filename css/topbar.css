@@ -225,3 +225,15 @@
 .setup-card h2 { font-size: 16px; font-weight: 600; }
 .setup-card p  { color: var(--muted); line-height: 1.6; font-size: 13px; }
 .setup-card a  { color: var(--accent); }
+
+/* ── Disabled during fetch ── */
+#main-topbar.fetching .btn,
+#main-topbar.fetching #global-search-input {
+  pointer-events: none;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#main-topbar.fetching .view-toggle-btn.active {
+  opacity: 0.4;
+}

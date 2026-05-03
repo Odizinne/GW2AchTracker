@@ -311,3 +311,23 @@
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent-glow);
 }
+
+/* ── Disabled during fetch ── */
+#sidebar.fetching .nav-item,
+#sidebar.fetching .sb-link,
+#sidebar.fetching .sb-select-wrap select {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+#sidebar.fetching .nav-item:hover,
+#sidebar.fetching .sb-link:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+#sidebar.fetching .nav-item.active {
+  background: var(--bg3);
+  color: var(--text);
+  opacity: 0.4;
+}

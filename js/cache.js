@@ -2,18 +2,14 @@ function _loadJson(key) {
   try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : {}; } catch { return {}; }
 }
 
-// Internal mutable maps — always mutated in-place so every caller shares the same reference.
 const _itemNameMap  = _loadJson("gw2_item_names");
 const _titleNameMap = _loadJson("gw2_title_names");
 const _skinNameMap  = _loadJson("gw2_skin_names");
 
-// Accessor functions — import these instead of the old bare `let` exports.
 export function getItemNameMap()  { return _itemNameMap;  }
 export function getTitleNameMap() { return _titleNameMap; }
 export function getSkinNameMap()  { return _skinNameMap;  }
 
-// Legacy aliases kept for the one place that spreads into them directly (nearly-done).
-// Everything else should use the accessors above.
 export const persistentItemNameMap  = _itemNameMap;
 export const persistentTitleNameMap = _titleNameMap;
 export const persistentSkinNameMap  = _skinNameMap;
@@ -44,7 +40,6 @@ export function saveCache(c) {
   try {
     localStorage.setItem("gw2_ach_cache", JSON.stringify(c));
   } catch {
-    // Evict the oldest half by numeric ID (ascending = older IDs added first).
     const keys = Object.keys(c).sort((a, b) => Number(a) - Number(b));
     const trimmed = Object.fromEntries(
       keys.slice(Math.ceil(keys.length / 2)).map(k => [k, c[k]])
@@ -62,7 +57,6 @@ export function clearCache() {
   localStorage.removeItem("gw2_item_names");
   localStorage.removeItem("gw2_title_names");
   localStorage.removeItem("gw2_skin_names");
-  // Clear in-place so existing import references stay valid.
   for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
   for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
   for (const k of Object.keys(_skinNameMap))  delete _skinNameMap[k];

@@ -3,6 +3,7 @@ import {
   loadCache, saveCache,
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   saveItemNamesCache, saveTitleNamesCache, saveSkinNamesCache,
+  loadCategoriesCache,
 } from "./cache.js";
 
 let lastProgressMap = null;
@@ -17,18 +18,46 @@ function getCurrentTier(tiers, progress) {
   return { idx: tiers.length - 1, tier: tiers[tiers.length - 1] };
 }
 
-export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountOnly = false) {
+// fetchMode: "account-started" | "account-all" | "all"
+export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "account-all") {
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
 
   let candidateIds;
 
-  if (fetchAccountOnly && apiKey) {
+  if (fetchMode === "all") {
+    candidateIds = await apiFetch("/achievements", { lang: "en" });
+
+  } else {
+    // Both account modes start by fetching the account achievement list
     onStatus("Fetching your account achievements…");
     const accountData = await apiFetch("/account/achievements", {}, apiKey);
-    candidateIds = accountData.map(e => e.id);
+    const accountIds  = accountData.map(e => e.id);
+    const accountSet  = new Set(accountIds);
 
-    const accountSet = new Set(candidateIds);
+    if (fetchMode === "account-all") {
+      // Expand to all achievements in any category the account has touched
+      const categories = loadCategoriesCache();
+      if (categories) {
+        const expandedSet = new Set(accountIds);
+        for (const cat of Object.values(categories)) {
+          if (!cat.achievements?.length) continue;
+          const catHasAccountAch = cat.achievements.some(id => accountSet.has(id));
+          if (catHasAccountAch) {
+            for (const id of cat.achievements) expandedSet.add(id);
+          }
+        }
+        candidateIds = [...expandedSet];
+      } else {
+        // Categories not cached yet, fall back to account IDs only for now
+        candidateIds = accountIds;
+      }
+    } else {
+      // account-started: only what the account has touched
+      candidateIds = accountIds;
+    }
+
+    // Prune cache to only account-touched achievements
     let pruned = false;
     for (const id of cachedIds) {
       if (!accountSet.has(id)) {
@@ -37,9 +66,6 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchAccountO
       }
     }
     if (pruned) saveCache(cache);
-
-  } else {
-    candidateIds = await apiFetch("/achievements", { lang: "en" });
   }
 
   const currentCachedIds = new Set(Object.keys(cache).map(Number));
