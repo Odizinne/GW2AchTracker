@@ -20,17 +20,17 @@
     <aside id="sidebar">
       <div class="sb-logo">
         <span class="sb-logo-title">GW2 Tracker</span>
-        <small>achievement companion</small>
+        <small data-i18n="appSubtitle">achievement companion</small>
       </div>
 
       <div class="sb-section">
-        <div class="sb-label">Account</div>
+        <div class="sb-label" data-i18n="labelAccount">Account</div>
         <div class="sb-select-wrap">
           <select id="account-select"></select>
         </div>
         <button id="btn-refresh" class="sb-btn primary" disabled>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          Update
+          <span data-i18n="btnUpdate">Update</span>
         </button>
       </div>
 
@@ -38,15 +38,15 @@
         <div class="sb-label">Views</div>
         <button class="nav-item active" data-view="favorites">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          Favorites
+          <span data-i18n="navFavorites">Favorites</span>
         </button>
         <button class="nav-item" data-view="nearly-completed">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Nearly completed
+          <span data-i18n="navNearly">Nearly completed</span>
         </button>
         <button class="nav-item" data-view="browser">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          Browse
+          <span data-i18n="navBrowse">Browse</span>
         </button>
 
         <div id="browser-tree" class="browser-tree hidden"></div>
@@ -55,21 +55,21 @@
       <div class="sb-bottom">
         <button class="sb-link" id="btn-settings">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Settings
+          <span data-i18n="btnSettings">Settings</span>
         </button>
         <button class="sb-link" id="btn-github">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
           </svg>
-          GitHub
+          <span data-i18n="btnGithub">GitHub</span>
         </button>
         <button class="sb-link sb-donate" id="btn-donate">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          Donate
+          <span data-i18n="btnDonate">Donate</span>
         </button>
         <button class="sb-link" id="btn-legal">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Legal &amp; credits
+          <span data-i18n="btnLegal">Legal &amp; credits</span>
         </button>
       </div>
     </aside>
@@ -84,7 +84,7 @@
         <div class="topbar-right">
           <button id="btn-show-hidden" class="btn small hidden">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-            Show hidden
+            <span data-i18n="btnShowHidden">Show hidden</span>
           </button>
           <button id="btn-view-list" class="btn small view-toggle-btn active" title="List view">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -106,7 +106,7 @@
           </button>
           <div id="global-search-wrap" class="global-search-wrap">
             <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="global-search-input" placeholder="Search achievements…" autocomplete="off" />
+            <input type="text" id="global-search-input" data-i18n-placeholder="setupPlaceKey" placeholder="Search achievements…" autocomplete="off" />
             <div id="global-search-results" class="global-search-results hidden"></div>
           </div>
         </div>
@@ -117,24 +117,33 @@
       <div id="view-setup" class="view">
         <div class="setup-inner">
           <div class="setup-card">
-            <h2>Add your first account</h2>
-            <p>Generate an API key at <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
-            Enable the <strong>account</strong> and <strong>progression</strong> permissions.</p>
+            <h2 data-i18n="setupTitle">Add your first account</h2>
+            <p>
+              <span data-i18n="setupDesc">Generate an API key at</span>
+              <a href="https://account.arena.net/applications" target="_blank">account.arena.net/applications</a>.<br>
+              <span data-i18n="setupDescEnd">Enable the account and progression permissions.</span>
+            </p>
             <div class="form-field">
-              <label class="field-label">Account name</label>
-              <input type="text" id="setup-name" placeholder="e.g. Main, Alt…" />
+              <label class="field-label" data-i18n="setupLabelName">Account name</label>
+              <input type="text" id="setup-name" data-i18n-placeholder="setupPlaceName" placeholder="e.g. Main, Alt…" />
             </div>
             <div class="form-field">
-              <label class="field-label">API key</label>
+              <label class="field-label" data-i18n="setupLabelKey">API key</label>
               <div class="api-key-wrap">
-                <input type="password" id="setup-key" placeholder="Paste your API key…" />
+                <input type="password" id="setup-key" data-i18n-placeholder="setupPlaceKey" placeholder="Paste your API key…" />
                 <button type="button" class="eye-btn" data-target="setup-key" title="Toggle visibility">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </div>
             </div>
+            <div class="form-field">
+              <label class="field-label" data-i18n="setupLabelLang">Language</label>
+              <div class="sb-select-wrap">
+                <select id="setup-lang-select"></select>
+              </div>
+            </div>
             <p id="setup-error" class="field-error hidden"></p>
-            <button id="btn-setup-save" class="btn primary">Save &amp; continue</button>
+            <button id="btn-setup-save" class="btn primary" data-i18n="setupSave">Save &amp; continue</button>
           </div>
         </div>
       </div>
@@ -145,16 +154,16 @@
           <table id="favorites-table">
             <thead>
               <tr>
-                <th class="col-pct">%</th>
-                <th class="col-prog">Progress</th>
-                <th class="col-name">Achievement</th>
-                <th class="col-reward">Rewards</th>
+                <th class="col-pct" data-i18n="thPct">%</th>
+                <th class="col-prog" data-i18n="thProgress">Progress</th>
+                <th class="col-name" data-i18n="thAchievement">Achievement</th>
+                <th class="col-reward" data-i18n="thRewards">Rewards</th>
                 <th class="col-actions"></th>
               </tr>
             </thead>
             <tbody id="favorites-body">
               <tr class="empty-row">
-                <td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td>
+                <td colspan="5" data-i18n="emptyFavorites">No favorites yet — open an achievement and click ★ to pin it here.</td>
               </tr>
             </tbody>
           </table>
@@ -167,16 +176,16 @@
           <table id="results-table">
             <thead>
               <tr>
-                <th class="col-pct">%</th>
-                <th class="col-prog">Progress</th>
-                <th class="col-name">Achievement</th>
-                <th class="col-reward">Rewards</th>
+                <th class="col-pct" data-i18n="thPct">%</th>
+                <th class="col-prog" data-i18n="thProgress">Progress</th>
+                <th class="col-name" data-i18n="thAchievement">Achievement</th>
+                <th class="col-reward" data-i18n="thRewards">Rewards</th>
                 <th class="col-actions"></th>
               </tr>
             </thead>
             <tbody id="results-body">
               <tr class="empty-row">
-                <td colspan="5">Press <strong>Update</strong> to load your achievements.</td>
+                <td colspan="5" data-i18n="emptyNearly">Press Update to load your achievements.</td>
               </tr>
             </tbody>
           </table>
@@ -189,16 +198,16 @@
           <table id="browser-table">
             <thead>
               <tr>
-                <th class="col-pct">%</th>
-                <th class="col-prog">Progress</th>
-                <th class="col-name">Achievement</th>
-                <th class="col-reward">Rewards</th>
+                <th class="col-pct" data-i18n="thPct">%</th>
+                <th class="col-prog" data-i18n="thProgress">Progress</th>
+                <th class="col-name" data-i18n="thAchievement">Achievement</th>
+                <th class="col-reward" data-i18n="thRewards">Rewards</th>
                 <th class="col-actions"></th>
               </tr>
             </thead>
             <tbody id="browser-body">
               <tr class="empty-row">
-                <td colspan="5">Select a category from the sidebar to browse.</td>
+                <td colspan="5" data-i18n="emptyBrowser">Select a category from the sidebar to browse.</td>
               </tr>
             </tbody>
           </table>
@@ -212,7 +221,7 @@
   <div class="modal-overlay" id="settings-overlay">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h2>Settings</h2>
+        <h2 data-i18n="settingsTitle">Settings</h2>
         <button class="modal-close" id="btn-settings-close" aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -221,20 +230,20 @@
 
         <section class="settings-section">
           <div class="settings-section-header">
-            <h3>Accounts</h3>
-            <button id="btn-add-account" class="btn small">+ Add account</button>
+            <h3 data-i18n="sectAccounts">Accounts</h3>
+            <button id="btn-add-account" class="btn small" data-i18n="btnAddAccount">+ Add account</button>
           </div>
           <div id="accounts-list" class="accounts-list"></div>
           <div id="add-account-form" class="add-account-form hidden">
             <div class="form-row">
               <div class="form-field">
-                <label class="field-label">Name</label>
-                <input type="text" id="new-account-name" placeholder="e.g. Alt" />
+                <label class="field-label" data-i18n="addAccName">Name</label>
+                <input type="text" id="new-account-name" data-i18n-placeholder="addAccPlaceName" placeholder="e.g. Alt" />
               </div>
               <div class="form-field" style="flex:2">
-                <label class="field-label">API key</label>
+                <label class="field-label" data-i18n="addAccKey">API key</label>
                 <div class="api-key-wrap">
-                  <input type="password" id="new-account-key" placeholder="Paste your API key…" />
+                  <input type="password" id="new-account-key" data-i18n-placeholder="addAccPlaceKey" placeholder="Paste your API key…" />
                   <button type="button" class="eye-btn" data-target="new-account-key" title="Toggle visibility">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   </button>
@@ -243,16 +252,17 @@
             </div>
             <p id="new-account-error" class="field-error hidden"></p>
             <div class="form-actions">
-              <button id="btn-add-account-cancel" class="btn">Cancel</button>
-              <button id="btn-add-account-save" class="btn primary">Save account</button>
+              <button id="btn-add-account-cancel" class="btn" data-i18n="btnCancel">Cancel</button>
+              <button id="btn-add-account-save" class="btn primary" data-i18n="btnSaveAccount">Save account</button>
             </div>
           </div>
         </section>
 
         <section class="settings-section">
-          <h3>Filters</h3>
+          <h3 data-i18n="sectFilters">Filters</h3>
           <div class="settings-grid">
-            <label class="field-label">Max results
+            <label class="field-label">
+              <span data-i18n="labelMaxResults">Max results</span>
               <div class="number-wrap">
                 <input type="number" id="s-maxresults" min="1" max="200" />
                 <div class="number-spin">
@@ -261,7 +271,8 @@
                 </div>
               </div>
             </label>
-            <label class="field-label">Min threshold (%)
+            <label class="field-label">
+              <span data-i18n="labelThreshold">Min threshold (%)</span>
               <div class="number-wrap">
                 <input type="number" id="s-threshold" min="1" max="100" />
                 <div class="number-spin">
@@ -270,46 +281,54 @@
                 </div>
               </div>
             </label>
-            <label class="field-label">Tier target
+            <label class="field-label">
+              <span data-i18n="labelTierTarget">Tier target</span>
               <div class="sb-select-wrap">
                 <select id="s-tier">
-                  <option value="next">Next tier</option>
-                  <option value="last">Final tier</option>
+                  <option value="next" data-i18n="optNextTier">Next tier</option>
+                  <option value="last" data-i18n="optFinalTier">Final tier</option>
                 </select>
               </div>
             </label>
+            <label class="field-label" style="grid-column: span 2;">
+              <span data-i18n="labelFetchMode">Achievements to fetch</span>
+              <div class="sb-select-wrap" style="margin-top:4px">
+                <select id="s-fetch-mode">
+                  <option value="account-started" data-i18n="optStarted">Account — Started only</option>
+                  <option value="account-all" data-i18n="optAllCats">Account — All categories</option>
+                  <option value="all" data-i18n="optAll">All achievements</option>
+                </select>
+              </div>
+            </label>
+            <label class="field-label">
+              <span data-i18n="labelLanguage">Language</span>
+              <div class="sb-select-wrap" style="margin-top:4px">
+                <select id="s-lang"></select>
+              </div>
+            </label>
           </div>
-          <label class="field-label" style="margin-top:8px">Achievements to fetch
-            <div class="sb-select-wrap" style="margin-top:4px">
-              <select id="s-fetch-mode">
-                <option value="account-started">Account — Started only</option>
-                <option value="account-all">Account — All categories</option>
-                <option value="all">All achievements</option>
-              </select>
-            </div>
-          </label>
           <label class="field-label checkbox-label" style="margin-top:8px">
             <input type="checkbox" id="s-hide-completed" />
-            Hide completed achievements
+            <span data-i18n="labelHideCompleted">Hide completed achievements</span>
           </label>
           <label class="field-label checkbox-label" style="margin-top:4px">
             <input type="checkbox" id="s-light-mode" />
-            Light mode
+            <span data-i18n="labelLightMode">Light mode</span>
           </label>
         </section>
 
         <section class="settings-section">
-          <h3>Cache</h3>
+          <h3 data-i18n="sectCache">Cache</h3>
           <div class="cache-row">
             <span id="cache-info" class="muted"></span>
-            <button id="btn-cache-clear" class="btn danger">Clear cache</button>
+            <button id="btn-cache-clear" class="btn danger" data-i18n="btnClearCache">Clear cache</button>
           </div>
         </section>
 
       </div>
       <div class="modal-footer">
-        <button id="btn-settings-cancel" class="btn">Cancel</button>
-        <button id="btn-settings-save" class="btn primary">Save</button>
+        <button id="btn-settings-cancel" class="btn" data-i18n="btnCancel">Cancel</button>
+        <button id="btn-settings-save" class="btn primary" data-i18n="btnSave">Save</button>
       </div>
     </div>
   </div>
@@ -326,10 +345,7 @@
           <button class="modal-action-btn" id="ach-modal-hide-btn" title="Hide from Nearly Done">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
-          <button class="btn small" id="ach-modal-wiki-btn">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Wiki
-          </button>
+          <button class="btn small" id="ach-modal-wiki-btn" data-i18n="btnWiki">Wiki</button>
           <button class="modal-close" id="ach-modal-close" aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -350,29 +366,29 @@
   <div class="modal-overlay" id="legal-overlay">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h2>Legal &amp; credits</h2>
+        <h2 data-i18n="legalTitle">Legal &amp; credits</h2>
         <button class="modal-close" id="btn-legal-close" aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="legal-body">
         <section>
-          <h3>Privacy &amp; data</h3>
-          <p>All API requests are made directly from your browser to the official Guild Wars 2 API. No data is ever sent to or stored on any third-party server.</p>
-          <p>Your API keys are stored exclusively in your browser's local storage and never leave your device.</p>
-          <p>This website is provided as-is, without any warranty of any kind.</p>
+          <h3 data-i18n="legalPrivTitle">Privacy &amp; data</h3>
+          <p data-i18n="legalPriv1">All API requests are made directly from your browser to the official Guild Wars 2 API. No data is ever sent to or stored on any third-party server.</p>
+          <p data-i18n="legalPriv2">Your API keys are stored exclusively in your browser's local storage and never leave your device.</p>
+          <p data-i18n="legalPriv3">This website is provided as-is, without any warranty of any kind.</p>
         </section>
         <section>
-          <h3>License</h3>
-          <p>This project is released under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>. You are free to use, study, and modify it. Any modified version you distribute must also be released under GPLv3 and make its source code available.</p>
+          <h3 data-i18n="legalLicTitle">License</h3>
+          <p><span data-i18n="legalLic">This project is released under the</span> <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>.</p>
         </section>
         <section>
-          <h3>Disclaimer</h3>
-          <p>This project is not affiliated with or endorsed by ArenaNet or NCSoft. Guild Wars 2 is a trademark of ArenaNet, LLC.</p>
+          <h3 data-i18n="legalDiscTitle">Disclaimer</h3>
+          <p data-i18n="legalDisc">This project is not affiliated with or endorsed by ArenaNet or NCSoft. Guild Wars 2 is a trademark of ArenaNet, LLC.</p>
         </section>
       </div>
       <div class="modal-footer">
-        <button id="btn-legal-close-bottom" class="btn primary">Close</button>
+        <button id="btn-legal-close-bottom" class="btn primary" data-i18n="btnClose">Close</button>
       </div>
     </div>
   </div>

@@ -18,25 +18,21 @@ function getCurrentTier(tiers, progress) {
   return { idx: tiers.length - 1, tier: tiers[tiers.length - 1] };
 }
 
-// fetchMode: "account-started" | "account-all" | "all"
-export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "account-all") {
+export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "account-all", lang = "en") {
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
 
   let candidateIds;
 
   if (fetchMode === "all") {
-    candidateIds = await apiFetch("/achievements", { lang: "en" });
-
+    candidateIds = await apiFetch("/achievements", { lang });
   } else {
-    // Both account modes start by fetching the account achievement list
-    onStatus("Fetching your account achievements…");
+    onStatus("statusFetchingAccount");
     const accountData = await apiFetch("/account/achievements", {}, apiKey);
     const accountIds  = accountData.map(e => e.id);
     const accountSet  = new Set(accountIds);
 
     if (fetchMode === "account-all") {
-      // Expand to all achievements in any category the account has touched
       const categories = loadCategoriesCache();
       if (categories) {
         const expandedSet = new Set(accountIds);
@@ -49,15 +45,12 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "
         }
         candidateIds = [...expandedSet];
       } else {
-        // Categories not cached yet, fall back to account IDs only for now
         candidateIds = accountIds;
       }
     } else {
-      // account-started: only what the account has touched
       candidateIds = accountIds;
     }
 
-    // Prune cache to only account-touched achievements
     let pruned = false;
     for (const id of cachedIds) {
       if (!accountSet.has(id)) {
@@ -79,14 +72,14 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "
   const toFetch = [...new Set([...missing, ...repeatableIds])];
 
   if (toFetch.length) {
-    onStatus(`Fetching ${toFetch.length} achievement definitions…`);
-    const fresh = await fetchInBatches("/achievements", toFetch, null, 150, { lang: "en" });
+    onStatus("statusFetchingDefs", { n: toFetch.length });
+    const fresh = await fetchInBatches("/achievements", toFetch, null, 150, { lang });
     for (const ach of fresh) cache[ach.id] = ach;
     saveCache(cache);
   }
 }
 
-export async function ensureRewardNames(onStatus) {
+export async function ensureRewardNames(onStatus, lang = "en") {
   const cache   = loadCache();
   const achs    = Object.values(cache);
   const rewards = achs.flatMap(ach => ach.rewards || []);
@@ -102,8 +95,8 @@ export async function ensureRewardNames(onStatus) {
   ])];
   const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
-    onStatus(`Fetching names for ${newItemIds.length} items…`);
-    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang: "en" });
+    onStatus("statusFetchingItems", { n: newItemIds.length });
+    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang });
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
@@ -111,8 +104,8 @@ export async function ensureRewardNames(onStatus) {
   const titleIds    = [...new Set(rewards.filter(r => r.type === "Title" && r.id).map(r => r.id))];
   const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
-    onStatus(`Fetching names for ${newTitleIds.length} titles…`);
-    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang: "en" });
+    onStatus("statusFetchingTitles", { n: newTitleIds.length });
+    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang });
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
@@ -120,9 +113,9 @@ export async function ensureRewardNames(onStatus) {
   const skinIds    = [...new Set(bits.filter(b => b.type === "Skin" && b.id).map(b => b.id))];
   const newSkinIds = skinIds.filter(id => !(id in skinNameMap));
   if (newSkinIds.length) {
-    onStatus(`Fetching names for ${newSkinIds.length} skins…`);
+    onStatus("statusFetchingSkins", { n: newSkinIds.length });
     try {
-      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang: "en" });
+      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang });
       const found = new Set(skins.map(s => s.id));
       for (const skin of skins) skinNameMap[skin.id] = skin.name;
       for (const id of newSkinIds) if (!found.has(id)) skinNameMap[id] = null;
@@ -179,14 +172,14 @@ export function computeNearlyDone(progressMap, settings) {
   return rows.slice(0, maxResults);
 }
 
-export async function resolveRewardNames(rows, apiKey) {
+export async function resolveRewardNames(rows, apiKey, lang = "en") {
   const itemNameMap  = getItemNameMap();
   const titleNameMap = getTitleNameMap();
 
   const itemIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
   const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
-    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
+    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
@@ -194,7 +187,7 @@ export async function resolveRewardNames(rows, apiKey) {
   const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
   const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
-    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
+    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }

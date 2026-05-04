@@ -3,28 +3,35 @@ import {
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
+import { resolveWikiUrl, getLang, t } from "./i18n.js";
 
 let _progressMap   = null;
 let _currentAchId  = null;
 let _onStateChange = null;
+// We also store the EN name so we can resolve the wiki URL correctly
+let _currentEnName = null;
 
 export function setModalProgressMap(map) { _progressMap = map; }
 export function setModalStateCallback(fn) { _onStateChange = fn; }
 
-export function openAchievementModal(ach, progressEntry) {
+export function openAchievementModal(ach, progressEntry, enName = null) {
   const entry = progressEntry || _progressMap?.[ach.id] || {};
 
-  _currentAchId = ach.id;
+  _currentAchId  = ach.id;
+  _currentEnName = enName || ach.name; // fallback to ach.name if EN not provided
 
-  // ── Header ────────────────────────────────────────────────────────────────
   document.getElementById("ach-modal-title").textContent = ach.name;
   document.getElementById("ach-modal-fav-btn").classList.toggle("active",  favoritesSet.has(ach.id));
   document.getElementById("ach-modal-hide-btn").classList.toggle("active", hiddenSet.has(ach.id));
 
-  const wikiUrl = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(ach.name.replace(/ /g, "_"))}`;
-  document.getElementById("ach-modal-wiki-btn").onclick = () => window.open(wikiUrl, "_blank", "noopener");
+  // Wiki button — resolve async, open when ready
+  const wikiBtn = document.getElementById("ach-modal-wiki-btn");
+  wikiBtn.onclick = async () => {
+    const lang = getLang();
+    const url  = await resolveWikiUrl(_currentEnName, ach.name, lang);
+    window.open(url, "_blank", "noopener");
+  };
 
-  // ── Description / requirement ─────────────────────────────────────────────
   const descEl = document.getElementById("ach-modal-desc");
   const reqEl  = document.getElementById("ach-modal-req");
   descEl.textContent = ach.description || "";
@@ -34,7 +41,6 @@ export function openAchievementModal(ach, progressEntry) {
 
   document.getElementById("ach-modal-flags").classList.add("hidden");
 
-  // ── Progress ──────────────────────────────────────────────────────────────
   const progressSection = document.getElementById("ach-modal-progress-section");
   if (entry.done !== undefined || entry.current !== undefined) {
     const tiers    = ach.tiers || [];
@@ -48,11 +54,11 @@ export function openAchievementModal(ach, progressEntry) {
 
     const tiersHtml = tiers.length ? `
       <div class="ach-modal-tiers">
-        ${tiers.map(t => {
-          const reached = done || progress >= t.count;
+        ${tiers.map(tier => {
+          const reached = done || progress >= tier.count;
           return `<div class="ach-tier ${reached ? "tier-reached" : ""}">
-            <span class="tier-count">${t.count}</span>
-            <span class="tier-pts">${t.points} AP</span>
+            <span class="tier-count">${tier.count}</span>
+            <span class="tier-pts">${tier.points} AP</span>
           </div>`;
         }).join("")}
       </div>` : "";
@@ -62,7 +68,7 @@ export function openAchievementModal(ach, progressEntry) {
         <div class="prog-bar-bg">
           <div class="prog-bar-fill" style="width:${pct ?? 0}%;background:${done ? "var(--green)" : "var(--accent)"}"></div>
         </div>
-        <span class="ach-modal-bar-label">${done ? "Completed" : `${progress} / ${required}${pct !== null ? ` (${pct}%)` : ""}`}</span>
+        <span class="ach-modal-bar-label">${done ? t("progCompleted") : `${progress} / ${required}${pct !== null ? ` (${pct}%)` : ""}`}</span>
       </div>` : "";
 
     progressSection.innerHTML = `
@@ -75,7 +81,6 @@ export function openAchievementModal(ach, progressEntry) {
     progressSection.classList.add("hidden");
   }
 
-  // ── Bits (steps) ──────────────────────────────────────────────────────────
   const bitsSection = document.getElementById("ach-modal-bits-section");
   const bits = ach.bits || [];
   const itemNameMap = getItemNameMap();
@@ -104,9 +109,8 @@ export function openAchievementModal(ach, progressEntry) {
     bitsSection.classList.add("hidden");
   }
 
-  // ── Rewards ───────────────────────────────────────────────────────────────
   const rewardsSection = document.getElementById("ach-modal-rewards-section");
-  const totalPoints = ach.point_cap ?? (ach.tiers || []).reduce((s, t) => s + (t.points || 0), 0);
+  const totalPoints = ach.point_cap ?? (ach.tiers || []).reduce((s, tier) => s + (tier.points || 0), 0);
   const rewardLines = formatRewardsArray(
     ach.rewards || [],
     getItemNameMap(),

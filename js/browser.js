@@ -7,8 +7,6 @@ import {
   saveItemNamesCache, saveTitleNamesCache,
 } from "./cache.js";
 
-// ── State ─────────────────────────────────────────────────────────────────────
-
 let groups         = null;
 let categories     = null;
 let expandedGroups = new Set();
@@ -19,9 +17,7 @@ const catDoneMap = {};
 
 export function setProgressMap(map) { progressMap = map; }
 
-// ── Data loading ──────────────────────────────────────────────────────────────
-
-export async function ensureBrowserData(onStatus) {
+export async function ensureBrowserData(onStatus, lang = "en") {
   if (groups && categories) return;
 
   const cg = loadGroupsCache();
@@ -31,10 +27,10 @@ export async function ensureBrowserData(onStatus) {
     groups     = cg;
     categories = cc;
   } else {
-    onStatus("Fetching achievement categories…");
+    onStatus("statusFetchingCats");
     const [rawGroups, rawCats] = await Promise.all([
-      apiFetch("/achievements/groups",     { ids: "all", lang: "en" }),
-      apiFetch("/achievements/categories", { ids: "all", lang: "en" }),
+      apiFetch("/achievements/groups",     { ids: "all", lang }),
+      apiFetch("/achievements/categories", { ids: "all", lang }),
     ]);
 
     categories = {};
@@ -52,7 +48,7 @@ export async function ensureBrowserData(onStatus) {
     groups.flatMap(g => g.categories || []).filter(id => !categories[id])
   )];
   if (missingIds.length) {
-    const extra = await fetchInBatches("/achievements/categories", missingIds, null, 150, { lang: "en" });
+    const extra = await fetchInBatches("/achievements/categories", missingIds, null, 150, { lang });
     for (const c of extra) categories[c.id] = c;
     saveCategoriesCache(categories);
   }
@@ -137,7 +133,7 @@ function _categoryHasCachedAchievements(categoryId) {
   return cat.achievements.some(id => cache[id]);
 }
 
-export async function fetchMissingCategoryNames(rows, apiKey) {
+export async function fetchMissingCategoryNames(rows, apiKey, lang = "en") {
   const itemNameMap  = getItemNameMap();
   const titleNameMap = getTitleNameMap();
 
@@ -149,19 +145,19 @@ export async function fetchMissingCategoryNames(rows, apiKey) {
   if (!newItemIds.length && !newTitleIds.length) return false;
 
   if (newItemIds.length) {
-    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
+    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
   if (newTitleIds.length) {
-    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
+    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
   return true;
 }
 
-export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
+export async function loadCategoryAchievements(categoryId, apiKey, onStatus, lang = "en") {
   const cat = categories?.[categoryId];
   if (!cat || !cat.achievements?.length) return [];
 
@@ -169,8 +165,8 @@ export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
   const missing = cat.achievements.filter(id => !cache[id]);
 
   if (missing.length) {
-    onStatus?.(`Fetching ${missing.length} achievement definitions…`);
-    const fresh = await fetchInBatches("/achievements", missing, apiKey, 150, { lang: "en" });
+    onStatus?.("statusFetchingDefs", { n: missing.length });
+    const fresh = await fetchInBatches("/achievements", missing, apiKey, 150, { lang });
     for (const a of fresh) cache[a.id] = a;
     saveCache(cache);
   }
@@ -183,8 +179,8 @@ export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
   const itemIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
   const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
-    onStatus?.(`Fetching names for ${newItemIds.length} items…`);
-    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang: "en" });
+    onStatus?.("statusFetchingItems", { n: newItemIds.length });
+    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
     for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
@@ -193,8 +189,8 @@ export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
   const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
   const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
-    onStatus?.(`Fetching names for ${newTitleIds.length} titles…`);
-    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang: "en" });
+    onStatus?.("statusFetchingTitles", { n: newTitleIds.length });
+    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
     for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
@@ -202,8 +198,6 @@ export async function loadCategoryAchievements(categoryId, apiKey, onStatus) {
 
   return rows;
 }
-
-// ── Skeleton row ──────────────────────────────────────────────────────────────
 
 export function showBrowserSkeleton(tbody, count = 8) {
   tbody.innerHTML = Array.from({ length: count }, () => `
@@ -216,8 +210,6 @@ export function showBrowserSkeleton(tbody, count = 8) {
     </tr>`).join("");
 }
 
-// ── Completion helpers ────────────────────────────────────────────────────────
-
 function _updateGroupDoneClass(groupEl) {
   const catBtns = [...groupEl.querySelectorAll(".browser-cat-item")];
   const allDone = catBtns.length > 0 && catBtns.every(b => b.classList.contains("done-cat"));
@@ -228,11 +220,7 @@ function _updateGroupDoneClass(groupEl) {
 export function recomputeCatDoneStates(hideCompleted = false, fetchMode = "account-all") {
   if (!progressMap || !groups || !categories) return;
 
-  // In "account-started" mode we only know about achievements the account
-  // has touched, so we can't reliably determine whether a full category is
-  // complete — skip done-styling entirely.
   const allowDoneStyling = fetchMode !== "account-started";
-
   const cache = loadCache();
 
   for (const group of groups) {
@@ -244,7 +232,6 @@ export function recomputeCatDoneStates(hideCompleted = false, fetchMode = "accou
       const btn = document.querySelector(`.browser-cat-item[data-cat-id="${cat.id}"]`);
 
       if (!allowDoneStyling) {
-        // Remove any previously applied done styling
         catDoneMap[cat.id] = false;
         if (btn) {
           btn.classList.remove("done-cat");
@@ -281,8 +268,6 @@ export function recomputeCatDoneStates(hideCompleted = false, fetchMode = "accou
     }
   }
 }
-
-// ── Sidebar tree ──────────────────────────────────────────────────────────────
 
 export function renderBrowserTree(container, onSelectCategory) {
   if (!groups || !categories) {

@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   fetchMode: "account-all",
   theme: "dark",
   viewMode: "list",
+  lang: "en",
 };
 
 export function loadSettings() {
