@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS = {
   useFinalTier: false,
   hideCompleted: false,
   clearCompletedFavorites: false,
+  accentPalette: "orange",
   fetchMode: "account-all",
   theme: "dark",
   viewMode: "list",

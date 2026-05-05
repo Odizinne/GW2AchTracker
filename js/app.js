@@ -2,6 +2,7 @@ import { validateApiKey, formatRewards }                   from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
          toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
+import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
          resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
@@ -188,6 +189,7 @@ function openAchFromCache(id) {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
+  applyPalette(settings.accentPalette ?? "orange", theme);
 }
 
 // ── Progress cell helper ──────────────────────────────────────────────────────
@@ -859,6 +861,18 @@ function renderAccountsList() {
   });
 }
 
+// ── Palette select ───────────────────────────────────────────────────────────
+
+const paletteSelect = document.getElementById("s-palette");
+for (const p of PALETTES) {
+  const opt = document.createElement("option");
+  opt.value = p.id;
+  opt.textContent = p.label;
+  paletteSelect.appendChild(opt);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 btnSettings.addEventListener("click", () => {
   document.getElementById("s-maxresults").value       = settings.maxResults;
   document.getElementById("s-threshold").value        = settings.thresholdPct;
@@ -866,6 +880,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-fetch-mode").value       = settings.fetchMode ?? "account-all";
   document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
+  paletteSelect.value = settings.accentPalette ?? "orange";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
   buildLangOptions(document.getElementById("s-lang"), currentLang());
   addAccountForm.classList.add("hidden");
@@ -925,8 +940,9 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   settings.fetchMode     = document.getElementById("s-fetch-mode").value;
   settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
+  settings.accentPalette           = paletteSelect.value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
-  settings.lang          = document.getElementById("s-lang").value;
+  settings.lang                    = document.getElementById("s-lang").value;
   applyTheme(settings.theme);
   saveSettings(settings);
 
