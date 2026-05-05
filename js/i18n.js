@@ -115,8 +115,10 @@ const STRINGS = {
     statusErrProgress:  "Could not fetch progress — check your API key and connection, then try again.",
     achCount:           "{n} achievement",
     achCountPlural:     "{n} achievements",
-    cacheEntries:       "{n} entries cached",
-    cacheEmpty:         "Cache is empty",
+    cacheVersion:       "Definitions: {v}",
+    cacheLastSynced:    "Last sync: {t}",
+    cacheNone:          "No offline cache",
+    cacheNeverSynced:   "Never synced",
   },
 
   fr: {
@@ -217,8 +219,10 @@ const STRINGS = {
     statusErrProgress:  "Impossible de récupérer la progression — vérifiez votre clé API et votre connexion.",
     achCount:           "{n} succès",
     achCountPlural:     "{n} succès",
-    cacheEntries:       "{n} entrées en cache",
-    cacheEmpty:         "Cache vide",
+    cacheVersion:       "Définitions : {v}",
+    cacheLastSynced:    "Dernière synchro : {t}",
+    cacheNone:          "Pas de cache hors ligne",
+    cacheNeverSynced:   "Jamais synchronisé",
   },
 
   de: {
@@ -319,8 +323,10 @@ const STRINGS = {
     statusErrProgress:  "Fortschritt konnte nicht abgerufen werden — überprüfe deinen API-Schlüssel und deine Verbindung.",
     achCount:           "{n} Erfolg",
     achCountPlural:     "{n} Erfolge",
-    cacheEntries:       "{n} Einträge im Cache",
-    cacheEmpty:         "Cache ist leer",
+    cacheVersion:       "Definitionen: {v}",
+    cacheLastSynced:    "Letzte Synchronisation: {t}",
+    cacheNone:          "Kein Offline-Cache",
+    cacheNeverSynced:   "Nie synchronisiert",
   },
 
   es: {
@@ -421,8 +427,10 @@ const STRINGS = {
     statusErrProgress:  "No se pudo obtener el progreso — comprueba tu clave API y conexión.",
     achCount:           "{n} logro",
     achCountPlural:     "{n} logros",
-    cacheEntries:       "{n} entradas en caché",
-    cacheEmpty:         "Caché vacío",
+    cacheVersion:       "Definiciones: {v}",
+    cacheLastSynced:    "Última sincronización: {t}",
+    cacheNone:          "Sin caché sin conexión",
+    cacheNeverSynced:   "Nunca sincronizado",
   },
 };
 

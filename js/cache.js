@@ -93,6 +93,10 @@ export function isStaticCacheLoaded() {
   return !!localStorage.getItem(_key("gw2_static_version"));
 }
 
+export function getStaticVersion() {
+  return localStorage.getItem(_key("gw2_static_version"));
+}
+
 export async function ensureStaticCache(lang, onStatus) {
   try {
     const vr = await fetch("./data/version.json", { cache: "no-store" });

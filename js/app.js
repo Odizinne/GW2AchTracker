@@ -1,7 +1,7 @@
 import { validateApiKey, formatRewards }                   from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
          toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
-         ensureStaticCache } from "./cache.js";
+         ensureStaticCache, getStaticVersion } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
@@ -145,19 +145,26 @@ function setBrowserFetching(active) {
   loadingBar.classList.toggle("hidden", !active);
 }
 
+function formatDateTime(iso) {
+  const d   = new Date(iso);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function updateCacheInfo() {
-  const count = Object.keys(loadCache()).length;
-  cacheInfo.textContent = count
-    ? t("cacheEntries", { n: count })
-    : t("cacheEmpty");
+  const version    = getStaticVersion();
+  const lastSynced = localStorage.getItem("gw2_last_synced");
+  const versionLine = version
+    ? t("cacheVersion",    { v: version })
+    : t("cacheNone");
+  const syncLine   = lastSynced
+    ? t("cacheLastSynced", { t: formatDateTime(lastSynced) })
+    : t("cacheNeverSynced");
+  cacheInfo.innerHTML = `${versionLine}<br>${syncLine}`;
 }
 
 function updateSubtitle(count) {
-  const acc  = settings.accounts[settings.activeAccount];
-  const name = acc ? acc.name : "";
-  viewSubtitle.textContent = count != null
-    ? `${achCountStr(count)} · ${name}`
-    : name;
+  viewSubtitle.textContent = count != null ? achCountStr(count) : "";
 }
 
 // ── EN name tracking (needed for non-EN wiki URLs) ────────────────────────────
@@ -661,6 +668,7 @@ async function doFetch() {
   let progressFailed = false;
   try {
     await fetchProgress(key);
+    localStorage.setItem("gw2_last_synced", new Date().toISOString());
   } catch (e) {
     console.warn("Progress fetch failed:", e);
     progressFailed = true;
@@ -705,10 +713,6 @@ async function doFetch() {
   renderNearlyDoneRows(rows);
   if (currentView === "favorites") renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
-
-  if (definitionsFailed && currentView === "nearly-completed") {
-    viewSubtitle.textContent += " " + t("statusStale");
-  }
 
   updateCacheInfo();
   setFetching(false);
