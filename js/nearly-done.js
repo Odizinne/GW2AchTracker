@@ -3,7 +3,7 @@ import {
   loadCache, saveCache,
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   saveItemNamesCache, saveTitleNamesCache, saveSkinNamesCache,
-  loadCategoriesCache,
+  loadCategoriesCache, isStaticCacheLoaded,
 } from "./cache.js";
 
 let lastProgressMap = null;
@@ -19,6 +19,8 @@ function getCurrentTier(tiers, progress) {
 }
 
 export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "account-all", lang = "en") {
+  if (isStaticCacheLoaded()) return;
+
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
 

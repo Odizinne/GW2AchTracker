@@ -1,0 +1,42 @@
+name: Update GW2 Cache
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC daily
+  workflow_dispatch:        # manual trigger for testing
+
+permissions:
+  contents: write
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # full history needed for branch operations
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch GW2 data
+        run: python scripts/fetch_cache.py
+
+      - name: Commit and deploy if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No changes, skipping deploy."
+            exit 0
+          fi
+          git commit -m "chore: update GW2 cache $(date -u +%Y-%m-%d)"
+          git push origin main
+          git checkout prod
+          git merge main --no-edit
+          git push origin prod
+          git checkout main

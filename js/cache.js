@@ -82,10 +82,74 @@ export function clearCache() {
     localStorage.removeItem(`gw2_item_names${sfx}`);
     localStorage.removeItem(`gw2_title_names${sfx}`);
     localStorage.removeItem(`gw2_skin_names${sfx}`);
+    localStorage.removeItem(`gw2_static_version${sfx}`);
   }
   for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
   for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
   for (const k of Object.keys(_skinNameMap))  delete _skinNameMap[k];
+}
+
+export function isStaticCacheLoaded() {
+  return !!localStorage.getItem(_key("gw2_static_version"));
+}
+
+export async function ensureStaticCache(lang, onStatus) {
+  try {
+    const vr = await fetch("./data/version.json", { cache: "no-store" });
+    if (!vr.ok) return false;
+    const versions      = await vr.json();
+    const serverVersion = versions[lang];
+    if (!serverVersion) return false;
+
+    const localVersion = localStorage.getItem(_key("gw2_static_version"));
+    if (localVersion === serverVersion) return false;
+
+    onStatus?.("statusDownloadingCache");
+
+    const cr = await fetch(`./data/cache-${lang}.json`);
+    if (!cr.ok) return false;
+
+    // Stream response to report download progress via the loading bar.
+    // content-length is the compressed size; received tracks decompressed bytes,
+    // so we clamp to avoid going past 100% when gzip ratio exceeds 1.
+    const contentLength = parseInt(cr.headers.get("content-length") || "0", 10);
+    const reader  = cr.body.getReader();
+    const chunks  = [];
+    let received  = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (contentLength > 0) {
+        onStatus?.("statusDownloadingCache", {}, Math.min(received, contentLength), contentLength);
+      }
+    }
+
+    const allBytes = new Uint8Array(received);
+    let offset = 0;
+    for (const chunk of chunks) { allBytes.set(chunk, offset); offset += chunk.length; }
+    const data = JSON.parse(new TextDecoder().decode(allBytes));
+
+    saveCache(data.achievements);
+    saveGroupsCache(data.groups);
+    saveCategoriesCache(data.categories);
+
+    for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
+    for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
+    for (const k of Object.keys(_skinNameMap))  delete _skinNameMap[k];
+    Object.assign(_itemNameMap,  data.items);
+    Object.assign(_titleNameMap, data.titles);
+    Object.assign(_skinNameMap,  data.skins);
+    saveItemNamesCache();
+    saveTitleNamesCache();
+    saveSkinNamesCache();
+
+    localStorage.setItem(_key("gw2_static_version"), serverVersion);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function loadGroupsCache() {

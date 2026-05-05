@@ -1,6 +1,7 @@
 import { validateApiKey, formatRewards }                   from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
-         toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps } from "./cache.js";
+         toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
+         ensureStaticCache } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
@@ -630,6 +631,8 @@ async function doFetch() {
 
   let definitionsFailed = false;
   try {
+    const staticUpdated = await ensureStaticCache(lang, (...args) => setStatus(...args));
+    if (staticUpdated) resetBrowserCache();
     await Promise.all([
       ensureDefinitionCache(
         (...args) => setStatus(...args),
