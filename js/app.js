@@ -54,6 +54,7 @@ const btnGithub         = document.getElementById("btn-github");
 const btnLegal          = document.getElementById("btn-legal");
 const resultsBody       = document.getElementById("results-body");
 const loadingBar        = document.getElementById("loading-bar");
+const loadingBarFill    = document.getElementById("loading-bar-fill");
 const viewSubtitle      = document.getElementById("view-subtitle");
 const cacheInfo         = document.getElementById("cache-info");
 const setupError        = document.getElementById("setup-error");
@@ -86,10 +87,35 @@ function buildLangOptions(selectEl, currentLangVal) {
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 
-function setStatus(key, vars = {}) {
+function setLoadingProgress(fetched, total) {
+  if (fetched === undefined || total === undefined || total === 0) {
+    loadingBar.classList.remove("determinate");
+    loadingBarFill.style.width = "";
+    return;
+  }
+  const newPct = Math.round((fetched / total) * 100);
+  const wasDeterminate = loadingBar.classList.contains("determinate");
+  const currentPct = wasDeterminate ? (parseFloat(loadingBarFill.style.width) || 0) : 0;
+  const goingUp = wasDeterminate && newPct > currentPct;
+
+  if (!goingUp) {
+    // Snap: override CSS transition, apply value, force reflow, then restore
+    loadingBarFill.style.transition = "none";
+    loadingBar.classList.add("determinate");
+    loadingBarFill.style.width = newPct + "%";
+    loadingBarFill.offsetWidth; // force reflow so the snap is committed
+    loadingBarFill.style.transition = "";
+  } else {
+    loadingBar.classList.add("determinate");
+    loadingBarFill.style.width = newPct + "%";
+  }
+}
+
+function setStatus(key, vars = {}, fetched, total) {
   if (currentView === "nearly-completed" || currentView === "favorites") {
     viewSubtitle.textContent = t(key, vars);
   }
+  setLoadingProgress(fetched, total);
 }
 
 function setBrowserStatus(key, vars = {}) {
@@ -108,6 +134,7 @@ function setFetching(active) {
   document.querySelectorAll(".nav-item").forEach(el => { el.disabled = active; });
   document.querySelectorAll(".sb-link").forEach(el => { el.disabled = active; });
   loadingBar.classList.toggle("hidden", !active);
+  if (!active) setLoadingProgress();
   document.getElementById("sidebar").classList.toggle("fetching", active);
   document.getElementById("main-topbar").classList.toggle("fetching", active);
 }
@@ -603,14 +630,14 @@ async function doFetch() {
   try {
     await Promise.all([
       ensureDefinitionCache(
-        (key, vars) => setStatus(key, vars),
+        (...args) => setStatus(...args),
         key,
         settings.fetchMode ?? "account-all",
         lang,
       ),
-      ensureBrowserData((key, vars) => setStatus(key, vars), lang),
+      ensureBrowserData((...args) => setStatus(...args), lang),
     ]);
-    await ensureRewardNames((key, vars) => setStatus(key, vars), lang);
+    await ensureRewardNames((...args) => setStatus(...args), lang);
   } catch (e) {
     console.warn("Definition/browser data update failed, continuing with cache:", e);
     definitionsFailed = true;
@@ -651,6 +678,13 @@ async function doFetch() {
     await resolveRewardNames(rows, key, lang);
   } catch (e) {
     console.warn("Reward name resolution failed:", e);
+  }
+
+  if (settings.clearCompletedFavorites) {
+    const progressMap = getProgressMap();
+    for (const id of [...favoritesSet]) {
+      if (progressMap[id]?.done) toggleFavorite(id);
+    }
   }
 
   setProgressMap(getProgressMap());
@@ -830,8 +864,9 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-threshold").value        = settings.thresholdPct;
   document.getElementById("s-tier").value             = settings.useFinalTier ? "last" : "next";
   document.getElementById("s-fetch-mode").value       = settings.fetchMode ?? "account-all";
-  document.getElementById("s-hide-completed").checked = settings.hideCompleted;
-  document.getElementById("s-light-mode").checked     = settings.theme === "light";
+  document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
+  document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
+  document.getElementById("s-light-mode").checked            = settings.theme === "light";
   buildLangOptions(document.getElementById("s-lang"), currentLang());
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
@@ -888,8 +923,9 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
   settings.useFinalTier  = document.getElementById("s-tier").value === "last";
   settings.fetchMode     = document.getElementById("s-fetch-mode").value;
-  settings.hideCompleted = document.getElementById("s-hide-completed").checked;
-  settings.theme         = document.getElementById("s-light-mode").checked ? "light" : "dark";
+  settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
+  settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
+  settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
   settings.lang          = document.getElementById("s-lang").value;
   applyTheme(settings.theme);
   saveSettings(settings);

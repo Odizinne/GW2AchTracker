@@ -169,14 +169,19 @@
   background: transparent;
 }
 
-#loading-bar::after {
-  content: '';
+#loading-bar-fill {
   position: absolute;
   top: 0;
   height: 100%;
   width: 40%;
   background: var(--accent);
   animation: loading-slide 1.4s ease-in-out infinite;
+}
+
+#loading-bar.determinate #loading-bar-fill {
+  animation: none;
+  left: 0;
+  transition: width 0.25s ease;
 }
 
 @keyframes loading-slide {

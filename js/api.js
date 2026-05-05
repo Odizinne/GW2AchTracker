@@ -20,12 +20,19 @@ export async function apiFetch(endpoint, params = {}, apiKey = "") {
   return res.json();
 }
 
-export async function fetchInBatches(endpoint, ids, apiKey = "", batchSize = 150, extraParams = {}) {
+export async function fetchInBatches(endpoint, ids, apiKey = "", batchSize = 150, extraParams = {}, onProgress = null) {
   if (!ids.length) return [];
   const batches = [];
   for (let i = 0; i < ids.length; i += batchSize) batches.push(ids.slice(i, i + batchSize));
+  const total = ids.length;
+  let fetched = 0;
   const results = await Promise.all(
-    batches.map(b => apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey))
+    batches.map(async b => {
+      const result = await apiFetch(endpoint, { ids: b.join(","), ...extraParams }, apiKey);
+      fetched += b.length;
+      onProgress?.(fetched, total);
+      return result;
+    })
   );
   return results.flat();
 }

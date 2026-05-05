@@ -5,6 +5,7 @@ const DEFAULT_SETTINGS = {
   thresholdPct: 80,
   useFinalTier: false,
   hideCompleted: false,
+  clearCompletedFavorites: false,
   fetchMode: "account-all",
   theme: "dark",
   viewMode: "list",

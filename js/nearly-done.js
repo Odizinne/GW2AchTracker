@@ -72,8 +72,10 @@ export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "
   const toFetch = [...new Set([...missing, ...repeatableIds])];
 
   if (toFetch.length) {
-    onStatus("statusFetchingDefs", { n: toFetch.length });
-    const fresh = await fetchInBatches("/achievements", toFetch, null, 150, { lang });
+    onStatus("statusFetchingDefs", { n: `0 / ${toFetch.length}` }, 0, toFetch.length);
+    const fresh = await fetchInBatches("/achievements", toFetch, null, 150, { lang },
+      (f, t) => onStatus("statusFetchingDefs", { n: `${f} / ${t}` }, f, t)
+    );
     for (const ach of fresh) cache[ach.id] = ach;
     saveCache(cache);
   }
@@ -95,8 +97,10 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   ])];
   const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
-    onStatus("statusFetchingItems", { n: newItemIds.length });
-    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang });
+    onStatus("statusFetchingItems", { n: `0 / ${newItemIds.length}` }, 0, newItemIds.length);
+    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang },
+      (f, t) => onStatus("statusFetchingItems", { n: `${f} / ${t}` }, f, t)
+    );
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
@@ -104,8 +108,10 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   const titleIds    = [...new Set(rewards.filter(r => r.type === "Title" && r.id).map(r => r.id))];
   const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
-    onStatus("statusFetchingTitles", { n: newTitleIds.length });
-    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang });
+    onStatus("statusFetchingTitles", { n: `0 / ${newTitleIds.length}` }, 0, newTitleIds.length);
+    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang },
+      (f, t) => onStatus("statusFetchingTitles", { n: `${f} / ${t}` }, f, t)
+    );
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
@@ -113,9 +119,11 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   const skinIds    = [...new Set(bits.filter(b => b.type === "Skin" && b.id).map(b => b.id))];
   const newSkinIds = skinIds.filter(id => !(id in skinNameMap));
   if (newSkinIds.length) {
-    onStatus("statusFetchingSkins", { n: newSkinIds.length });
+    onStatus("statusFetchingSkins", { n: `0 / ${newSkinIds.length}` }, 0, newSkinIds.length);
     try {
-      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang });
+      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang },
+        (f, t) => onStatus("statusFetchingSkins", { n: `${f} / ${t}` }, f, t)
+      );
       const found = new Set(skins.map(s => s.id));
       for (const skin of skins) skinNameMap[skin.id] = skin.name;
       for (const id of newSkinIds) if (!found.has(id)) skinNameMap[id] = null;
@@ -141,18 +149,21 @@ export function computeNearlyDone(progressMap, settings) {
   for (const [idStr, entry] of Object.entries(progressMap)) {
     const ach = cache[Number(idStr)];
     if (!ach) continue;
-    if ((ach.flags || []).includes("IgnoreNearlyComplete")) continue;
-
     const isRepeatable = (ach.flags || []).some(f => f === "Daily" || f === "Weekly" || f === "Repeatable");
+    // IgnoreNearlyComplete is a game-HUD flag; still honour it for one-shot achievements,
+    // but infinite/repeatable ones should always be trackable.
+    if (!isRepeatable && (ach.flags || []).includes("IgnoreNearlyComplete")) continue;
     if (entry.done && !isRepeatable) continue;
 
     const tiers = ach.tiers || [];
     if (!tiers.length) continue;
-    const progress = entry.current || 0;
-    const { idx, tier: currentTier } = getCurrentTier(tiers, progress);
+    const rawProgress = entry.current || 0;
+    const { idx, tier: currentTier } = getCurrentTier(tiers, rawProgress);
     const targetTier = useFinalTier ? tiers[tiers.length - 1] : currentTier;
     const isLast = idx === tiers.length - 1;
     if (!targetTier.count) continue;
+    // For repeatables, progress wraps around each lap so ratio stays in [0, 1)
+    const progress = isRepeatable ? rawProgress % targetTier.count : rawProgress;
     const ratio = progress / targetTier.count;
     if (ratio < threshold) continue;
     if (ratio >= 1.0) continue;
