@@ -874,12 +874,37 @@ for (const p of PALETTES) {
 
 // ── Settings tab switching ───────────────────────────────────────────────────
 
+const SETTINGS_TAB_ORDER = ['api', 'ui', 'view'];
+let settingsTabIdx = 0;
+let settingsTabAnimating = false;
+
 document.querySelectorAll(".settings-tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
+    if (settingsTabAnimating) return;
+    const newTab = btn.dataset.tab;
+    const newIdx = SETTINGS_TAB_ORDER.indexOf(newTab);
+    if (newIdx === settingsTabIdx) return;
+
+    const goingRight = newIdx > settingsTabIdx;
+    const exitClass  = goingRight ? 'tab-exit-left'  : 'tab-exit-right';
+    const enterClass = goingRight ? 'tab-enter-right' : 'tab-enter-left';
+
+    const prevPanel = document.querySelector('.settings-tab-panel.active');
+    const nextPanel = document.getElementById(`stab-${newTab}`);
+
     document.querySelectorAll(".settings-tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
-    document.getElementById(`stab-${btn.dataset.tab}`).classList.add("active");
+
+    prevPanel.classList.add(exitClass);
+    nextPanel.classList.add(enterClass, 'active');
+    settingsTabIdx = newIdx;
+    settingsTabAnimating = true;
+
+    prevPanel.addEventListener('animationend', () => {
+      prevPanel.classList.remove('active', exitClass);
+      nextPanel.classList.remove(enterClass);
+      settingsTabAnimating = false;
+    }, { once: true });
   });
 });
 
@@ -904,9 +929,11 @@ btnSettings.addEventListener("click", () => {
   renderAccountsList();
   updateCacheInfo();
   document.querySelectorAll(".settings-tab-btn").forEach(b => b.classList.remove("active"));
-  document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active", "tab-exit-left", "tab-exit-right", "tab-enter-right", "tab-enter-left"));
   document.querySelector('.settings-tab-btn[data-tab="api"]').classList.add("active");
   document.getElementById("stab-api").classList.add("active");
+  settingsTabIdx = 0;
+  settingsTabAnimating = false;
   openModal("settings-overlay");
 });
 

@@ -3,6 +3,7 @@ import {
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
+import { closeModal } from "./ui.js";
 import { resolveWikiUrl, getLang, t } from "./i18n.js";
 
 let _progressMap   = null;
@@ -144,11 +145,11 @@ function rewardHtml(str) {
 
 export function initAchModal() {
   document.getElementById("ach-modal-close").addEventListener("click", () =>
-    document.getElementById("ach-modal-overlay").classList.remove("open")
+    closeModal("ach-modal-overlay")
   );
   document.getElementById("ach-modal-overlay").addEventListener("click", e => {
     if (e.target.id === "ach-modal-overlay")
-      document.getElementById("ach-modal-overlay").classList.remove("open");
+      closeModal("ach-modal-overlay");
   });
 
   document.getElementById("ach-modal-fav-btn").addEventListener("click", () => {

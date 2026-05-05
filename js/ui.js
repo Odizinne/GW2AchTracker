@@ -3,7 +3,16 @@ export const SVG_EYE_OFF = `<svg width="14" height="14" viewBox="0 0 24 24" fill
 export const SVG_TRASH   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
 
 export function openModal(id)  { document.getElementById(id).classList.add("open"); }
-export function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+export function closeModal(id) {
+  const el = document.getElementById(id);
+  el.classList.add("closing");
+  const done = (e) => {
+    if (e.target !== el) return;
+    el.removeEventListener("animationend", done);
+    el.classList.remove("open", "closing");
+  };
+  el.addEventListener("animationend", done);
+}
 export function showError(el, msg) { el.textContent = msg; el.classList.remove("hidden"); }
 export function clearError(el)     { el.textContent = ""; el.classList.add("hidden"); }
 
