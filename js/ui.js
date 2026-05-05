@@ -28,12 +28,8 @@ export function pctClass(pct) {
   return "pct-low";
 }
 
-export function barColor(pct) {
-  if (pct < 90) return "hsl(0,0%,50%)";
-  const t   = Math.max(0, Math.min(1, (pct - 90) / 10));
-  const lit = Math.round(50 + t * 20);
-  const sat = Math.round(40 + t * 35);
-  return `hsl(30,${sat}%,${lit}%)`;
+export function barColor(_pct) {
+  return "color-mix(in srgb, var(--accent) 65%, white)";
 }
 
 export function rewardHtml(rewardStr) {

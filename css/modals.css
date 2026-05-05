@@ -80,6 +80,62 @@
   flex-shrink: 0;
 }
 
+/* ── Settings tabs nav ── */
+.settings-tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.4rem;
+  flex-shrink: 0;
+}
+
+.settings-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font);
+  padding: 0.65rem 0.9rem;
+  margin-bottom: -1px;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.settings-tab-btn:hover { color: var(--text); }
+
+.settings-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Settings tab panels ── */
+.settings-tab-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+.settings-tab-panels::-webkit-scrollbar { width: 4px; }
+.settings-tab-panels::-webkit-scrollbar-track { background: transparent; }
+.settings-tab-panels::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+.settings-tab-panel {
+  grid-area: 1 / 1;
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.settings-tab-panel:not(.active) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* ── Settings sections ── */
 .settings-section { display: flex; flex-direction: column; gap: 0.75rem; }
 

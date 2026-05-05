@@ -770,7 +770,8 @@ function selectCategory(cat) {
   }
 
   if (viewMode === "tile") {
-    const visibleCount = renderTileView(viewEl, rows, { hideCompleted: settings.hideCompleted });
+    const browseRows   = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+    const visibleCount = renderTileView(viewEl, browseRows, { hideCompleted: false });
     viewSubtitle.textContent = achCountStr(visibleCount);
   } else {
     if (changed) {
@@ -788,7 +789,7 @@ function selectCategory(cat) {
 
 function renderBrowserRows(rows) {
   const visible = settings.hideCompleted
-    ? rows.filter(r => !r.done || r.repeatable)
+    ? rows.filter(r => !r.done)
     : rows;
 
   if (!visible.length) {
@@ -871,6 +872,17 @@ for (const p of PALETTES) {
   paletteSelect.appendChild(opt);
 }
 
+// ── Settings tab switching ───────────────────────────────────────────────────
+
+document.querySelectorAll(".settings-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".settings-tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(`stab-${btn.dataset.tab}`).classList.add("active");
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 btnSettings.addEventListener("click", () => {
@@ -891,6 +903,10 @@ btnSettings.addEventListener("click", () => {
   document.querySelector('[data-target="new-account-key"]').innerHTML = SVG_EYE;
   renderAccountsList();
   updateCacheInfo();
+  document.querySelectorAll(".settings-tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelector('.settings-tab-btn[data-tab="api"]').classList.add("active");
+  document.getElementById("stab-api").classList.add("active");
   openModal("settings-overlay");
 });
 

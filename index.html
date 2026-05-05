@@ -226,71 +226,46 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="settings-tabs-nav">
+        <button class="settings-tab-btn active" data-tab="api" data-i18n="tabApi">API</button>
+        <button class="settings-tab-btn" data-tab="ui" data-i18n="tabUi">UI</button>
+        <button class="settings-tab-btn" data-tab="view" data-i18n="tabView">View</button>
+      </div>
+      <div class="settings-tab-panels">
 
-        <section class="settings-section">
-          <div class="settings-section-header">
-            <h3 data-i18n="sectAccounts">Accounts</h3>
-            <button id="btn-add-account" class="btn small" data-i18n="btnAddAccount">+ Add account</button>
-          </div>
-          <div id="accounts-list" class="accounts-list"></div>
-          <div id="add-account-form" class="add-account-form hidden">
-            <div class="form-row">
-              <div class="form-field">
-                <label class="field-label" data-i18n="addAccName">Name</label>
-                <input type="text" id="new-account-name" data-i18n-placeholder="addAccPlaceName" placeholder="e.g. Alt" />
-              </div>
-              <div class="form-field" style="flex:2">
-                <label class="field-label" data-i18n="addAccKey">API key</label>
-                <div class="api-key-wrap">
-                  <input type="password" id="new-account-key" data-i18n-placeholder="addAccPlaceKey" placeholder="Paste your API key…" />
-                  <button type="button" class="eye-btn" data-target="new-account-key" title="Toggle visibility">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  </button>
+        <!-- API tab -->
+        <div class="settings-tab-panel active" id="stab-api">
+          <section class="settings-section">
+            <div class="settings-section-header">
+              <h3 data-i18n="sectAccounts">Accounts</h3>
+              <button id="btn-add-account" class="btn small" data-i18n="btnAddAccount">+ Add account</button>
+            </div>
+            <div id="accounts-list" class="accounts-list"></div>
+            <div id="add-account-form" class="add-account-form hidden">
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="field-label" data-i18n="addAccName">Name</label>
+                  <input type="text" id="new-account-name" data-i18n-placeholder="addAccPlaceName" placeholder="e.g. Alt" />
                 </div>
+                <div class="form-field" style="flex:2">
+                  <label class="field-label" data-i18n="addAccKey">API key</label>
+                  <div class="api-key-wrap">
+                    <input type="password" id="new-account-key" data-i18n-placeholder="addAccPlaceKey" placeholder="Paste your API key…" />
+                    <button type="button" class="eye-btn" data-target="new-account-key" title="Toggle visibility">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p id="new-account-error" class="field-error hidden"></p>
+              <div class="form-actions">
+                <button id="btn-add-account-cancel" class="btn" data-i18n="btnCancel">Cancel</button>
+                <button id="btn-add-account-save" class="btn primary" data-i18n="btnSaveAccount">Save account</button>
               </div>
             </div>
-            <p id="new-account-error" class="field-error hidden"></p>
-            <div class="form-actions">
-              <button id="btn-add-account-cancel" class="btn" data-i18n="btnCancel">Cancel</button>
-              <button id="btn-add-account-save" class="btn primary" data-i18n="btnSaveAccount">Save account</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <h3 data-i18n="sectFilters">Filters</h3>
-          <div class="settings-grid">
+          </section>
+          <section class="settings-section">
             <label class="field-label">
-              <span data-i18n="labelMaxResults">Max results</span>
-              <div class="number-wrap">
-                <input type="number" id="s-maxresults" min="1" max="200" />
-                <div class="number-spin">
-                  <button type="button" data-target="s-maxresults" data-delta="1">▲</button>
-                  <button type="button" data-target="s-maxresults" data-delta="-1">▼</button>
-                </div>
-              </div>
-            </label>
-            <label class="field-label">
-              <span data-i18n="labelThreshold">Min threshold (%)</span>
-              <div class="number-wrap">
-                <input type="number" id="s-threshold" min="1" max="100" />
-                <div class="number-spin">
-                  <button type="button" data-target="s-threshold" data-delta="1">▲</button>
-                  <button type="button" data-target="s-threshold" data-delta="-1">▼</button>
-                </div>
-              </div>
-            </label>
-            <label class="field-label">
-              <span data-i18n="labelTierTarget">Tier target</span>
-              <div class="sb-select-wrap">
-                <select id="s-tier">
-                  <option value="next" data-i18n="optNextTier">Next tier</option>
-                  <option value="last" data-i18n="optFinalTier">Final tier</option>
-                </select>
-              </div>
-            </label>
-            <label class="field-label" style="grid-column: span 2;">
               <span data-i18n="labelFetchMode">Achievements to fetch</span>
               <div class="sb-select-wrap" style="margin-top:4px">
                 <select id="s-fetch-mode">
@@ -300,40 +275,83 @@
                 </select>
               </div>
             </label>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="sectCache">Cache</h3>
+            <div class="cache-row">
+              <span id="cache-info" class="muted"></span>
+              <button id="btn-cache-clear" class="btn danger" data-i18n="btnClearCache">Clear cache</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- UI tab -->
+        <div class="settings-tab-panel" id="stab-ui">
+          <section class="settings-section">
             <label class="field-label">
               <span data-i18n="labelLanguage">Language</span>
               <div class="sb-select-wrap" style="margin-top:4px">
                 <select id="s-lang"></select>
               </div>
             </label>
-          </div>
-          <label class="field-label checkbox-label" style="margin-top:8px">
-            <input type="checkbox" id="s-hide-completed" />
-            <span data-i18n="labelHideCompleted">Hide completed achievements</span>
-          </label>
-          <label class="field-label checkbox-label" style="margin-top:4px">
-            <input type="checkbox" id="s-clear-fav-completed" />
-            <span data-i18n="labelClearCompletedFavorites">Clear completed from favorites</span>
-          </label>
-          <label class="field-label" style="margin-top:8px">
-            <span data-i18n="labelAccentColor">Accent color</span>
-            <div class="sb-select-wrap" style="margin-top:4px">
-              <select id="s-palette"></select>
-            </div>
-          </label>
-          <label class="field-label checkbox-label" style="margin-top:4px">
-            <input type="checkbox" id="s-light-mode" />
-            <span data-i18n="labelLightMode">Light mode</span>
-          </label>
-        </section>
+            <label class="field-label">
+              <span data-i18n="labelAccentColor">Accent color</span>
+              <div class="sb-select-wrap" style="margin-top:4px">
+                <select id="s-palette"></select>
+              </div>
+            </label>
+            <label class="field-label checkbox-label" style="margin-top:4px">
+              <input type="checkbox" id="s-light-mode" />
+              <span data-i18n="labelLightMode">Light mode</span>
+            </label>
+          </section>
+        </div>
 
-        <section class="settings-section">
-          <h3 data-i18n="sectCache">Cache</h3>
-          <div class="cache-row">
-            <span id="cache-info" class="muted"></span>
-            <button id="btn-cache-clear" class="btn danger" data-i18n="btnClearCache">Clear cache</button>
-          </div>
-        </section>
+        <!-- View tab -->
+        <div class="settings-tab-panel" id="stab-view">
+          <section class="settings-section">
+            <h3 data-i18n="sectFilters">Filters</h3>
+            <div class="settings-grid">
+              <label class="field-label">
+                <span data-i18n="labelMaxResults">Max results</span>
+                <div class="number-wrap">
+                  <input type="number" id="s-maxresults" min="1" max="200" />
+                  <div class="number-spin">
+                    <button type="button" data-target="s-maxresults" data-delta="1">▲</button>
+                    <button type="button" data-target="s-maxresults" data-delta="-1">▼</button>
+                  </div>
+                </div>
+              </label>
+              <label class="field-label">
+                <span data-i18n="labelThreshold">Min threshold (%)</span>
+                <div class="number-wrap">
+                  <input type="number" id="s-threshold" min="1" max="100" />
+                  <div class="number-spin">
+                    <button type="button" data-target="s-threshold" data-delta="1">▲</button>
+                    <button type="button" data-target="s-threshold" data-delta="-1">▼</button>
+                  </div>
+                </div>
+              </label>
+              <label class="field-label">
+                <span data-i18n="labelTierTarget">Tier target</span>
+                <div class="sb-select-wrap">
+                  <select id="s-tier">
+                    <option value="next" data-i18n="optNextTier">Next tier</option>
+                    <option value="last" data-i18n="optFinalTier">Final tier</option>
+                  </select>
+                </div>
+              </label>
+            </div>
+            <label class="field-label checkbox-label" style="margin-top:8px">
+              <input type="checkbox" id="s-hide-completed" />
+              <span data-i18n="labelHideCompleted">Hide completed achievements</span>
+            </label>
+            <label class="field-label checkbox-label" style="margin-top:4px">
+              <input type="checkbox" id="s-clear-fav-completed" />
+              <span data-i18n="labelClearCompletedFavorites">Clear completed from favorites</span>
+            </label>
+          </section>
+        </div>
 
       </div>
       <div class="modal-footer">
