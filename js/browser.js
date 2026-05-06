@@ -347,6 +347,25 @@ export function renderBrowserTree(container, onSelectCategory) {
   }
 }
 
+export function getCategoryForAchievement(achId) {
+  if (!categories) return null;
+  for (const cat of Object.values(categories)) {
+    if (cat.achievements?.includes(achId)) return cat;
+  }
+  return null;
+}
+
+export function prepareTreeForCategory(catId) {
+  activeCatId = catId;
+  if (!groups) return;
+  for (const group of groups) {
+    if (group.categories?.includes(catId)) {
+      expandedGroups.add(group.id);
+      break;
+    }
+  }
+}
+
 export function resetBrowserState() {
   expandedGroups.clear();
   activeCatId = null;

@@ -269,6 +269,8 @@
   font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
+  flex: 1;
+  min-width: 0;
 }
 
 .ach-modal-header-actions {

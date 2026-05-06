@@ -3,24 +3,28 @@ import {
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
-import { closeModal } from "./ui.js";
+import { closeModal, stripGw2Markup } from "./ui.js";
 import { resolveWikiUrl, getLang, t } from "./i18n.js";
 
 let _progressMap   = null;
 let _currentAchId  = null;
 let _onStateChange = null;
-// We also store the EN name so we can resolve the wiki URL correctly
 let _currentEnName = null;
+let _currentCat    = null;
+let _onBackCategory = null;
 
 export function setModalProgressMap(map) { _progressMap = map; }
 export function setModalStateCallback(fn) { _onStateChange = fn; }
+export function setModalBackCallback(fn)  { _onBackCategory = fn; }
 
-export function openAchievementModal(ach, progressEntry, enName = null) {
+export function openAchievementModal(ach, progressEntry, enName = null, cat = null) {
   const entry = progressEntry || _progressMap?.[ach.id] || {};
 
   _currentAchId  = ach.id;
-  _currentEnName = enName || ach.name; // fallback to ach.name if EN not provided
+  _currentEnName = enName || ach.name;
+  _currentCat    = cat;
 
+  document.getElementById("ach-modal-back-btn").classList.toggle("hidden", !cat);
   document.getElementById("ach-modal-title").textContent = ach.name;
   document.getElementById("ach-modal-fav-btn").classList.toggle("active",  favoritesSet.has(ach.id));
   document.getElementById("ach-modal-hide-btn").classList.toggle("active", hiddenSet.has(ach.id));
@@ -35,9 +39,9 @@ export function openAchievementModal(ach, progressEntry, enName = null) {
 
   const descEl = document.getElementById("ach-modal-desc");
   const reqEl  = document.getElementById("ach-modal-req");
-  descEl.textContent = ach.description || "";
+  descEl.textContent = ach.description ? stripGw2Markup(ach.description) : "";
   descEl.classList.toggle("hidden", !ach.description);
-  reqEl.textContent = ach.requirement || "";
+  reqEl.textContent = ach.requirement ? stripGw2Markup(ach.requirement) : "";
   reqEl.classList.toggle("hidden", !ach.requirement);
 
   document.getElementById("ach-modal-flags").classList.add("hidden");
@@ -147,6 +151,12 @@ export function initAchModal() {
   document.getElementById("ach-modal-close").addEventListener("click", () =>
     closeModal("ach-modal-overlay")
   );
+
+  document.getElementById("ach-modal-back-btn").addEventListener("click", () => {
+    if (!_currentCat) return;
+    closeModal("ach-modal-overlay");
+    _onBackCategory?.(_currentCat);
+  });
   document.getElementById("ach-modal-overlay").addEventListener("click", e => {
     if (e.target.id === "ach-modal-overlay")
       closeModal("ach-modal-overlay");

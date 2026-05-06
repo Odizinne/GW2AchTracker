@@ -41,6 +41,10 @@ export function barColor(_pct) {
   return "color-mix(in srgb, var(--accent) 65%, white)";
 }
 
+export function stripGw2Markup(str) {
+  return str.replace(/<[^>]*>/g, "");
+}
+
 export function rewardHtml(rewardStr) {
   return rewardStr
     .replace(/AP:(\d+)/g, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')

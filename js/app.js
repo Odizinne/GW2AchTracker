@@ -8,11 +8,11 @@ import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyD
          resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          resetBrowserState, resetBrowserCache, recomputeCatDoneStates,
-         showBrowserSkeleton } from "./browser.js";
+         showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory } from "./browser.js";
 import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
-         showError, clearError, showView, pctClass, barColor, rewardHtml } from "./ui.js";
+         showError, clearError, showView, pctClass, barColor, rewardHtml, stripGw2Markup } from "./ui.js";
 import { openAchievementModal, initAchModal, setModalProgressMap,
-         setModalStateCallback } from "./ach-modal.js";
+         setModalStateCallback, setModalBackCallback } from "./ach-modal.js";
 import { initSearch } from "./search.js";
 import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
 
@@ -189,10 +189,10 @@ function getEnName(id, localName) {
 
 // ── Open achievement (with EN name for wiki) ──────────────────────────────────
 
-function openAchFromCache(id) {
+function openAchFromCache(id, cat = null) {
   const cache = loadCache();
   const ach = cache[id];
-  if (ach) openAchievementModal(ach, null, getEnName(id, ach.name));
+  if (ach) openAchievementModal(ach, null, getEnName(id, ach.name), cat ?? getCategoryForAchievement(id));
 }
 
 function applyTheme(theme) {
@@ -337,7 +337,7 @@ function buildTileHtml(rows) {
       : `<div style="flex:1;height:3px;border-radius:99px;background:var(--bg4);visibility:hidden"></div>`;
 
     const ach  = cache[row.id];
-    const desc = ach?.description || ach?.requirement || "";
+    const desc = stripGw2Markup(ach?.description || ach?.requirement || "");
 
     const rewardParts = row.rewardStr
       ? row.rewardStr.split(" · ").map(part =>
@@ -362,14 +362,14 @@ function buildTileHtml(rows) {
   }).join("");
 }
 
-function attachTileListeners(grid) {
+function attachTileListeners(grid, cat = null) {
   grid.querySelectorAll(".ach-row-btn").forEach(btn => {
-    btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id)));
+    btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id), cat));
   });
 }
 
 function renderTileView(viewEl, rows, opts = {}) {
-  const { hideCompleted = false } = opts;
+  const { hideCompleted = false, cat = null } = opts;
   const visible = hideCompleted ? rows.filter(r => !r.done || r.repeatable) : rows;
   viewEl.querySelector(".table-wrap").style.display = "none";
   let grid = viewEl.querySelector(".tile-grid");
@@ -379,7 +379,7 @@ function renderTileView(viewEl, rows, opts = {}) {
     viewEl.appendChild(grid);
   }
   grid.innerHTML = buildTileHtml(visible) || `<div class="tile-empty">${t("emptyNearlyFilter")}</div>`;
-  attachTileListeners(grid);
+  attachTileListeners(grid, cat);
   return visible.length;
 }
 
@@ -778,7 +778,7 @@ function selectCategory(cat) {
 
   if (viewMode === "tile") {
     const browseRows   = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
-    const visibleCount = renderTileView(viewEl, browseRows, { hideCompleted: false });
+    const visibleCount = renderTileView(viewEl, browseRows, { hideCompleted: false, cat: activeCat });
     viewSubtitle.textContent = achCountStr(visibleCount);
   } else {
     if (changed) {
@@ -822,7 +822,7 @@ function renderBrowserRows(rows) {
   }).join("");
 
   browserBody.querySelectorAll(".ach-row-btn").forEach(btn => {
-    btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id)));
+    btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id), activeCat));
   });
   attachActionListeners(browserBody, () => {
     if (activeCat) selectCategory(activeCat);
@@ -1078,7 +1078,17 @@ setModalStateCallback((_achId, type) => {
   if (currentView === "favorites")        renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
 });
-initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name)));
+setModalBackCallback(targetCat => {
+  activeCat = targetCat;
+  prepareTreeForCategory(targetCat.id);
+  navigateTo("browser");
+  if (browserInitialized) {
+    browserTree.innerHTML = "";
+    renderBrowserTree(browserTree, c => selectCategory(c));
+    selectCategory(targetCat);
+  }
+});
+initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), getCategoryForAchievement(ach.id)));
 checkSetup();
 updateCacheInfo();
 if (settings.accounts.length) doFetch();
