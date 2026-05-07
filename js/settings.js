@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   theme: "dark",
   viewMode: "list",
   lang: "en",
+  defaultSection: "nearly-completed",
 };
 
 export function loadSettings() {

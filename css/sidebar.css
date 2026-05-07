@@ -82,22 +82,22 @@
 
 .sb-select-wrap select:focus { outline: none; border-color: var(--accent); }
 
+/* ── Nav wrap (nav buttons + tree, fills remaining sidebar height) ── */
+.sb-nav-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Nav ── */
 .sb-nav {
-  flex: 1;
+  flex-shrink: 0;
   padding: 14px 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
-  min-height: 0;
 }
-
-.sb-nav::-webkit-scrollbar { width: 4px; }
-.sb-nav::-webkit-scrollbar-track { background: transparent; }
-.sb-nav::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .nav-item {
   width: 100%;
@@ -135,15 +135,41 @@
 .nav-item.active .nav-icon,
 .nav-item:hover .nav-icon { opacity: 1; }
 
+/* ── Browse toggle chevron ── */
+.browse-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+  opacity: 0.35;
+}
+
+#btn-browse-toggle.open .browse-chevron {
+  transform: rotate(90deg);
+  opacity: 0.7;
+}
+
 /* ── Browser tree ── */
 .browser-tree {
-  margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
 .browser-tree.hidden { display: none; }
+
+#browser-tree:not(.hidden) {
+  border-top: 1px solid var(--border);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+#browser-tree:not(.hidden)::-webkit-scrollbar { width: 4px; }
+#browser-tree:not(.hidden)::-webkit-scrollbar-track { background: transparent; }
+#browser-tree:not(.hidden)::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .browser-group { display: flex; flex-direction: column; }
 

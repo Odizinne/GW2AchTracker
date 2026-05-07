@@ -8,7 +8,8 @@ import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyD
          resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          resetBrowserState, resetBrowserCache, recomputeCatDoneStates,
-         showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory } from "./browser.js";
+         showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory,
+         getCategoryById } from "./browser.js";
 import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
          showError, clearError, showView, pctClass, barColor, rewardHtml, stripGw2Markup } from "./ui.js";
 import { openAchievementModal, initAchModal, setModalProgressMap,
@@ -64,6 +65,7 @@ const accountsList      = document.getElementById("accounts-list");
 const addAccountForm    = document.getElementById("add-account-form");
 const newAccountError   = document.getElementById("new-account-error");
 const browserTree       = document.getElementById("browser-tree");
+const btnBrowseToggle   = document.getElementById("btn-browse-toggle");
 const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
 const btnShowHidden     = document.getElementById("btn-show-hidden");
@@ -392,8 +394,8 @@ function renderListView(viewEl) {
 
 function navigateTo(name) {
   currentView = name;
+  localStorage.setItem("gw2_last_section", name);
   showView(name);
-  browserTree.classList.toggle("hidden", name !== "browser");
   btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
   if (name === "nearly-completed") {
     viewTitle.textContent = t("titleNearly");
@@ -401,6 +403,8 @@ function navigateTo(name) {
   } else if (name === "browser") {
     viewTitle.textContent = t("titleBrowse");
     viewSubtitle.textContent = "";
+    browserTree.classList.remove("hidden");
+    btnBrowseToggle.classList.add("open");
     initBrowser();
   } else if (name === "favorites") {
     viewTitle.textContent = t("titleFavorites");
@@ -413,6 +417,25 @@ document.querySelectorAll(".nav-item[data-view]").forEach(item => {
     if (!settings.accounts.length) return;
     navigateTo(item.dataset.view);
   });
+});
+
+btnBrowseToggle.addEventListener("click", () => {
+  if (!settings.accounts.length) return;
+  const opening = browserTree.classList.contains("hidden");
+  if (opening) {
+    browserTree.classList.remove("tree-anim-out", "tree-anim", "hidden");
+    btnBrowseToggle.classList.add("open");
+    requestAnimationFrame(() => browserTree.classList.add("tree-anim"));
+    initBrowser();
+  } else {
+    browserTree.classList.remove("tree-anim");
+    browserTree.classList.add("tree-anim-out");
+    btnBrowseToggle.classList.remove("open");
+    browserTree.addEventListener("animationend", () => {
+      browserTree.classList.add("hidden");
+      browserTree.classList.remove("tree-anim-out");
+    }, { once: true });
+  }
 });
 
 // ── Account select ────────────────────────────────────────────────────────────
@@ -465,7 +488,11 @@ function checkSetup() {
     showView("setup");
     browserTree.classList.add("hidden");
   } else {
-    navigateTo("favorites");
+    let startView = settings.defaultSection ?? "nearly-completed";
+    if (startView === "last-visited") {
+      startView = localStorage.getItem("gw2_last_section") || "nearly-completed";
+    }
+    navigateTo(startView);
   }
 }
 
@@ -740,6 +767,17 @@ async function initBrowser(forceRefresh = false) {
       }
     }
 
+    if (!activeCat) {
+      const savedCatId = Number(localStorage.getItem("gw2_last_cat"));
+      if (savedCatId) {
+        const savedCat = getCategoryById(savedCatId);
+        if (savedCat) {
+          activeCat = savedCat;
+          prepareTreeForCategory(savedCatId);
+        }
+      }
+    }
+
     browserTree.innerHTML = "";
     renderBrowserTree(browserTree, cat => selectCategory(cat));
     recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode ?? "account-all");
@@ -764,6 +802,15 @@ async function initBrowser(forceRefresh = false) {
 function selectCategory(cat) {
   const changed = activeCat !== cat;
   activeCat = cat;
+  localStorage.setItem("gw2_last_cat", cat.id);
+
+  if (currentView !== "browser") {
+    currentView = "browser";
+    localStorage.setItem("gw2_last_section", "browser");
+    showView("browser");
+    btnShowHidden.classList.add("hidden");
+  }
+
   viewTitle.textContent = cat.name;
 
   const rows   = getCategoryRows(cat.id);
@@ -780,15 +827,18 @@ function selectCategory(cat) {
     const browseRows   = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
     const visibleCount = renderTileView(viewEl, browseRows, { hideCompleted: false, cat: activeCat });
     viewSubtitle.textContent = achCountStr(visibleCount);
-  } else {
     if (changed) {
-      browserBody.classList.remove("fade-in");
-      void browserBody.offsetWidth;
+      const grid = viewEl.querySelector(".tile-grid");
+      if (grid) { grid.style.opacity = "0"; requestAnimationFrame(() => { grid.style.opacity = ""; }); }
     }
+  } else {
     renderListView(viewEl);
     const visibleCount = renderBrowserRows(rows);
     viewSubtitle.textContent = achCountStr(visibleCount);
-    if (changed) browserBody.classList.add("fade-in");
+    if (changed) {
+      const wrap = viewEl.querySelector(".table-wrap");
+      if (wrap) { wrap.style.opacity = "0"; requestAnimationFrame(() => { wrap.style.opacity = ""; }); }
+    }
   }
 
   updateCacheInfo();
@@ -925,6 +975,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
+  document.getElementById("s-default-section").value         = settings.defaultSection ?? "nearly-completed";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
   buildLangOptions(document.getElementById("s-lang"), currentLang());
   addAccountForm.classList.add("hidden");
@@ -991,6 +1042,7 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
+  settings.defaultSection          = document.getElementById("s-default-section").value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
   settings.lang                    = document.getElementById("s-lang").value;
   applyTheme(settings.theme);

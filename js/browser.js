@@ -347,6 +347,10 @@ export function renderBrowserTree(container, onSelectCategory) {
   }
 }
 
+export function getCategoryById(id) {
+  return categories?.[id] || null;
+}
+
 export function getCategoryForAchievement(achId) {
   if (!categories) return null;
   for (const cat of Object.values(categories)) {
