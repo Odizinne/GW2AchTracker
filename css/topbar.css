@@ -65,6 +65,37 @@
   color: var(--accent);
 }
 
+/* ── Topbar separator ── */
+.topbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Sort controls wrapper ── */
+#sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#sort-controls.hidden { display: none; }
+
+/* ── Sort buttons ── */
+.sort-btn {
+  font-size: 11px;
+  padding: 0.28rem 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+
+.sort-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
 /* ── View toggle buttons ── */
 .view-toggle-btn {
   padding: 0.28rem 0.45rem;

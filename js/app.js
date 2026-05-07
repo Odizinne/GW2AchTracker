@@ -37,6 +37,8 @@ let nearlyDoneFirstRender = true;
 let lastResultCount = null;
 let showHidden      = false;
 let viewMode = settings.viewMode ?? "list";
+let sortMode = "default"; // "default" | "alpha" | "progress"
+let sortDir  = 1;         // 1 = asc, -1 = desc
 
 // EN-name cache: id -> English name, populated during fetch so wiki links work
 const enNameCache = {};
@@ -72,9 +74,14 @@ const btnShowHidden     = document.getElementById("btn-show-hidden");
 const favoritesBody     = document.getElementById("favorites-body");
 const btnViewList       = document.getElementById("btn-view-list");
 const btnViewTile       = document.getElementById("btn-view-tile");
+const sortControls      = document.getElementById("sort-controls");
+const btnSortDefault    = document.getElementById("btn-sort-default");
+const btnSortAlpha      = document.getElementById("btn-sort-alpha");
+const btnSortProgress   = document.getElementById("btn-sort-progress");
 
 btnViewList.classList.toggle("active", viewMode === "list");
 btnViewTile.classList.toggle("active", viewMode === "tile");
+updateSortUI();
 
 // ── i18n helpers ──────────────────────────────────────────────────────────────
 
@@ -132,6 +139,9 @@ function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
   accountSelect.disabled = active;
   btnShowHidden.disabled = active;
+  btnSortDefault.disabled = active;
+  btnSortAlpha.disabled = active;
+  btnSortProgress.disabled = active;
   btnViewList.disabled = active;
   btnViewTile.disabled = active;
   document.getElementById("global-search-input").disabled = active;
@@ -314,6 +324,49 @@ function setViewMode(mode) {
 btnViewList.addEventListener("click", () => setViewMode("list"));
 btnViewTile.addEventListener("click", () => setViewMode("tile"));
 
+// ── Sort ──────────────────────────────────────────────────────────────────────
+
+function applySortToRows(rows) {
+  if (sortMode === "default") return rows;
+  const sorted = [...rows];
+  if (sortMode === "alpha") {
+    sorted.sort((a, b) => sortDir * a.name.localeCompare(b.name));
+  } else if (sortMode === "progress") {
+    sorted.sort((a, b) => sortDir * ((a.percent ?? -1) - (b.percent ?? -1)));
+  }
+  return sorted;
+}
+
+function updateSortUI() {
+  btnSortDefault.classList.toggle("active",  sortMode === "default");
+  btnSortAlpha.classList.toggle("active",    sortMode === "alpha");
+  btnSortProgress.classList.toggle("active", sortMode === "progress");
+  const arrow = sortDir === 1 ? "↑" : "↓";
+  btnSortAlpha.innerHTML    = `A Z <span class="sort-arrow">${arrow}</span>`;
+  btnSortProgress.innerHTML = `% <span class="sort-arrow">${arrow}</span>`;
+}
+
+btnSortDefault.addEventListener("click", () => {
+  sortMode = "default";
+  sortDir  = 1;
+  updateSortUI();
+  if (activeCat) selectCategory(activeCat);
+});
+
+btnSortAlpha.addEventListener("click", () => {
+  sortDir  = sortMode === "alpha" ? -sortDir : 1;
+  sortMode = "alpha";
+  updateSortUI();
+  if (activeCat) selectCategory(activeCat);
+});
+
+btnSortProgress.addEventListener("click", () => {
+  sortDir  = sortMode === "progress" ? -sortDir : 1;
+  sortMode = "progress";
+  updateSortUI();
+  if (activeCat) selectCategory(activeCat);
+});
+
 // ── Tile rendering ────────────────────────────────────────────────────────────
 
 function buildTileHtml(rows) {
@@ -397,6 +450,7 @@ function navigateTo(name) {
   localStorage.setItem("gw2_last_section", name);
   showView(name);
   btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
+  sortControls.classList.toggle("hidden", name !== "browser");
   if (name === "nearly-completed") {
     viewTitle.textContent = t("titleNearly");
     updateSubtitle(lastResultCount);
@@ -809,6 +863,7 @@ function selectCategory(cat) {
     localStorage.setItem("gw2_last_section", "browser");
     showView("browser");
     btnShowHidden.classList.add("hidden");
+    sortControls.classList.remove("hidden");
   }
 
   viewTitle.textContent = cat.name;
@@ -824,7 +879,8 @@ function selectCategory(cat) {
   }
 
   if (viewMode === "tile") {
-    const browseRows   = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+    const sorted       = applySortToRows(rows);
+    const browseRows   = settings.hideCompleted ? sorted.filter(r => !r.done) : sorted;
     const visibleCount = renderTileView(viewEl, browseRows, { hideCompleted: false, cat: activeCat });
     viewSubtitle.textContent = achCountStr(visibleCount);
     if (changed) {
@@ -845,9 +901,10 @@ function selectCategory(cat) {
 }
 
 function renderBrowserRows(rows) {
+  const sorted  = applySortToRows(rows);
   const visible = settings.hideCompleted
-    ? rows.filter(r => !r.done)
-    : rows;
+    ? sorted.filter(r => !r.done)
+    : sorted;
 
   if (!visible.length) {
     browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyBrowserCat")}</td></tr>`;
