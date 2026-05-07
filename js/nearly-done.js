@@ -19,7 +19,7 @@ function getCurrentTier(tiers, progress) {
 }
 
 export async function ensureDefinitionCache(onStatus, apiKey = "", fetchMode = "account-all", lang = "en") {
-  if (isStaticCacheLoaded()) return;
+  if (fetchMode === "all" && isStaticCacheLoaded()) return;
 
   const cache     = loadCache();
   const cachedIds = new Set(Object.keys(cache).map(Number));
