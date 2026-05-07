@@ -1089,8 +1089,11 @@ document.getElementById("btn-settings-close").addEventListener("click",  () => c
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
 document.getElementById("btn-settings-save").addEventListener("click", () => {
-  const prevFetchMode = settings.fetchMode ?? "account-all";
-  const prevLang      = settings.lang ?? "en";
+  const prevFetchMode   = settings.fetchMode ?? "account-all";
+  const prevLang        = settings.lang ?? "en";
+  const prevUseFinalTier = settings.useFinalTier;
+  const prevThresholdPct = settings.thresholdPct;
+  const prevMaxResults   = settings.maxResults;
 
   settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
   settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
@@ -1126,7 +1129,13 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   } else {
     recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode);
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
-    if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
+    if (currentView === "nearly-completed") {
+      const nearlySettingsChanged = settings.useFinalTier !== prevUseFinalTier
+        || settings.thresholdPct !== prevThresholdPct
+        || settings.maxResults   !== prevMaxResults;
+      if (nearlySettingsChanged) lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
+      renderNearlyDoneRows(lastNearlyDoneRows);
+    }
   }
 });
 
