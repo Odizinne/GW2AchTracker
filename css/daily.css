@@ -60,7 +60,7 @@
 
 .daily-item:last-child { border-bottom: none; }
 .daily-item:hover { background: var(--bg3); }
-.daily-item.daily-item-done { color: var(--muted); }
+.daily-item.daily-item-done { opacity: 0.45; background: var(--bg1); }
 
 .daily-item-name {
   display: block;
