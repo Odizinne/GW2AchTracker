@@ -130,10 +130,6 @@ def main():
         last_build      = versions.get("_build")
         all_files_exist = all((DATA_DIR / f"cache-{lang}.json").exists() for lang in LANGS)
 
-        if current_build == last_build and all_files_exist:
-            print(f"Build {current_build} unchanged — nothing to do.")
-            return
-
         if last_build and current_build != last_build:
             print(f"Build changed: {last_build} → {current_build}")
         elif not all_files_exist:

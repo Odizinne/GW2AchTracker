@@ -84,6 +84,7 @@ export function clearCache() {
     localStorage.removeItem(`gw2_skin_names${sfx}`);
     localStorage.removeItem(`gw2_static_version${sfx}`);
   }
+  localStorage.removeItem("gw2_daily_schedule");
   for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
   for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
   for (const k of Object.keys(_skinNameMap))  delete _skinNameMap[k];
@@ -176,6 +177,30 @@ export function loadCategoriesCache() {
 
 export function saveCategoriesCache(data) {
   try { localStorage.setItem(_key("gw2_categories_cache"), JSON.stringify(data)); } catch {}
+}
+
+// Daily schedule cache — stores the last fetched daily-today.json (festival_cat_ids + date).
+// Not language-scoped.
+export function loadDailySchedule() {
+  try {
+    const r = localStorage.getItem("gw2_daily_schedule");
+    return r ? JSON.parse(r) : null;
+  } catch { return null; }
+}
+
+export function saveDailySchedule(data) {
+  try { localStorage.setItem("gw2_daily_schedule", JSON.stringify(data)); } catch {}
+}
+
+export function loadDailyFilter() {
+  try {
+    const r = localStorage.getItem("gw2_daily_filter");
+    return r ? JSON.parse(r) : { hiddenCatIds: [], hideFestival: false };
+  } catch { return { hiddenCatIds: [], hideFestival: false }; }
+}
+
+export function saveDailyFilter(data) {
+  try { localStorage.setItem("gw2_daily_filter", JSON.stringify(data)); } catch {}
 }
 
 function _loadSet(key) {

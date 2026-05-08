@@ -34,6 +34,79 @@
   margin-top: 2px;
 }
 
+/* ── Tyrian clock ── */
+.sb-clock {
+  padding: 7px 16px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sb-clock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.sb-clock-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.sb-clock-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-clock-phase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.phase-region {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.phase-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.phase-name {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.phase-icon {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phase-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.phase-day   { color: #e8c84a; }
+.phase-dawn  { color: #e8a26a; }
+.phase-dusk  { color: #b07ac8; }
+.phase-night { color: #7ea8d8; }
+
 /* ── Account section ── */
 .sb-section {
   padding: 14px 10px 12px;

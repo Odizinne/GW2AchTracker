@@ -25,6 +25,7 @@ export function showView(name) {
     "setup":            "view-setup",
     "favorites":        "view-favorites",
     "nearly-completed": "view-nearly-completed",
+    "daily":            "view-daily",
     "browser":          "view-browser",
   };
   const id = viewMap[name];

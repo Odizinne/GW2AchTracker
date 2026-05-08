@@ -5,13 +5,15 @@ import {
   loadCategoriesCache, saveCategoriesCache,
   getItemNameMap, getTitleNameMap,
   saveItemNamesCache, saveTitleNamesCache,
+  loadDailySchedule, saveDailySchedule,
 } from "./cache.js";
 
-let groups         = null;
-let categories     = null;
-let expandedGroups = new Set();
-let activeCatId    = null;
-let progressMap    = null;
+let groups               = null;
+let categories           = null;
+let expandedGroups       = new Set();
+let activeCatId          = null;
+let progressMap          = null;
+let activeFestivalCatIds = new Set();
 
 const catDoneMap = {};
 
@@ -275,7 +277,7 @@ export function renderBrowserTree(container, onSelectCategory) {
     return;
   }
 
-  const HIDDEN_KEYWORDS = ["bonus event", "adventure guide"];
+  const HIDDEN_KEYWORDS = ["bonus event", "adventure guide", "daily"];
   const isHidden = name => HIDDEN_KEYWORDS.some(kw => name.toLowerCase().includes(kw));
 
   container.innerHTML = "";
@@ -349,6 +351,72 @@ export function renderBrowserTree(container, onSelectCategory) {
 
 export function getCategoryById(id) {
   return categories?.[id] || null;
+}
+
+export function getCategories() { return categories; }
+export function getGroups()     { return groups; }
+
+const FESTIVAL_GROUP_KEYWORDS = [
+  "festival", "halloween", "wintersday", "lunar new year",
+  "dragon bash", "super adventure", "shadow of the mad king", "bonus event",
+  "fool",
+];
+
+export function isFestivalGroup(name) {
+  const lower = (name || "").toLowerCase();
+  return FESTIVAL_GROUP_KEYWORDS.some(kw => lower.includes(kw));
+}
+
+export function getActiveFestivalCatIds() { return activeFestivalCatIds; }
+
+export async function ensureActiveDailyCache() {
+  const currentDate = new Date().toISOString().slice(0, 10);
+
+  const cached = loadDailySchedule();
+  if (cached?.date === currentDate) {
+    activeFestivalCatIds = new Set(cached.festival_cat_ids || []);
+    return;
+  }
+
+  try {
+    const r = await fetch("./data/daily-today.json", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    saveDailySchedule(data);
+    activeFestivalCatIds = new Set(data.festival_cat_ids || []);
+  } catch {
+    activeFestivalCatIds = new Set();
+  }
+}
+
+export async function ensureDailyData(onStatus, lang = "en") {
+  if (!groups || !categories) return;
+
+  const cache   = loadCache();
+  const toFetch = [];
+
+  for (const group of groups) {
+    for (const catId of (group.categories || [])) {
+      const cat = categories[catId];
+      if (!cat?.achievements?.length) continue;
+      if (!cat.name?.toLowerCase().includes("daily")) continue;
+
+      const isFestival = isFestivalGroup(group.name) || isFestivalGroup(cat.name);
+      if (isFestival && !activeFestivalCatIds.has(catId)) continue;
+
+      for (const id of cat.achievements) {
+        if (!cache[id]) toFetch.push(id);
+      }
+    }
+  }
+
+  const unique = [...new Set(toFetch)];
+  if (!unique.length) return;
+
+  onStatus?.("statusFetchingDefs", { n: unique.length });
+  const fresh = await fetchInBatches("/achievements", unique, null, 150, { lang });
+  for (const ach of fresh) cache[ach.id] = ach;
+  saveCache(cache);
 }
 
 export function getCategoryForAchievement(achId) {

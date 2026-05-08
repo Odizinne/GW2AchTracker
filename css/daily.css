@@ -1,0 +1,229 @@
+/* ── Daily view ── */
+#view-daily.active-view {
+  flex-direction: row;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+#view-daily::-webkit-scrollbar { height: 6px; }
+#view-daily::-webkit-scrollbar-track { background: transparent; }
+#view-daily::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+.daily-col {
+  flex-shrink: 0;
+  width: 230px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+}
+
+.daily-col-done .daily-col-header {
+  color: var(--gold);
+}
+
+.daily-col-header {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.daily-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.daily-item:last-child { border-bottom: none; }
+.daily-item:hover { background: var(--bg3); }
+.daily-item.daily-item-done { color: var(--muted); }
+
+.daily-item-name {
+  display: block;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.daily-item-desc-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.daily-item-desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.daily-item-cb {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  margin-top: 1px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+  pointer-events: none;
+}
+
+.daily-item-cb:checked {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.daily-item-cb:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.daily-item-prog {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.daily-prog-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--bg4);
+}
+
+.daily-prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.2s;
+}
+
+.daily-prog-nums {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.daily-empty {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 24px;
+}
+
+#btn-show-completed-daily.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── Daily filter modal ── */
+.daily-filter-body {
+  gap: 2px;
+  padding-block: 0.6rem;
+}
+
+.daily-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 1.4rem;
+  margin: 0 -1.4rem;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.1s;
+}
+
+.daily-filter-item:hover { background: var(--bg3); }
+
+.daily-filter-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.daily-filter-item input[type="checkbox"]:checked {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.daily-filter-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.daily-filter-item input[type="checkbox"]:focus { outline: none; border-color: var(--accent); }
+
+.daily-filter-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}

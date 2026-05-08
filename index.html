@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/modals.css" />
   <link rel="stylesheet" href="css/tiles.css" />
   <link rel="stylesheet" href="css/utils.css" />
+  <link rel="stylesheet" href="css/daily.css" />
   <link rel="icon" href="favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -21,6 +22,27 @@
       <div class="sb-logo">
         <span class="sb-logo-title">GW2 Tracker</span>
         <small data-i18n="appSubtitle">achievement companion</small>
+      </div>
+
+      <div class="sb-clock" id="tyrian-clock">
+        <div class="sb-clock-header">
+          <span class="sb-clock-label">In-Game Time</span>
+          <span class="sb-clock-time" id="tyrian-time-val">--:--</span>
+        </div>
+        <div class="sb-clock-phase" id="tyria-phase-row">
+          <span class="phase-region">Tyria</span>
+          <div class="phase-right">
+            <span class="phase-name"></span>
+            <span class="phase-icon"></span>
+          </div>
+        </div>
+        <div class="sb-clock-phase" id="cantha-phase-row">
+          <span class="phase-region">Cantha – Castora</span>
+          <div class="phase-right">
+            <span class="phase-name"></span>
+            <span class="phase-icon"></span>
+          </div>
+        </div>
       </div>
 
       <div class="sb-section">
@@ -44,6 +66,10 @@
           <button class="nav-item" data-view="nearly-completed">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span data-i18n="navNearly">Nearly completed</span>
+          </button>
+          <button class="nav-item" data-view="daily">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span data-i18n="navDaily">Daily</span>
           </button>
           <button class="nav-item" id="btn-browse-toggle">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -93,6 +119,14 @@
           <button id="btn-show-hidden" class="btn small hidden">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             <span data-i18n="btnShowHidden">Show hidden</span>
+          </button>
+          <button id="btn-show-completed-daily" class="btn small hidden">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span data-i18n="btnShowCompleted">Show completed</span>
+          </button>
+          <button id="btn-daily-filter" class="btn small hidden">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            <span data-i18n="btnDailyFilter">Daily selection</span>
           </button>
           <button id="btn-view-list" class="btn small view-toggle-btn active" title="List view">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -200,6 +234,9 @@
         </div>
       </div>
 
+      <!-- Daily view -->
+      <div id="view-daily" class="view"></div>
+
       <!-- Browse view -->
       <div id="view-browser" class="view">
         <div class="table-wrap">
@@ -223,6 +260,24 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- Daily filter modal -->
+  <div class="modal-overlay" id="daily-filter-overlay">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 data-i18n="dailyFilterTitle">Daily selection</h2>
+        <button class="modal-close" id="btn-daily-filter-close" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body daily-filter-body" id="daily-filter-body"></div>
+      <div class="modal-footer">
+        <button class="btn small" id="btn-daily-filter-none" data-i18n="btnSelectNone">Select none</button>
+        <button class="btn small" id="btn-daily-filter-all" data-i18n="btnSelectAll">Select all</button>
+        <button class="btn small primary" id="btn-daily-filter-done" data-i18n="btnDone">Done</button>
+      </div>
+    </div>
   </div>
 
   <!-- Settings modal -->
@@ -309,6 +364,7 @@
                   <select id="s-default-section">
                     <option value="nearly-completed" data-i18n="optSectNearly">Nearly completed</option>
                     <option value="favorites" data-i18n="optSectFavorites">Favorites</option>
+                    <option value="daily" data-i18n="optSectDaily">Daily</option>
                     <option value="last-visited" data-i18n="optSectLastVisited">Last visited</option>
                   </select>
                 </div>

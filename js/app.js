@@ -9,15 +9,19 @@ import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyD
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          resetBrowserState, resetBrowserCache, recomputeCatDoneStates,
          showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory,
-         getCategoryById } from "./browser.js";
+         getCategoryById, ensureDailyData, ensureActiveDailyCache } from "./browser.js";
 import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
          showError, clearError, showView, pctClass, barColor, rewardHtml, stripGw2Markup } from "./ui.js";
 import { openAchievementModal, initAchModal, setModalProgressMap,
          setModalStateCallback, setModalBackCallback } from "./ach-modal.js";
 import { initSearch } from "./search.js";
 import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
+import { renderDailyView, openDailyFilterModal } from "./daily.js";
+import { startClock } from "./tyrian-clock.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+
+startClock(document.getElementById("tyrian-clock"));
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -35,7 +39,8 @@ let activeCat          = null;
 let lastNearlyDoneRows = [];
 let nearlyDoneFirstRender = true;
 let lastResultCount = null;
-let showHidden      = false;
+let showHidden           = false;
+let showDailyCompleted   = false;
 let viewMode = settings.viewMode ?? "list";
 let sortMode = "default"; // "default" | "alpha" | "progress"
 let sortDir  = 1;         // 1 = asc, -1 = desc
@@ -70,7 +75,9 @@ const browserTree       = document.getElementById("browser-tree");
 const btnBrowseToggle   = document.getElementById("btn-browse-toggle");
 const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
-const btnShowHidden     = document.getElementById("btn-show-hidden");
+const btnShowHidden           = document.getElementById("btn-show-hidden");
+const btnShowCompletedDaily   = document.getElementById("btn-show-completed-daily");
+const btnDailyFilter          = document.getElementById("btn-daily-filter");
 const favoritesBody     = document.getElementById("favorites-body");
 const btnViewList       = document.getElementById("btn-view-list");
 const btnViewTile       = document.getElementById("btn-view-tile");
@@ -139,6 +146,8 @@ function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
   accountSelect.disabled = active;
   btnShowHidden.disabled = active;
+  btnShowCompletedDaily.disabled = active;
+  btnDailyFilter.disabled = active;
   btnSortDefault.disabled = active;
   btnSortAlpha.disabled = active;
   btnSortProgress.disabled = active;
@@ -259,6 +268,7 @@ function resetAllCachedState() {
   document.getElementById("view-nearly-completed").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
+  document.getElementById("view-daily").innerHTML = "";
   updateCacheInfo();
 }
 
@@ -446,11 +456,19 @@ function renderListView(viewEl) {
 // ── View routing ──────────────────────────────────────────────────────────────
 
 function navigateTo(name) {
+  if (name !== "daily" && _dailyResetInterval) {
+    clearInterval(_dailyResetInterval);
+    _dailyResetInterval = null;
+  }
   currentView = name;
   localStorage.setItem("gw2_last_section", name);
   showView(name);
   btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
+  btnShowCompletedDaily.classList.toggle("hidden", name !== "daily");
+  btnDailyFilter.classList.toggle("hidden", name !== "daily");
   sortControls.classList.toggle("hidden", name !== "browser");
+  btnViewList.classList.toggle("hidden", name === "daily");
+  btnViewTile.classList.toggle("hidden", name === "daily");
   if (name === "nearly-completed") {
     viewTitle.textContent = t("titleNearly");
     updateSubtitle(lastResultCount);
@@ -463,6 +481,9 @@ function navigateTo(name) {
   } else if (name === "favorites") {
     viewTitle.textContent = t("titleFavorites");
     renderFavoritesView();
+  } else if (name === "daily") {
+    viewTitle.textContent = t("titleDaily");
+    renderDailyViewWrapper();
   }
 }
 
@@ -722,6 +743,7 @@ async function doFetch() {
     const staticUpdated = await ensureStaticCache(lang, (...args) => setStatus(...args));
     if (staticUpdated) resetBrowserCache();
     await Promise.all([
+      ensureActiveDailyCache(),
       ensureDefinitionCache(
         (...args) => setStatus(...args),
         key,
@@ -730,6 +752,7 @@ async function doFetch() {
       ),
       ensureBrowserData((...args) => setStatus(...args), lang),
     ]);
+    await ensureDailyData((...args) => setStatus(...args), lang);
     await ensureRewardNames((...args) => setStatus(...args), lang);
   } catch (e) {
     console.warn("Definition/browser data update failed, continuing with cache:", e);
@@ -794,6 +817,7 @@ async function doFetch() {
   renderNearlyDoneRows(rows);
   if (currentView === "favorites") renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
+  if (currentView === "daily") renderDailyViewWrapper();
 
   updateCacheInfo();
   setFetching(false);
@@ -937,6 +961,46 @@ function renderBrowserRows(rows) {
 
   return visible.length;
 }
+
+// ── Daily view ────────────────────────────────────────────────────────────────
+
+function _resetCountdown() {
+  const now  = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  const diff = next - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+let _dailyResetInterval = null;
+
+function renderDailyViewWrapper() {
+  const container = document.getElementById("view-daily");
+  const pm = getProgressMap();
+  if (!pm) {
+    container.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`;
+    viewSubtitle.textContent = "";
+    return;
+  }
+  renderDailyView(container, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat));
+
+  const tick = () => { viewSubtitle.textContent = `Reset in ${_resetCountdown()}`; };
+  tick();
+  if (_dailyResetInterval) clearInterval(_dailyResetInterval);
+  _dailyResetInterval = setInterval(tick, 1000);
+}
+
+btnShowCompletedDaily.addEventListener("click", () => {
+  showDailyCompleted = !showDailyCompleted;
+  btnShowCompletedDaily.classList.toggle("active", showDailyCompleted);
+  renderDailyViewWrapper();
+});
+
+btnDailyFilter.addEventListener("click", () => {
+  openDailyFilterModal(renderDailyViewWrapper);
+});
 
 // ── Settings modal ────────────────────────────────────────────────────────────
 
@@ -1088,7 +1152,7 @@ document.getElementById("btn-add-account-save").addEventListener("click", async 
 document.getElementById("btn-settings-close").addEventListener("click",  () => closeModal("settings-overlay"));
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
-document.getElementById("btn-settings-save").addEventListener("click", () => {
+function doSaveSettings() {
   const prevFetchMode   = settings.fetchMode ?? "account-all";
   const prevLang        = settings.lang ?? "en";
   const prevUseFinalTier = settings.useFinalTier;
@@ -1111,8 +1175,6 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
   const fetchModeChanged = settings.fetchMode !== prevFetchMode;
   const langChanged      = settings.lang !== prevLang;
 
-  closeModal("settings-overlay");
-
   if (langChanged || fetchModeChanged) {
     // Apply new language immediately
     setCacheLang(settings.lang);
@@ -1123,6 +1185,7 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
     if (currentView === "nearly-completed") viewTitle.textContent = t("titleNearly");
     else if (currentView === "favorites")   viewTitle.textContent = t("titleFavorites");
     else if (currentView === "browser")     viewTitle.textContent = t("titleBrowse");
+    else if (currentView === "daily")       viewTitle.textContent = t("titleDaily");
     // Clear all cached data and refetch in new language
     resetAllCachedState();
     doFetch();
@@ -1137,6 +1200,11 @@ document.getElementById("btn-settings-save").addEventListener("click", () => {
       renderNearlyDoneRows(lastNearlyDoneRows);
     }
   }
+}
+
+document.getElementById("btn-settings-save").addEventListener("click", () => {
+  doSaveSettings();
+  closeModal("settings-overlay");
 });
 
 document.getElementById("btn-cache-clear").addEventListener("click", () => {
@@ -1151,10 +1219,11 @@ btnGithub.addEventListener("click", () => window.open("https://github.com/odizin
 document.getElementById("btn-legal-close").addEventListener("click",        () => closeModal("legal-overlay"));
 document.getElementById("btn-legal-close-bottom").addEventListener("click", () => closeModal("legal-overlay"));
 
-["settings-overlay", "legal-overlay"].forEach(id => {
-  document.getElementById(id).addEventListener("click", e => {
-    if (e.target.id === id) closeModal(id);
-  });
+document.getElementById("settings-overlay").addEventListener("click", e => {
+  if (e.target.id === "settings-overlay") { doSaveSettings(); closeModal("settings-overlay"); }
+});
+document.getElementById("legal-overlay").addEventListener("click", e => {
+  if (e.target.id === "legal-overlay") closeModal("legal-overlay");
 });
 
 // ── Eye toggles ───────────────────────────────────────────────────────────────
@@ -1195,6 +1264,7 @@ setModalStateCallback((_achId, type) => {
   if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
   if (currentView === "favorites")        renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
+  if (currentView === "daily")            renderDailyViewWrapper();
 });
 setModalBackCallback(targetCat => {
   activeCat = targetCat;
