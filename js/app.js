@@ -1196,8 +1196,15 @@ function doSaveSettings() {
       const nearlySettingsChanged = settings.useFinalTier !== prevUseFinalTier
         || settings.thresholdPct !== prevThresholdPct
         || settings.maxResults   !== prevMaxResults;
-      if (nearlySettingsChanged) lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
-      renderNearlyDoneRows(lastNearlyDoneRows);
+      if (nearlySettingsChanged) {
+        lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
+        const key = activeApiKey();
+        resolveRewardNames(lastNearlyDoneRows, key, currentLang())
+          .catch(e => console.warn("Reward name resolution failed:", e))
+          .finally(() => renderNearlyDoneRows(lastNearlyDoneRows));
+      } else {
+        renderNearlyDoneRows(lastNearlyDoneRows);
+      }
     }
   }
 }
