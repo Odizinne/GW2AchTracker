@@ -50,13 +50,13 @@
 
 .sb-clock-label {
   font-size: 10px;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 50%, var(--text));
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
 
 .sb-clock-time {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: 0.04em;
@@ -88,19 +88,6 @@
   font-weight: 500;
 }
 
-.phase-icon {
-  flex-shrink: 0;
-  width: 12px;
-  height: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.phase-icon svg {
-  width: 12px;
-  height: 12px;
-}
 
 .phase-day   { color: #e8c84a; }
 .phase-dawn  { color: #e8a26a; }
