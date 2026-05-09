@@ -4,7 +4,6 @@ import {
   loadGroupsCache, saveGroupsCache,
   loadCategoriesCache, saveCategoriesCache,
   getItemNameMap, getTitleNameMap,
-  saveItemNamesCache, saveTitleNamesCache,
   loadDailySchedule, saveDailySchedule,
 } from "./cache.js";
 
@@ -18,6 +17,14 @@ let activeFestivalCatIds = new Set();
 const catDoneMap = {};
 
 export function setProgressMap(map) { progressMap = map; }
+
+export function initBrowserDataFromCache() {
+  const cg = loadGroupsCache();
+  const cc = loadCategoriesCache();
+  if (cg && cc) { groups = cg; categories = cc; }
+  const schedule = loadDailySchedule();
+  if (schedule) activeFestivalCatIds = new Set(schedule.festival_cat_ids || []);
+}
 
 export async function ensureBrowserData(onStatus, lang = "en") {
   if (groups && categories) return;
@@ -135,71 +142,6 @@ function _categoryHasCachedAchievements(categoryId) {
   return cat.achievements.some(id => cache[id]);
 }
 
-export async function fetchMissingCategoryNames(rows, apiKey, lang = "en") {
-  const itemNameMap  = getItemNameMap();
-  const titleNameMap = getTitleNameMap();
-
-  const itemIds     = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
-  const newItemIds  = itemIds.filter(id => !(id in itemNameMap));
-  const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
-  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
-
-  if (!newItemIds.length && !newTitleIds.length) return false;
-
-  if (newItemIds.length) {
-    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
-    for (const item of items) itemNameMap[item.id] = item.name;
-    saveItemNamesCache();
-  }
-  if (newTitleIds.length) {
-    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
-    for (const title of titles) titleNameMap[title.id] = title.name;
-    saveTitleNamesCache();
-  }
-  return true;
-}
-
-export async function loadCategoryAchievements(categoryId, apiKey, onStatus, lang = "en") {
-  const cat = categories?.[categoryId];
-  if (!cat || !cat.achievements?.length) return [];
-
-  const cache   = loadCache();
-  const missing = cat.achievements.filter(id => !cache[id]);
-
-  if (missing.length) {
-    onStatus?.("statusFetchingDefs", { n: missing.length });
-    const fresh = await fetchInBatches("/achievements", missing, apiKey, 150, { lang });
-    for (const a of fresh) cache[a.id] = a;
-    saveCache(cache);
-  }
-
-  const rows = _buildRows(categoryId);
-
-  const itemNameMap  = getItemNameMap();
-  const titleNameMap = getTitleNameMap();
-
-  const itemIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Item"  && x.id).map(x => x.id)))];
-  const newItemIds = itemIds.filter(id => !(id in itemNameMap));
-  if (newItemIds.length) {
-    onStatus?.("statusFetchingItems", { n: newItemIds.length });
-    const items = await fetchInBatches("/items", newItemIds, apiKey, 150, { lang });
-    for (const item of items) itemNameMap[item.id] = item.name;
-    saveItemNamesCache();
-    for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
-  }
-
-  const titleIds    = [...new Set(rows.flatMap(r => r.rewards.filter(x => x.type === "Title" && x.id).map(x => x.id)))];
-  const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
-  if (newTitleIds.length) {
-    onStatus?.("statusFetchingTitles", { n: newTitleIds.length });
-    const titles = await fetchInBatches("/titles", newTitleIds, apiKey, 150, { lang });
-    for (const title of titles) titleNameMap[title.id] = title.name;
-    saveTitleNamesCache();
-    for (const row of rows) row.rewardStr = formatRewards(row.rewards, itemNameMap, titleNameMap, row.points);
-  }
-
-  return rows;
-}
 
 export function showBrowserSkeleton(tbody, count = 8) {
   tbody.innerHTML = Array.from({ length: count }, () => `

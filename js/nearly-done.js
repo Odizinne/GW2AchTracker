@@ -11,6 +11,25 @@ let lastProgressMap = null;
 export function resetProgress() { lastProgressMap = null; }
 export function getProgressMap() { return lastProgressMap; }
 
+function _progressKey(apiKey) {
+  return "gw2_progress_" + apiKey.slice(-8);
+}
+
+export function saveProgressCache(apiKey) {
+  if (!lastProgressMap || !apiKey) return;
+  try { localStorage.setItem(_progressKey(apiKey), JSON.stringify(lastProgressMap)); } catch {}
+}
+
+export function loadProgressCache(apiKey) {
+  if (!apiKey) return null;
+  try {
+    const r = localStorage.getItem(_progressKey(apiKey));
+    if (!r) return null;
+    lastProgressMap = JSON.parse(r);
+    return lastProgressMap;
+  } catch { return null; }
+}
+
 function getCurrentTier(tiers, progress) {
   for (let i = 0; i < tiers.length; i++) {
     if (progress < tiers[i].count) return { idx: i, tier: tiers[i] };
@@ -99,10 +118,8 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   ])];
   const newItemIds = itemIds.filter(id => !(id in itemNameMap));
   if (newItemIds.length) {
-    onStatus("statusFetchingItems", { n: `0 / ${newItemIds.length}` }, 0, newItemIds.length);
-    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang },
-      (f, t) => onStatus("statusFetchingItems", { n: `${f} / ${t}` }, f, t)
-    );
+    onStatus("statusFetchingItems", { n: newItemIds.length });
+    const items = await fetchInBatches("/items", newItemIds, null, 150, { lang });
     for (const item of items) itemNameMap[item.id] = item.name;
     saveItemNamesCache();
   }
@@ -110,10 +127,8 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   const titleIds    = [...new Set(rewards.filter(r => r.type === "Title" && r.id).map(r => r.id))];
   const newTitleIds = titleIds.filter(id => !(id in titleNameMap));
   if (newTitleIds.length) {
-    onStatus("statusFetchingTitles", { n: `0 / ${newTitleIds.length}` }, 0, newTitleIds.length);
-    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang },
-      (f, t) => onStatus("statusFetchingTitles", { n: `${f} / ${t}` }, f, t)
-    );
+    onStatus("statusFetchingTitles", { n: newTitleIds.length });
+    const titles = await fetchInBatches("/titles", newTitleIds, null, 150, { lang });
     for (const title of titles) titleNameMap[title.id] = title.name;
     saveTitleNamesCache();
   }
@@ -121,11 +136,9 @@ export async function ensureRewardNames(onStatus, lang = "en") {
   const skinIds    = [...new Set(bits.filter(b => b.type === "Skin" && b.id).map(b => b.id))];
   const newSkinIds = skinIds.filter(id => !(id in skinNameMap));
   if (newSkinIds.length) {
-    onStatus("statusFetchingSkins", { n: `0 / ${newSkinIds.length}` }, 0, newSkinIds.length);
+    onStatus("statusFetchingSkins", { n: newSkinIds.length });
     try {
-      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang },
-        (f, t) => onStatus("statusFetchingSkins", { n: `${f} / ${t}` }, f, t)
-      );
+      const skins = await fetchInBatches("/skins", newSkinIds, null, 150, { lang });
       const found = new Set(skins.map(s => s.id));
       for (const skin of skins) skinNameMap[skin.id] = skin.name;
       for (const id of newSkinIds) if (!found.has(id)) skinNameMap[id] = null;
@@ -139,6 +152,7 @@ export async function ensureRewardNames(onStatus, lang = "en") {
 export async function fetchProgress(apiKey) {
   const accountData = await apiFetch("/account/achievements", {}, apiKey);
   lastProgressMap = Object.fromEntries(accountData.map(e => [e.id, e]));
+  saveProgressCache(apiKey);
   return lastProgressMap;
 }
 

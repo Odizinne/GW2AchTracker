@@ -5,11 +5,12 @@ import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitl
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
-         resolveRewardNames, resetProgress, getProgressMap } from "./nearly-done.js";
+         resolveRewardNames, resetProgress, getProgressMap, loadProgressCache } from "./nearly-done.js";
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          resetBrowserState, resetBrowserCache, recomputeCatDoneStates,
          showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory,
-         getCategoryById, ensureDailyData, ensureActiveDailyCache } from "./browser.js";
+         getCategoryById, ensureDailyData, ensureActiveDailyCache,
+         initBrowserDataFromCache } from "./browser.js";
 import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
          showError, clearError, showView, pctClass, barColor, rewardHtml, stripGw2Markup } from "./ui.js";
 import { openAchievementModal, initAchModal, setModalProgressMap,
@@ -145,21 +146,8 @@ function setBrowserStatus(key, vars = {}) {
 function setFetching(active) {
   btnRefresh.disabled = active || !settings.accounts.length;
   accountSelect.disabled = active;
-  btnShowHidden.disabled = active;
-  btnShowCompletedDaily.disabled = active;
-  btnDailyFilter.disabled = active;
-  btnSortDefault.disabled = active;
-  btnSortAlpha.disabled = active;
-  btnSortProgress.disabled = active;
-  btnViewList.disabled = active;
-  btnViewTile.disabled = active;
-  document.getElementById("global-search-input").disabled = active;
-  document.querySelectorAll(".nav-item").forEach(el => { el.disabled = active; });
-  document.querySelectorAll(".sb-link").forEach(el => { el.disabled = active; });
   loadingBar.classList.toggle("hidden", !active);
   if (!active) setLoadingProgress();
-  document.getElementById("sidebar").classList.toggle("fetching", active);
-  document.getElementById("main-topbar").classList.toggle("fetching", active);
 }
 
 function setBrowserFetching(active) {
@@ -193,7 +181,7 @@ function updateSubtitle(count) {
 async function populateEnNameCache(ids) {
   if (currentLang() === "en") return; // not needed
   const missing = ids.filter(id => !(id in enNameCache));
-  if (!missing.missing) {
+  if (missing.length) {
     // fetch EN names in background, batched
     try {
       const { fetchInBatches } = await import("./api.js");
@@ -698,7 +686,7 @@ function renderNearlyDoneRows(rows) {
   updateSubtitle(visible.length);
 
   if (viewMode === "tile") {
-    renderTileView(viewEl, visible, { isHiddenVisible: showHidden, hideCompleted: false });
+    renderTileView(viewEl, visible, { hideCompleted: false });
     return;
   }
 
@@ -1286,6 +1274,20 @@ setModalBackCallback(targetCat => {
 initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), getCategoryForAchievement(ach.id)));
 checkSetup();
 updateCacheInfo();
-if (settings.accounts.length) doFetch();
+if (settings.accounts.length) {
+  const cachedProgress = loadProgressCache(activeApiKey());
+  if (cachedProgress) {
+    initBrowserDataFromCache();
+    setProgressMap(cachedProgress);
+    setModalProgressMap(cachedProgress);
+    const cachedRows = computeNearlyDone(cachedProgress, settings);
+    lastNearlyDoneRows = cachedRows;
+    lastResultCount = cachedRows.length;
+    renderNearlyDoneRows(cachedRows);
+    if (currentView === "favorites") renderFavoritesView();
+    if (currentView === "daily") renderDailyViewWrapper();
+  }
+  doFetch();
+}
 
 }); // end DOMContentLoaded

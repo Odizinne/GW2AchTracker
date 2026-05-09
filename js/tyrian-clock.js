@@ -61,7 +61,10 @@ function updateRow(rowEl, { phase, remMs }) {
   const right = rowEl.querySelector(".phase-right");
   right.className        = `phase-right phase-${phase}`;
   right.dataset.tooltip  = `Until ${NEXT_PHASE[phase]}`;
-  rowEl.querySelector(".phase-name").textContent  = PHASE_LABELS[phase];
+  const label = PHASE_LABELS[phase];
+  const nameEl = rowEl.querySelector(".phase-name");
+  nameEl.textContent  = label;
+  nameEl.style.minWidth = `${label.length}ch`;
   rowEl.querySelector(".phase-timer").textContent = fmtTimer(remMs);
 }
 

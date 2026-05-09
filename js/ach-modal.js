@@ -3,7 +3,7 @@ import {
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
-import { closeModal, stripGw2Markup } from "./ui.js";
+import { closeModal, stripGw2Markup, rewardHtml } from "./ui.js";
 import { resolveWikiUrl, getLang, t } from "./i18n.js";
 
 let _progressMap   = null;
@@ -138,14 +138,6 @@ export function openAchievementModal(ach, progressEntry, enName = null, cat = nu
   document.getElementById("ach-modal-overlay").classList.add("open");
 }
 
-function rewardHtml(str) {
-  return str
-    .replace(/AP:(\d+)/g, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
-    .replace(/MASTERY:([A-Za-z_]+)/g, (_, file) =>
-      `<img src="assets/mastery/${file}.png" class="mastery-icon" alt="${file.replace(/_/g, " ")}">`
-    )
-    .replace(/\[([^\]]+)\]/g, '[<em>$1</em>]');
-}
 
 export function initAchModal() {
   document.getElementById("ach-modal-close").addEventListener("click", () =>
