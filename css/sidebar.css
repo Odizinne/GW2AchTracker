@@ -81,11 +81,41 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  position: relative;
+}
+
+.phase-right::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: 0;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0s;
+}
+
+.phase-right:hover::after {
+  opacity: 1;
+  transition: opacity 0s 2s;
 }
 
 .phase-name {
   font-size: 11px;
   font-weight: 500;
+}
+
+.phase-timer {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
 

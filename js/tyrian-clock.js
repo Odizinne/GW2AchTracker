@@ -23,6 +23,7 @@ const CANTHA_PHASES = [
 ];
 
 const PHASE_LABELS = { day: "Day", dawn: "Dawn", dusk: "Dusk", night: "Night" };
+const NEXT_PHASE   = { day: "Dusk", dusk: "Night", night: "Dawn", dawn: "Day" };
 
 function getElapsed() {
   return Date.now() % CYCLE_MS;
@@ -35,19 +36,33 @@ function tyrianTime(e) {
 
 function getPhase(e, phases) {
   const elMin = e / 60000;
-  for (const { phase, endMin } of phases) {
+  for (let i = 0; i < phases.length; i++) {
+    const { phase, endMin } = phases[i];
     if (elMin < endMin) {
-      return { phase, remMin: Math.ceil(endMin - elMin) };
+      // Last segment is the tail of a night that wraps into the next cycle;
+      // count through to when the first segment ends (= when dawn actually starts).
+      const remMs = (i === phases.length - 1)
+        ? (CYCLE_MS - e) + phases[0].endMin * 60000
+        : endMin * 60000 - e;
+      return { phase, remMs };
     }
   }
-  return { phase: "night", remMin: 0 };
+  return { phase: "night", remMs: 0 };
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
 
-function updateRow(rowEl, { phase }) {
-  rowEl.querySelector(".phase-right").className  = `phase-right phase-${phase}`;
-  rowEl.querySelector(".phase-name").textContent = PHASE_LABELS[phase];
+function fmtTimer(ms) {
+  const totalSec = Math.ceil(ms / 1000);
+  return `${pad(Math.floor(totalSec / 60))}:${pad(totalSec % 60)}`;
+}
+
+function updateRow(rowEl, { phase, remMs }) {
+  const right = rowEl.querySelector(".phase-right");
+  right.className        = `phase-right phase-${phase}`;
+  right.dataset.tooltip  = `Until ${NEXT_PHASE[phase]}`;
+  rowEl.querySelector(".phase-name").textContent  = PHASE_LABELS[phase];
+  rowEl.querySelector(".phase-timer").textContent = fmtTimer(remMs);
 }
 
 export function startClock(el) {
