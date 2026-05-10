@@ -111,13 +111,9 @@ function buildWizardVaultColumn(data, showCompleted) {
 
   if (allDone && !showCompleted) return null;
 
-  let earnedAcclaim = 0;
-  let totalAcclaim = 0;
-  for (const obj of objectives) {
-    totalAcclaim += obj.acclaim || 0;
-    if (obj.progress_current >= obj.progress_complete) earnedAcclaim += obj.acclaim || 0;
-  }
-  const acclaimPct = totalAcclaim > 0 ? Math.min(100, Math.round((earnedAcclaim / totalAcclaim) * 100)) : 0;
+  const metaCurrent  = data.meta_progress_current  || 0;
+  const metaComplete = data.meta_progress_complete || 1;
+  const acclaimPct   = Math.min(100, Math.round((metaCurrent / metaComplete) * 100));
 
   const col = document.createElement("div");
   col.className = "daily-col" + (allDone ? " daily-col-done" : "");
@@ -127,7 +123,7 @@ function buildWizardVaultColumn(data, showCompleted) {
   header.innerHTML = `
     <div class="wv-header-title">
       <span>Wizard's Vault</span>
-      <span class="daily-prog-nums">${earnedAcclaim}/${totalAcclaim}</span>
+      <span class="daily-prog-nums">${metaCurrent}/${metaComplete}</span>
     </div>
     <div class="wv-acclaim-bar-wrap">
       <div class="wv-acclaim-fill" style="width:${acclaimPct}%;background:${barColor(acclaimPct)}"></div>
