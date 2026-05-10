@@ -969,7 +969,8 @@ function _resetCountdown() {
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
 let _dailyResetInterval = null;
@@ -984,7 +985,10 @@ function renderDailyViewWrapper() {
   }
   renderDailyView(container, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat), wizardVaultDailyData);
 
-  const tick = () => { viewSubtitle.textContent = `Reset in ${_resetCountdown()}`; };
+  const tick = () => {
+    if (currentView !== "daily") { clearInterval(_dailyResetInterval); _dailyResetInterval = null; return; }
+    viewSubtitle.textContent = `Reset in ${_resetCountdown()}`;
+  };
   tick();
   if (_dailyResetInterval) clearInterval(_dailyResetInterval);
   _dailyResetInterval = setInterval(tick, 1000);
