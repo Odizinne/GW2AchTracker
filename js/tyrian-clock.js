@@ -64,7 +64,6 @@ function updateRow(rowEl, { phase, remMs }) {
   const label = PHASE_LABELS[phase];
   const nameEl = rowEl.querySelector(".phase-name");
   nameEl.textContent  = label;
-  nameEl.style.minWidth = `${label.length}ch`;
   rowEl.querySelector(".phase-timer").textContent = fmtTimer(remMs);
 }
 
@@ -79,6 +78,11 @@ export function startClock(el) {
     timeEl.textContent = `${pad(tt.h)}:${pad(tt.m)}`;
     updateRow(tyriaRow,  getPhase(e, TYRIA_PHASES));
     updateRow(canthaRow, getPhase(e, CANTHA_PHASES));
+    const n1 = tyriaRow.querySelector(".phase-name");
+    const n2 = canthaRow.querySelector(".phase-name");
+    n1.style.minWidth = n2.style.minWidth = '';
+    const w = Math.max(n1.getBoundingClientRect().width, n2.getBoundingClientRect().width);
+    n1.style.minWidth = n2.style.minWidth = w + 'px';
   }
 
   tick();

@@ -22,7 +22,7 @@ function buildRow(id, ach, progressMap) {
   const maxTier  = tiers[tiers.length - 1];
   const required = maxTier?.count ?? null;
   const percent  = done ? 100 : required ? Math.min(100, Math.round((progress / required) * 1000) / 10) : null;
-  const desc     = stripGw2Markup(ach.description || ach.requirement || "");
+  const desc     = stripGw2Markup(ach.requirement || ach.description || "");
   return { id, name: ach.name, done, progress, required, percent, desc };
 }
 

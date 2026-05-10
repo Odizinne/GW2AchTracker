@@ -390,7 +390,7 @@ function buildTileHtml(rows) {
       : `<div style="flex:1;height:3px;border-radius:99px;background:var(--bg4);visibility:hidden"></div>`;
 
     const ach  = cache[row.id];
-    const desc = stripGw2Markup(ach?.description || ach?.requirement || "");
+    const desc = stripGw2Markup(ach?.requirement || ach?.description || "");
 
     const rewardParts = row.rewardStr
       ? row.rewardStr.split(" · ").map(part =>
