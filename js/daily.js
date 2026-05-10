@@ -60,7 +60,23 @@ function buildDailyColumns(progressMap) {
     }
   }
 
-  return Object.values(catMap).sort((a, b) => a.cat.name.localeCompare(b.cat.name));
+  const columns = Object.values(catMap).sort((a, b) => a.cat.name.localeCompare(b.cat.name));
+  for (const col of columns) {
+    if (col.cat.name.toLowerCase().includes("fractal")) {
+      col.rows.sort((a, b) => {
+        const aRec = a.name.includes("Recommended");
+        const bRec = b.name.includes("Recommended");
+        if (aRec !== bRec) return aRec ? -1 : 1;
+        if (aRec) {
+          const sa = parseInt(a.name.match(/Scale (\d+)/)?.[1] ?? 0);
+          const sb = parseInt(b.name.match(/Scale (\d+)/)?.[1] ?? 0);
+          return sa - sb;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    }
+  }
+  return columns;
 }
 
 function itemHtml(row) {
