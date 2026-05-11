@@ -196,19 +196,14 @@ export function loadWizardVaultDailyCache(apiKey) {
   if (!apiKey) return null;
   try {
     const r = localStorage.getItem(`gw2_wv_daily_${apiKey.slice(-8)}`);
-    if (!r) return null;
-    const { date, data } = JSON.parse(r);
-    return new Date().toISOString().slice(0, 10) === date ? data : null;
+    return r ? JSON.parse(r) : null;
   } catch { return null; }
 }
 
 export function saveWizardVaultDailyCache(apiKey, data) {
   if (!apiKey) return;
   try {
-    localStorage.setItem(
-      `gw2_wv_daily_${apiKey.slice(-8)}`,
-      JSON.stringify({ date: new Date().toISOString().slice(0, 10), data })
-    );
+    localStorage.setItem(`gw2_wv_daily_${apiKey.slice(-8)}`, JSON.stringify(data));
   } catch {}
 }
 
