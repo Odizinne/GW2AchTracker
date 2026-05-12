@@ -27,7 +27,11 @@ export function initBrowserDataFromCache() {
 }
 
 export async function ensureBrowserData(onStatus, lang = "en") {
-  if (groups && categories) return;
+  if (groups && categories) {
+    // Even if already loaded, always refresh daily category contents
+    await _refreshDailyCategoryIds(lang);
+    return;
+  }
 
   const cg = loadGroupsCache();
   const cc = loadCategoriesCache();
@@ -61,6 +65,31 @@ export async function ensureBrowserData(onStatus, lang = "en") {
     for (const c of extra) categories[c.id] = c;
     saveCategoriesCache(categories);
   }
+
+  await _refreshDailyCategoryIds(lang);
+}
+
+async function _refreshDailyCategoryIds(lang) {
+  if (!groups || !categories) return;
+
+  // Collect IDs of all daily categories — their achievement lists rotate every day
+  const dailyCatIds = [];
+  for (const group of groups) {
+    for (const catId of (group.categories || [])) {
+      const cat = categories[catId];
+      if (!cat) continue;
+      if (!cat.name?.toLowerCase().includes("daily")) continue;
+      dailyCatIds.push(catId);
+    }
+  }
+
+  if (!dailyCatIds.length) return;
+
+  try {
+    const fresh = await apiFetch("/achievements/categories", { ids: dailyCatIds.join(","), lang });
+    for (const c of fresh) categories[c.id] = c;
+    saveCategoriesCache(categories);
+  } catch { /* best effort, keep stale */ }
 }
 
 function _isRepeatable(ach) {
@@ -312,14 +341,6 @@ export function isFestivalGroup(name) {
 export function getActiveFestivalCatIds() { return activeFestivalCatIds; }
 
 export async function ensureActiveDailyCache() {
-  const currentDate = new Date().toISOString().slice(0, 10);
-
-  const cached = loadDailySchedule();
-  if (cached?.date === currentDate) {
-    activeFestivalCatIds = new Set(cached.festival_cat_ids || []);
-    return;
-  }
-
   try {
     const r = await fetch("./data/daily-today.json", { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
@@ -327,7 +348,8 @@ export async function ensureActiveDailyCache() {
     saveDailySchedule(data);
     activeFestivalCatIds = new Set(data.festival_cat_ids || []);
   } catch {
-    activeFestivalCatIds = new Set();
+    const cached = loadDailySchedule();
+    activeFestivalCatIds = new Set(cached?.festival_cat_ids || []);
   }
 }
 
@@ -347,7 +369,7 @@ export async function ensureDailyData(onStatus, lang = "en") {
       if (isFestival && !activeFestivalCatIds.has(catId)) continue;
 
       for (const id of cat.achievements) {
-        if (!cache[id]) toFetch.push(id);
+        toFetch.push(id); // always re-fetch daily achievements, never trust cache
       }
     }
   }
