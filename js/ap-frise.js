@@ -186,6 +186,7 @@ export function renderApFrise(canvasEl, scrollEl, tooltipEl, currentAp) {
   html += `<div class="ap-bar-fill" style="width:${fillW}px;"></div>`;
   html += `</div>`;
 
+
   // Chests and connector lines
   for (let i = 0; i < n; i++) {
     const r        = AP_REWARDS[i];
@@ -228,6 +229,13 @@ export function renderApFrise(canvasEl, scrollEl, tooltipEl, currentAp) {
     scrollEl.scrollLeft = Math.max(0, fillRight - scrollEl.clientWidth * 0.4);
   });
 
+  // Particles at fill tip
+  _stopParticles();
+  if (fillW > 0 && capped < MAX_AP) {
+    const tipX = barLeft + fillW;
+    _particleTimer = setInterval(() => _spawnParticleBurst(canvasEl, tipX, BAR_CY), 280);
+  }
+
   // Drag-to-scroll
   let dragX = 0, dragging = false;
   scrollEl.addEventListener("mousedown", e => {
@@ -265,6 +273,31 @@ export function renderApFrise(canvasEl, scrollEl, tooltipEl, currentAp) {
       tooltipEl.classList.remove("visible");
     });
   });
+}
+
+let _particleTimer = null;
+
+export function stopApParticles() { _stopParticles(); }
+
+function _stopParticles() {
+  if (_particleTimer) { clearInterval(_particleTimer); _particleTimer = null; }
+}
+
+function _spawnParticleBurst(container, x, y) {
+  const count = 1 + (Math.random() < 0.4 ? 1 : 0);
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement("div");
+    el.className = "ap-particle";
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 5 + Math.random() * 10;
+    const dx    = (Math.cos(angle) * dist).toFixed(1);
+    const dy    = (Math.sin(angle) * dist - 5 - Math.random() * 4).toFixed(1);
+    const size  = (1.5 + Math.random() * 2).toFixed(1);
+    const dur   = 900 + (Math.random() * 600) | 0;
+    el.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;--dx:${dx}px;--dy:${dy}px;animation-duration:${dur}ms;`;
+    container.appendChild(el);
+    el.addEventListener("animationend", () => el.remove(), { once: true });
+  }
 }
 
 function _posTooltip(e, el) {

@@ -20,7 +20,7 @@ import { initSearch } from "./search.js";
 import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
 import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
-import { computeAccountAp, renderApFrise } from "./ap-frise.js";
+import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -197,16 +197,28 @@ const _apTopbarLabel = document.getElementById("ap-topbar-label");
 const _btnFriseToggle = document.getElementById("btn-frise-toggle");
 const _friseChevron   = document.getElementById("frise-chevron");
 
-let friseExpanded = localStorage.getItem("gw2_frise_expanded") !== "false";
+let friseExpanded  = localStorage.getItem("gw2_frise_expanded") !== "false";
+let _apDataReady   = false;
+let _lastFriseAp   = 0;
 
 function _updateFriseToggle() {
   _friseChevron.setAttribute("points", friseExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9");
+}
+
+function _updateFriseVisibility(viewName = currentView) {
+  const show = _apDataReady && viewName === "nearly-completed";
+  _apTopbarLabel.classList.toggle("hidden", !show);
+  _btnFriseToggle.classList.toggle("hidden", !show);
+  if (!show) { stopApParticles(); _friseEl.classList.add("hidden"); return; }
+  if (_friseCanvas.children.length === 0) renderApFrise(_friseCanvas, _friseScroll, _friseTooltip, _lastFriseAp);
+  _friseEl.classList.toggle("hidden", !friseExpanded);
 }
 
 _btnFriseToggle.addEventListener("click", () => {
   friseExpanded = !friseExpanded;
   localStorage.setItem("gw2_frise_expanded", friseExpanded);
   _friseEl.classList.toggle("hidden", !friseExpanded);
+  if (!friseExpanded) stopApParticles();
   _updateFriseToggle();
 });
 
@@ -222,11 +234,10 @@ function refreshApFrise(progressMap) {
   _apTopbarLabel.innerHTML = ap > _MAX_AP
     ? ap.toLocaleString() + _AP_IMG
     : ap.toLocaleString() + " / " + _MAX_AP.toLocaleString() + _AP_IMG;
-  _apTopbarLabel.classList.remove("hidden");
-  _btnFriseToggle.classList.remove("hidden");
+  _lastFriseAp = ap;
+  _apDataReady = true;
   _updateFriseToggle();
-  _friseEl.classList.toggle("hidden", !friseExpanded);
-  renderApFrise(_friseCanvas, _friseScroll, _friseTooltip, ap);
+  _updateFriseVisibility();
 }
 
 // ── EN name tracking (needed for non-EN wiki URLs) ────────────────────────────
@@ -301,6 +312,8 @@ function resetAllCachedState() {
   lastNearlyDoneRows = [];
   lastResultCount = null;
   nearlyDoneFirstRender = true;
+  _apDataReady = false;
+  stopApParticles();
   _friseEl.classList.add("hidden");
   _apTopbarLabel.classList.add("hidden");
   _btnFriseToggle.classList.add("hidden");
@@ -510,6 +523,7 @@ function navigateTo(name) {
   showView(name);
   btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
   btnShowCompletedDaily.classList.toggle("hidden", name !== "daily");
+  _updateFriseVisibility(name);
   btnDailyFilter.classList.toggle("hidden", name !== "daily");
   sortControls.classList.toggle("hidden", name !== "browser");
   btnViewList.classList.toggle("hidden", name === "daily");

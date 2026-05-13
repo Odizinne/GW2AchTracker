@@ -40,6 +40,26 @@
   background: var(--accent);
 }
 
+.ap-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 30%, white);
+  box-shadow: 0 0 3px 1px color-mix(in srgb, var(--accent) 50%, white);
+  transform: translate(-50%, -50%);
+  animation: ap-particle-fly 0.8s ease-out forwards;
+}
+
+[data-theme="light"] .ap-particle {
+  background: color-mix(in srgb, var(--accent) 60%, black);
+  box-shadow: 0 0 3px 1px color-mix(in srgb, var(--accent) 70%, black);
+}
+
+@keyframes ap-particle-fly {
+  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0px, 0px); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)); }
+}
+
 .ap-chest-line {
   position: absolute;
   width: 2px;
