@@ -107,7 +107,7 @@ function itemHtml(row) {
 
 function buildWizardVaultColumn(data, showCompleted) {
   const objectives = data.objectives || [];
-  const allDone = objectives.every(o => o.progress_current >= o.progress_complete);
+  const allDone = objectives.length > 0 && objectives.every(o => o.progress_complete > 0 && o.progress_current >= o.progress_complete);
 
   if (allDone && !showCompleted) return null;
 
@@ -131,7 +131,7 @@ function buildWizardVaultColumn(data, showCompleted) {
   col.appendChild(header);
 
   for (const obj of objectives) {
-    const done = obj.progress_current >= obj.progress_complete;
+    const done = obj.progress_complete > 0 && obj.progress_current >= obj.progress_complete;
     if (!showCompleted && done) continue;
 
     const isBinary = obj.progress_complete <= 1;
