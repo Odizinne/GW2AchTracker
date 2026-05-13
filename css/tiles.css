@@ -152,6 +152,14 @@
   display: inline-block;
 }
 
+.tile-rewards .reward-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 2px;
+  display: inline-block;
+}
+
 .tile-reward-chip {
   font-size: 11px;
   color: var(--muted);

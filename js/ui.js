@@ -52,5 +52,11 @@ export function rewardHtml(rewardStr) {
     .replace(/MASTERY:([A-Za-z_]+)/g, (_, file) =>
       `<img src="assets/mastery/${file}.png" class="mastery-icon" alt="${file.replace(/_/g, " ")}">`
     )
-    .replace(/\[([^\]]+)\]/g, '[<em>$1</em>]');
+    .replace(/COINS:([^·\n]+)/g, (_, coins) =>
+      `<img src="assets/gold.png" class="reward-icon" alt="Gold"> ${coins.trim()}`
+    )
+    .replace(/TITLE:([^·\n]+)/g, (_, name) =>
+      `<img src="assets/title.png" class="reward-icon" alt="Title"> ${name.trim()}`
+    )
+    .replace(/\[([^\]]+)\]/g, `<img src="assets/title.png" class="reward-icon" alt="Title"> $1`);
 }

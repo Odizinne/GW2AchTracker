@@ -41,15 +41,31 @@
   flex-shrink: 0;
 }
 
+.topbar-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  height: 1em;
+  overflow: hidden;
+}
+
 .view-sub {
   display: block;
   font-size: 11px;
   color: var(--muted);
-  margin-top: 4px;
   line-height: 1;
-  height: 1em;          /* always occupies exactly one line, even when empty */
-  overflow: hidden;
 }
+
+.ap-topbar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ap-topbar-label.hidden { display: none; }
 
 /* ── Topbar right ── */
 .topbar-right {

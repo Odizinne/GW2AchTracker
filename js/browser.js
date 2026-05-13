@@ -7,6 +7,24 @@ import {
   loadDailySchedule, saveDailySchedule,
 } from "./cache.js";
 
+const _GROUP_ICONS = {
+  "World vs. World":     "assets/wvw.png",
+  "Player vs. Player":   "assets/pvp.png",
+  "Raids":               "assets/raid.png",
+  "Fractals of the Mists": "assets/fractal.png",
+  "Heart of Thorns":     "assets/mastery/Heart_of_Thorns.png",
+  "Path of Fire":        "assets/mastery/Path_of_Fire.png",
+  "End of Dragons":      "assets/mastery/End_of_Dragons.png",
+  "Secrets of the Obscure": "assets/mastery/Secrets_of_the_Obscure.png",
+  "Janthir Wilds":       "assets/mastery/Janthir_Wilds.png",
+  "Visions of Eternity": "assets/mastery/Visions_of_Eternity.png",
+};
+
+function _groupIconHtml(name) {
+  const src = _GROUP_ICONS[name];
+  return src ? `<img src="${src}" class="browser-group-icon">` : "";
+}
+
 let groups               = null;
 let categories           = null;
 let expandedGroups       = new Set();
@@ -278,7 +296,7 @@ export function renderBrowserTree(container, onSelectCategory) {
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="9 18 15 12 9 6"/>
       </svg>
-      <span class="browser-group-name">${group.name}</span>
+      ${_groupIconHtml(group.name)}<span class="browser-group-name">${group.name}</span>
     `;
 
     const catList = document.createElement("div");

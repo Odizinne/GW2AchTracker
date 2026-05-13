@@ -1,0 +1,101 @@
+/* ── AP Frise ── */
+#ap-frise {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  position: relative;
+}
+
+#ap-frise.hidden { display: none; }
+
+
+#ap-frise-scroll {
+  height: 160px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+  cursor: grab;
+  user-select: none;
+}
+
+#ap-frise-scroll::-webkit-scrollbar { height: 4px; }
+#ap-frise-scroll::-webkit-scrollbar-track { background: transparent; }
+#ap-frise-scroll::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+#ap-frise-canvas {
+  position: relative;
+  height: 160px;
+}
+
+.ap-bar-bg {
+  position: absolute;
+  background: var(--bg4);
+  overflow: hidden;
+}
+
+.ap-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.ap-chest-line {
+  position: absolute;
+  width: 2px;
+}
+
+.ap-chest {
+  position: absolute;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ap-chest:hover { transform: scale(1.25); }
+
+.ap-chest-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+
+.ap-chest-label img {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Tooltip ── */
+#ap-frise-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  max-width: 260px;
+  display: none;
+}
+
+#ap-frise-tooltip.visible { display: block; }
+
+.ap-tip-ap    { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+.ap-tip-chest { font-weight: 500; margin-bottom: 4px; color: var(--text); }
+.ap-tip-bonus { color: var(--green); font-size: 11px; }
+.ap-tip-loot  { color: var(--gold);  font-size: 11px; margin-top: 2px; }
+.ap-tip-title { color: var(--accent);font-size: 11px; margin-top: 2px; }
+.ap-tip-choice{ color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+.ap-tip-icon { width: 13px; height: 13px; vertical-align: middle; margin-right: 2px; }

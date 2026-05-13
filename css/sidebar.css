@@ -309,6 +309,17 @@
   opacity: 1;
 }
 
+.browser-group-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  opacity: 0.75;
+}
+
+.browser-group-header:hover .browser-group-icon,
+.browser-group-header.expanded .browser-group-icon { opacity: 1; }
+
 .browser-cat-list {
   display: none;
   flex-direction: column;

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/tiles.css" />
   <link rel="stylesheet" href="css/utils.css" />
   <link rel="stylesheet" href="css/daily.css" />
+  <link rel="stylesheet" href="css/ap-frise.css" />
   <link rel="icon" href="favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -107,7 +108,10 @@
       <div id="main-topbar">
         <div id="main-topbar-left">
           <h2 id="view-title">Nearly completed</h2>
-          <span id="view-subtitle" class="view-sub"></span>
+          <div class="topbar-sub-row">
+            <span id="view-subtitle" class="view-sub"></span>
+            <span id="ap-topbar-label" class="ap-topbar-label hidden"></span>
+          </div>
         </div>
         <div class="topbar-right">
           <div id="sort-controls" class="hidden">
@@ -146,6 +150,11 @@
               <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
           </button>
+          <button id="btn-frise-toggle" class="btn small hidden" title="Toggle AP frise">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline id="frise-chevron" points="18 15 12 9 6 15"/>
+            </svg>
+          </button>
           <div id="global-search-wrap" class="global-search-wrap">
             <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="global-search-input" data-i18n-placeholder="searchPlaceholder" placeholder="Search achievements…" autocomplete="off" />
@@ -153,6 +162,13 @@
           </div>
         </div>
         <div id="loading-bar" class="hidden"><div id="loading-bar-fill"></div></div>
+      </div>
+
+      <!-- AP Frise -->
+      <div id="ap-frise" class="hidden">
+        <div id="ap-frise-scroll">
+          <div id="ap-frise-canvas"></div>
+        </div>
       </div>
 
       <!-- Setup view -->
@@ -500,6 +516,7 @@
     </div>
   </div>
 
+  <div id="ap-frise-tooltip"></div>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

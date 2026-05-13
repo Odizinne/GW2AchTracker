@@ -50,7 +50,7 @@ export function formatRewardsArray(rewards, itemNameMap, titleNameMap, points) {
       const g = Math.floor(r.count / 10000);
       const s = Math.floor((r.count % 10000) / 100);
       const c = r.count % 100;
-      parts.push([g && `${g}g`, s && `${s}s`, c && `${c}c`].filter(Boolean).join(" "));
+      parts.push("COINS:" + [g && `${g}g`, s && `${s}s`, c && `${c}c`].filter(Boolean).join(" "));
     } else if (r.type === "Item") {
       const name = itemNameMap[r.id] || `Item#${r.id}`;
       parts.push(r.count > 1 ? `${r.count}x ${name}` : name);
@@ -59,7 +59,7 @@ export function formatRewardsArray(rewards, itemNameMap, titleNameMap, points) {
       parts.push(`MASTERY:${file}`);
     } else if (r.type === "Title") {
       const name = titleNameMap[r.id];
-      parts.push(name ? `[${name}]` : `[Title#${r.id}]`);
+      parts.push(name ? `TITLE:${name}` : `TITLE:Title#${r.id}`);
     }
   }
   return parts;

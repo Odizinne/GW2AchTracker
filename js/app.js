@@ -20,6 +20,7 @@ import { initSearch } from "./search.js";
 import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
 import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
+import { computeAccountAp, renderApFrise } from "./ap-frise.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -38,6 +39,7 @@ applyI18n();
 let currentView        = "favorites";
 let browserInitialized = false;
 let wizardVaultDailyData = null;
+let accountDailyAp     = 0;
 let activeCat          = null;
 let lastNearlyDoneRows = [];
 let nearlyDoneFirstRender = true;
@@ -178,6 +180,55 @@ function updateSubtitle(count) {
   viewSubtitle.textContent = count != null ? achCountStr(count) : "";
 }
 
+function _saveAccountDailyAp(apiKey, val) {
+  try { localStorage.setItem(`gw2_daily_ap_${apiKey.slice(-8)}`, String(val)); } catch {}
+}
+function _loadAccountDailyAp(apiKey) {
+  try { return parseInt(localStorage.getItem(`gw2_daily_ap_${apiKey.slice(-8)}`), 10) || 0; } catch { return 0; }
+}
+
+// ── AP Frise ──────────────────────────────────────────────────────────────────
+
+const _friseEl       = document.getElementById("ap-frise");
+const _friseScroll   = document.getElementById("ap-frise-scroll");
+const _friseCanvas   = document.getElementById("ap-frise-canvas");
+const _friseTooltip  = document.getElementById("ap-frise-tooltip");
+const _apTopbarLabel = document.getElementById("ap-topbar-label");
+const _btnFriseToggle = document.getElementById("btn-frise-toggle");
+const _friseChevron   = document.getElementById("frise-chevron");
+
+let friseExpanded = localStorage.getItem("gw2_frise_expanded") !== "false";
+
+function _updateFriseToggle() {
+  _friseChevron.setAttribute("points", friseExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9");
+}
+
+_btnFriseToggle.addEventListener("click", () => {
+  friseExpanded = !friseExpanded;
+  localStorage.setItem("gw2_frise_expanded", friseExpanded);
+  _friseEl.classList.toggle("hidden", !friseExpanded);
+  _updateFriseToggle();
+});
+
+const _AP_IMG = `<img src="assets/AP.png" style="width:16px;height:16px;vertical-align:middle;opacity:0.8;margin-left:2px;">`;
+const _MAX_AP = 60000;
+
+function refreshApFrise(progressMap) {
+  if (!progressMap) return;
+  const cache = loadCache();
+  const computed = computeAccountAp(progressMap, cache);
+  const correction = accountDailyAp > 10 ? 10 : 0;
+  const ap = computed + accountDailyAp - correction;
+  _apTopbarLabel.innerHTML = ap > _MAX_AP
+    ? ap.toLocaleString() + _AP_IMG
+    : ap.toLocaleString() + " / " + _MAX_AP.toLocaleString() + _AP_IMG;
+  _apTopbarLabel.classList.remove("hidden");
+  _btnFriseToggle.classList.remove("hidden");
+  _updateFriseToggle();
+  _friseEl.classList.toggle("hidden", !friseExpanded);
+  renderApFrise(_friseCanvas, _friseScroll, _friseTooltip, ap);
+}
+
 // ── EN name tracking (needed for non-EN wiki URLs) ────────────────────────────
 
 async function populateEnNameCache(ids) {
@@ -250,6 +301,9 @@ function resetAllCachedState() {
   lastNearlyDoneRows = [];
   lastResultCount = null;
   nearlyDoneFirstRender = true;
+  _friseEl.classList.add("hidden");
+  _apTopbarLabel.classList.add("hidden");
+  _btnFriseToggle.classList.add("hidden");
   resetBrowserState();
   browserTree.innerHTML = "";
   document.querySelectorAll(".tile-grid").forEach(g => g.remove());
@@ -531,6 +585,7 @@ accountSelect.addEventListener("change", () => {
   saveSettings(settings);
   resetProgress();
   setProgressMap(null);
+  accountDailyAp = _loadAccountDailyAp(activeApiKey());
   activeCat = null;
   browserInitialized = false;
   nearlyDoneFirstRender = true;
@@ -761,9 +816,10 @@ async function doFetch() {
   }
 
   let progressFailed = false;
-  const [progressResult, wvResult] = await Promise.allSettled([
+  const [progressResult, wvResult, accountResult] = await Promise.allSettled([
     fetchProgress(key),
     apiFetch("/account/wizardsvault/daily", { lang }, key),
+    apiFetch("/account", {}, key),
   ]);
   if (progressResult.status === "rejected") {
     console.warn("Progress fetch failed:", progressResult.reason);
@@ -774,6 +830,10 @@ async function doFetch() {
   if (wvResult.status === "fulfilled") {
     wizardVaultDailyData = wvResult.value;
     saveWizardVaultDailyCache(key, wizardVaultDailyData);
+  }
+  if (accountResult.status === "fulfilled") {
+    accountDailyAp = accountResult.value.daily_ap ?? 0;
+    _saveAccountDailyAp(key, accountDailyAp);
   }
 
   if (progressFailed) {
@@ -812,6 +872,7 @@ async function doFetch() {
     recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode ?? "account-all");
   }
 
+  refreshApFrise(getProgressMap());
   renderNearlyDoneRows(rows);
   if (currentView === "favorites") renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
@@ -1290,6 +1351,7 @@ checkSetup();
 updateCacheInfo();
 if (settings.accounts.length) {
   wizardVaultDailyData = loadWizardVaultDailyCache(activeApiKey());
+  accountDailyAp = _loadAccountDailyAp(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());
   if (cachedProgress) {
     initBrowserDataFromCache();
@@ -1299,6 +1361,7 @@ if (settings.accounts.length) {
     lastNearlyDoneRows = cachedRows;
     lastResultCount = cachedRows.length;
     renderNearlyDoneRows(cachedRows);
+    refreshApFrise(cachedProgress);
     if (currentView === "favorites") renderFavoritesView();
     if (currentView === "daily") renderDailyViewWrapper();
   }
