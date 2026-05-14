@@ -369,9 +369,23 @@
           <section class="settings-section">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <label class="field-label">
-                <span data-i18n="labelLanguage">Language</span>
+                <span data-i18n="labelUiLanguage">UI language</span>
                 <div class="sb-select-wrap" style="margin-top:4px">
                   <select id="s-lang"></select>
+                </div>
+              </label>
+              <label class="field-label">
+                <span data-i18n="labelFetchLanguage">Fetch language</span>
+                <div class="sb-select-wrap" style="margin-top:4px">
+                  <select id="s-fetch-lang"></select>
+                </div>
+              </label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label class="field-label">
+                <span data-i18n="labelAccentColor">Accent color</span>
+                <div class="sb-select-wrap" style="margin-top:4px">
+                  <select id="s-palette"></select>
                 </div>
               </label>
               <label class="field-label">
@@ -386,12 +400,6 @@
                 </div>
               </label>
             </div>
-            <label class="field-label">
-              <span data-i18n="labelAccentColor">Accent color</span>
-              <div class="sb-select-wrap" style="margin-top:4px">
-                <select id="s-palette"></select>
-              </div>
-            </label>
             <label class="field-label checkbox-label" style="margin-top:4px">
               <input type="checkbox" id="s-light-mode" />
               <span data-i18n="labelLightMode">Light mode</span>
@@ -476,8 +484,8 @@
       </div>
       <div class="modal-body ach-modal-body">
         <div id="ach-modal-flags" class="ach-modal-flags hidden"></div>
-        <p id="ach-modal-desc" class="ach-modal-desc hidden"></p>
         <p id="ach-modal-req" class="ach-modal-req hidden"></p>
+        <p id="ach-modal-desc" class="ach-modal-desc hidden"></p>
         <div id="ach-modal-progress-section" class="hidden"></div>
         <div id="ach-modal-bits-section" class="hidden"></div>
         <div id="ach-modal-rewards-section" class="hidden"></div>

@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   theme: "dark",
   viewMode: "list",
   lang: "en",
+  fetchLang: "en",
   defaultSection: "nearly-completed",
 };
 
@@ -18,6 +19,11 @@ export function loadSettings() {
   try {
     const stored = JSON.parse(localStorage.getItem("gw2_settings") || "{}");
     const s = { ...DEFAULT_SETTINGS, ...stored };
+
+    // Migrate: if fetchLang was not stored, inherit from lang
+    if (stored.fetchLang === undefined) {
+      s.fetchLang = s.lang;
+    }
 
     // Migrate old fetchAccountOnly boolean to new fetchMode string
     if (stored.fetchAccountOnly !== undefined && stored.fetchMode === undefined) {

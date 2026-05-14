@@ -298,7 +298,7 @@
 }
 
 .ach-modal-desc {
-  color: var(--text);
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
   font-style: italic;
@@ -306,7 +306,7 @@
 }
 
 .ach-modal-req {
-  color: var(--muted);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.65;
 }

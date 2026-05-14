@@ -31,7 +31,7 @@ startClock(document.getElementById("tyrian-clock"));
 let settings           = loadSettings();
 applyTheme(settings.theme);
 // Bootstrap language
-setCacheLang(settings.lang ?? "en");
+setCacheLang(settings.fetchLang ?? "en");
 reloadNameMaps();
 setLang(settings.lang ?? "en");
 applyI18n();
@@ -58,7 +58,8 @@ function activeApiKey() {
   return acc ? acc.apiKey : "";
 }
 
-function currentLang() { return settings.lang ?? "en"; }
+function currentLang()      { return settings.lang      ?? "en"; }
+function currentFetchLang() { return settings.fetchLang ?? "en"; }
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 
@@ -243,7 +244,7 @@ function refreshApFrise(progressMap) {
 // ── EN name tracking (needed for non-EN wiki URLs) ────────────────────────────
 
 async function populateEnNameCache(ids) {
-  if (currentLang() === "en") return; // not needed
+  if (currentFetchLang() === "en") return; // not needed
   const missing = ids.filter(id => !(id in enNameCache));
   if (missing.length) {
     // fetch EN names in background, batched
@@ -256,7 +257,7 @@ async function populateEnNameCache(ids) {
 }
 
 function getEnName(id, localName) {
-  if (currentLang() === "en") return localName;
+  if (currentFetchLang() === "en") return localName;
   return enNameCache[id] || localName;
 }
 
@@ -635,6 +636,7 @@ function checkSetup() {
 document.getElementById("setup-lang-select")?.addEventListener("change", e => {
   const lang = e.target.value;
   settings.lang = lang;
+  settings.fetchLang = lang;
   saveSettings(settings);
   setCacheLang(lang);
   reloadNameMaps();
@@ -793,7 +795,7 @@ function renderNearlyDoneRows(rows) {
 
 async function doFetch() {
   const key  = activeApiKey();
-  const lang = currentLang();
+  const lang = currentFetchLang();
   if (!key) return;
   setFetching(true);
   if (currentView === "nearly-completed") setStatus("statusLoading");
@@ -819,8 +821,8 @@ async function doFetch() {
     definitionsFailed = true;
   }
 
-  // Populate EN name cache for non-EN languages
-  if (lang !== "en") {
+  // Populate EN name cache for non-EN fetch languages (needed for wiki URLs)
+  if (currentFetchLang() !== "en") {
     const allIds = Object.keys(loadCache()).map(Number);
     try {
       const { fetchInBatches } = await import("./api.js");
@@ -1176,6 +1178,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-default-section").value         = settings.defaultSection ?? "nearly-completed";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
   buildLangOptions(document.getElementById("s-lang"), currentLang());
+  buildLangOptions(document.getElementById("s-fetch-lang"), currentFetchLang());
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -1230,8 +1233,9 @@ document.getElementById("btn-settings-close").addEventListener("click",  () => c
 document.getElementById("btn-settings-cancel").addEventListener("click", () => closeModal("settings-overlay"));
 
 function doSaveSettings() {
-  const prevFetchMode   = settings.fetchMode ?? "account-all";
-  const prevLang        = settings.lang ?? "en";
+  const prevFetchMode    = settings.fetchMode  ?? "account-all";
+  const prevLang         = settings.lang       ?? "en";
+  const prevFetchLang    = settings.fetchLang  ?? "en";
   const prevUseFinalTier = settings.useFinalTier;
   const prevThresholdPct = settings.thresholdPct;
   const prevMaxResults   = settings.maxResults;
@@ -1246,27 +1250,29 @@ function doSaveSettings() {
   settings.defaultSection          = document.getElementById("s-default-section").value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
   settings.lang                    = document.getElementById("s-lang").value;
+  settings.fetchLang               = document.getElementById("s-fetch-lang").value;
   applyTheme(settings.theme);
   saveSettings(settings);
 
-  const fetchModeChanged = settings.fetchMode !== prevFetchMode;
-  const langChanged      = settings.lang !== prevLang;
+  const fetchModeChanged  = settings.fetchMode  !== prevFetchMode;
+  const uiLangChanged     = settings.lang       !== prevLang;
+  const fetchLangChanged  = settings.fetchLang  !== prevFetchLang;
 
-  if (langChanged || fetchModeChanged) {
-    // Apply new language immediately
-    setCacheLang(settings.lang);
-    reloadNameMaps();
+  if (uiLangChanged) {
     setLang(settings.lang);
     applyI18n();
-    // Rebuild dynamic UI text
     if (currentView === "nearly-completed") viewTitle.textContent = t("titleNearly");
     else if (currentView === "favorites")   viewTitle.textContent = t("titleFavorites");
     else if (currentView === "browser")     viewTitle.textContent = t("titleBrowse");
     else if (currentView === "daily")       viewTitle.textContent = t("titleDaily");
-    // Clear all cached data and refetch in new language
+  }
+
+  if (fetchLangChanged || fetchModeChanged) {
+    setCacheLang(settings.fetchLang);
+    reloadNameMaps();
     resetAllCachedState();
     doFetch();
-  } else {
+  } else if (!uiLangChanged) {
     recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode);
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
     if (currentView === "nearly-completed") {
@@ -1276,7 +1282,7 @@ function doSaveSettings() {
       if (nearlySettingsChanged) {
         lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
         const key = activeApiKey();
-        resolveRewardNames(lastNearlyDoneRows, key, currentLang())
+        resolveRewardNames(lastNearlyDoneRows, key, currentFetchLang())
           .catch(e => console.warn("Reward name resolution failed:", e))
           .finally(() => renderNearlyDoneRows(lastNearlyDoneRows));
       } else {
