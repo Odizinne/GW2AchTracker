@@ -152,31 +152,6 @@
   flex-shrink: 0;
 }
 
-.wv-col-header {
-  position: relative;
-}
-
-.wv-header-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.wv-acclaim-bar-wrap {
-  position: absolute;
-  bottom: 0;
-  left: 1px;
-  right: 1px;
-  height: 3px;
-  background: var(--bg4);
-  overflow: hidden;
-}
-
-.wv-acclaim-fill {
-  height: 100%;
-  transition: width 0.2s;
-}
-
 .daily-empty {
   font-size: 13px;
   color: var(--muted);

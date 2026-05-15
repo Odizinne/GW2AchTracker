@@ -105,60 +105,6 @@ function itemHtml(row) {
   return { top: `<span class="daily-item-name">${row.name}</span>`, body: desc + prog };
 }
 
-function buildWizardVaultColumn(data, showCompleted) {
-  const objectives = data.objectives || [];
-  const allDone = objectives.length > 0 && objectives.every(o => o.progress_complete > 0 && o.progress_current >= o.progress_complete);
-
-  if (allDone && !showCompleted) return null;
-
-  const metaCurrent  = data.meta_progress_current  || 0;
-  const metaComplete = data.meta_progress_complete || 1;
-  const acclaimPct   = Math.min(100, Math.round((metaCurrent / metaComplete) * 100));
-
-  const col = document.createElement("div");
-  col.className = "daily-col" + (allDone ? " daily-col-done" : "");
-
-  const header = document.createElement("div");
-  header.className = "daily-col-header wv-col-header";
-  header.innerHTML = `
-    <div class="wv-header-title">
-      <span>Wizard's Vault</span>
-      <span class="daily-prog-nums">${metaCurrent}/${metaComplete}</span>
-    </div>
-    <div class="wv-acclaim-bar-wrap">
-      <div class="wv-acclaim-fill" style="width:${acclaimPct}%;background:${barColor(acclaimPct)}"></div>
-    </div>`;
-  col.appendChild(header);
-
-  for (const obj of objectives) {
-    const done = obj.progress_complete > 0 && obj.progress_current >= obj.progress_complete;
-    if (!showCompleted && done) continue;
-
-    const isBinary = obj.progress_complete <= 1;
-    const item = document.createElement("div");
-    item.className = "daily-item" + (done ? " daily-item-done" : "");
-
-    if (isBinary) {
-      item.innerHTML = `<span class="daily-item-name">${obj.title}</span>
-        <div class="daily-item-desc-row">
-          <input type="checkbox" class="daily-item-cb" ${done ? "checked" : ""} tabindex="-1">
-        </div>`;
-    } else {
-      const pct = Math.min(100, Math.round((obj.progress_current / obj.progress_complete) * 100));
-      const color = barColor(done ? 100 : pct);
-      item.innerHTML = `<span class="daily-item-name">${obj.title}</span>
-        <div class="daily-item-prog">
-          <div class="daily-prog-bar"><div class="daily-prog-fill" style="width:${done ? 100 : pct}%;background:${color}"></div></div>
-          <span class="daily-prog-nums">${obj.progress_current}/${obj.progress_complete}</span>
-        </div>`;
-    }
-
-    col.appendChild(item);
-  }
-
-  return col;
-}
-
 export function openDailyFilterModal(onClose) {
   const categories = getCategories();
   if (!categories) return;
@@ -167,7 +113,6 @@ export function openDailyFilterModal(onClose) {
   const filter = loadDailyFilter();
   const hiddenCatIds = new Set(filter.hiddenCatIds || []);
   const hideFestival = filter.hideFestival || false;
-  const hideWizardVault = filter.hideWizardVault || false;
 
   const regularCats = [];
   let hasFestival = false;
@@ -219,24 +164,6 @@ export function openDailyFilterModal(onClose) {
     body.appendChild(label);
   }
 
-  {
-    const sep = document.createElement("div");
-    sep.className = "daily-filter-sep";
-    body.appendChild(sep);
-
-    const label = document.createElement("label");
-    label.className = "daily-filter-item";
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.id = "daily-filter-wv-cb";
-    cb.checked = !hideWizardVault;
-    const span = document.createElement("span");
-    span.textContent = "Wizard's Vault";
-    label.appendChild(cb);
-    label.appendChild(span);
-    body.appendChild(label);
-  }
-
   document.getElementById("btn-daily-filter-all").onclick = () => {
     body.querySelectorAll("input[type=checkbox]").forEach(cb => { cb.checked = true; });
   };
@@ -250,11 +177,9 @@ export function openDailyFilterModal(onClose) {
       if (!cb.checked) newHidden.push(Number(cb.dataset.catId));
     });
     const festCb = document.getElementById("daily-filter-festival-cb");
-    const wvCb   = document.getElementById("daily-filter-wv-cb");
     saveDailyFilter({
-      hiddenCatIds:    newHidden,
-      hideFestival:    festCb ? !festCb.checked : false,
-      hideWizardVault: wvCb   ? !wvCb.checked  : false,
+      hiddenCatIds: newHidden,
+      hideFestival: festCb ? !festCb.checked : false,
     });
     closeModal("daily-filter-overlay");
     onClose?.();
@@ -269,25 +194,12 @@ export function openDailyFilterModal(onClose) {
   openModal("daily-filter-overlay");
 }
 
-export function renderDailyView(container, progressMap, showCompleted, onOpenAch, wizardVaultData) {
+export function renderDailyView(container, progressMap, showCompleted, onOpenAch) {
   const columns = buildDailyColumns(progressMap);
   container.innerHTML = "";
 
   let visibleCols = 0;
   let remaining = 0;
-
-  const { hideWizardVault } = loadDailyFilter();
-
-  if (wizardVaultData && !hideWizardVault) {
-    const wvCol = buildWizardVaultColumn(wizardVaultData, showCompleted);
-    if (wvCol) {
-      container.appendChild(wvCol);
-      visibleCols++;
-      for (const o of (wizardVaultData.objectives || [])) {
-        if (o.progress_current < o.progress_complete) remaining++;
-      }
-    }
-  }
 
   if (!columns.length) {
     if (!visibleCols) container.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`;

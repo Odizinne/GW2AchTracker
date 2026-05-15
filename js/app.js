@@ -2,7 +2,7 @@ import { validateApiKey, formatRewards, apiFetch }          from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
          toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
          ensureStaticCache, getStaticVersion,
-         loadWizardVaultDailyCache, saveWizardVaultDailyCache } from "./cache.js";
+         } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
@@ -38,7 +38,6 @@ applyI18n();
 
 let currentView        = "favorites";
 let browserInitialized = false;
-let wizardVaultDailyData = null;
 let accountDailyAp     = 0;
 let activeCat          = null;
 let lastNearlyDoneRows = [];
@@ -327,7 +326,6 @@ function resetAllCachedState() {
   document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-daily").innerHTML = "";
-  wizardVaultDailyData = null;
   updateCacheInfo();
 }
 
@@ -832,9 +830,8 @@ async function doFetch() {
   }
 
   let progressFailed = false;
-  const [progressResult, wvResult, accountResult] = await Promise.allSettled([
+  const [progressResult, accountResult] = await Promise.allSettled([
     fetchProgress(key),
-    apiFetch("/account/wizardsvault/daily", { lang }, key),
     apiFetch("/account", {}, key),
   ]);
   if (progressResult.status === "rejected") {
@@ -842,10 +839,6 @@ async function doFetch() {
     progressFailed = true;
   } else {
     localStorage.setItem("gw2_last_synced", new Date().toISOString());
-  }
-  if (wvResult.status === "fulfilled") {
-    wizardVaultDailyData = wvResult.value;
-    saveWizardVaultDailyCache(key, wizardVaultDailyData);
   }
   if (accountResult.status === "fulfilled") {
     accountDailyAp = accountResult.value.daily_ap ?? 0;
@@ -1060,7 +1053,7 @@ function renderDailyViewWrapper() {
     viewSubtitle.textContent = "";
     return;
   }
-  renderDailyView(container, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat), wizardVaultDailyData);
+  renderDailyView(container, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat));
 
   const tick = () => {
     if (currentView !== "daily") { clearInterval(_dailyResetInterval); _dailyResetInterval = null; return; }
@@ -1370,7 +1363,6 @@ initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), g
 checkSetup();
 updateCacheInfo();
 if (settings.accounts.length) {
-  wizardVaultDailyData = loadWizardVaultDailyCache(activeApiKey());
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());
   if (cachedProgress) {

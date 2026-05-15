@@ -192,26 +192,11 @@ export function saveDailySchedule(data) {
   try { localStorage.setItem("gw2_daily_schedule", JSON.stringify(data)); } catch {}
 }
 
-export function loadWizardVaultDailyCache(apiKey) {
-  if (!apiKey) return null;
-  try {
-    const r = localStorage.getItem(`gw2_wv_daily_${apiKey.slice(-8)}`);
-    return r ? JSON.parse(r) : null;
-  } catch { return null; }
-}
-
-export function saveWizardVaultDailyCache(apiKey, data) {
-  if (!apiKey) return;
-  try {
-    localStorage.setItem(`gw2_wv_daily_${apiKey.slice(-8)}`, JSON.stringify(data));
-  } catch {}
-}
-
 export function loadDailyFilter() {
   try {
     const r = localStorage.getItem("gw2_daily_filter");
-    return r ? JSON.parse(r) : { hiddenCatIds: [], hideFestival: false, hideWizardVault: false };
-  } catch { return { hiddenCatIds: [], hideFestival: false, hideWizardVault: false }; }
+    return r ? JSON.parse(r) : { hiddenCatIds: [], hideFestival: false };
+  } catch { return { hiddenCatIds: [], hideFestival: false }; }
 }
 
 export function saveDailyFilter(data) {
