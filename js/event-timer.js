@@ -101,6 +101,11 @@ function utcNowMin() {
   return now.getUTCHours() * 60 + now.getUTCMinutes();
 }
 
+function utcNowSec() {
+  const now = new Date();
+  return now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+}
+
 function localNowMin() {
   const now = new Date();
   return now.getHours() * 60 + now.getMinutes();
@@ -138,7 +143,6 @@ export async function renderEventTimerView(container) {
         <div class="et-frise-clip" id="et-frise-clip">
           <div class="et-frise" id="et-frise"></div>
         </div>
-        <div class="et-frise-now-line" id="et-frise-now-line"></div>
       </div>
 
       <div class="et-body" id="et-body">
@@ -146,24 +150,22 @@ export async function renderEventTimerView(container) {
           <div class="et-labels" id="et-labels"></div>
         </div>
         <div class="et-scroll" id="et-scroll">
-          <div class="et-content" id="et-content">
-            <div class="et-now-line" id="et-now-line"></div>
-            <div class="et-now-line-head" id="et-now-line-head"></div>
-          </div>
+          <div class="et-content" id="et-content"></div>
         </div>
+      </div>
+
+      <div class="et-nowline-layer">
+        <div class="et-now-line" id="et-now-line"></div>
       </div>
     </div>
   `;
 
-  const friseEl      = container.querySelector("#et-frise");
-  const friseClip    = container.querySelector("#et-frise-clip");
-  const friseNowLine = container.querySelector("#et-frise-now-line");
-  const labelsEl     = container.querySelector("#et-labels");
-  const contentEl    = container.querySelector("#et-content");
-  const scrollEl     = container.querySelector("#et-scroll");
-  const nowLine      = container.querySelector("#et-now-line");
-  const nowHead      = container.querySelector("#et-now-line-head");
-  const utcNowEl     = container.querySelector("#et-utcnow");
+  const friseEl  = container.querySelector("#et-frise");
+  const labelsEl = container.querySelector("#et-labels");
+  const contentEl = container.querySelector("#et-content");
+  const scrollEl = container.querySelector("#et-scroll");
+  const nowLine  = container.querySelector("#et-now-line");
+  const utcNowEl = container.querySelector("#et-utcnow");
 
   // Show exactly 2 hours in the visible scroll area.
   // Round to integer px so repeating-gradient stops land on physical pixels.
@@ -300,26 +302,24 @@ export async function renderEventTimerView(container) {
   // ── Scroll sync ──────────────────────────────────────────────────────────
 
   scrollEl.addEventListener("scroll", () => {
-    const x = utcNowMin() * PX_PER_MIN;
     friseEl.style.transform  = `translateX(-${scrollEl.scrollLeft}px)`;
     labelsEl.style.transform = `translateY(-${scrollEl.scrollTop}px)`;
-    friseNowLine.style.left  = (LABEL_W + x - scrollEl.scrollLeft) + "px";
+    updateNowLine(false);
   }, { passive: true });
 
   // ── Now line ─────────────────────────────────────────────────────────────
 
-  function updateNowLine() {
-    const nowUtc = utcNowMin();
-    const x = nowUtc * PX_PER_MIN;
-    nowLine.style.left      = x + "px";
-    nowHead.style.left      = (x - LABEL_W) + "px";
-    friseNowLine.style.left = (LABEL_W + x - scrollEl.scrollLeft) + "px";
-    utcNowEl.textContent = minToHHMM(localNowMin()) + " (" + localOffsetLabel() + ")";
+  function updateNowLine(animated = true) {
+    const nowSec = utcNowSec();
+    const x = (nowSec / 60) * PX_PER_MIN;
+    nowLine.style.transition = animated ? 'left 1s linear' : 'none';
+    nowLine.style.left = (x - scrollEl.scrollLeft) + "px";
+    utcNowEl.textContent = minToHHMM(Math.floor(nowSec / 60)) + " (" + localOffsetLabel() + ")";
   }
 
-  updateNowLine();
+  updateNowLine(false);
   if (_nowTimer) clearInterval(_nowTimer);
-  _nowTimer = setInterval(updateNowLine, 30_000);
+  _nowTimer = setInterval(() => updateNowLine(true), 1_000);
 
   // ── Auto-scroll to current time ──────────────────────────────────────────
 

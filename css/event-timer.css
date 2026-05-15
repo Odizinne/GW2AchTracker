@@ -11,6 +11,7 @@
   min-height: 0;
   overflow: hidden;
   font-size: 12px;
+  position: relative;
 }
 
 /* ── Frise header row (sticky top) ───────────────────────────────────────── */
@@ -242,31 +243,31 @@
 
 /* ── Now line ─────────────────────────────────────────────────────────────── */
 
+.et-nowline-layer {
+  position: absolute;
+  top: 0;
+  bottom: 8px; /* stop above horizontal scrollbar track */
+  left: 178px;
+  right: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+
+@keyframes et-nowline-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
 .et-now-line {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 2px;
   background: var(--accent);
-  z-index: 8;
   pointer-events: none;
   box-shadow: 0 0 6px var(--accent-glow);
-}
-
-/* Triangle indicator in the frise (positioned relative to frise-row) */
-.et-now-line-head {
-  display: none; /* hidden, utcnow label serves the purpose */
-}
-
-.et-frise-now-line {
-  position: absolute;
-  top: 0;
-  bottom: -1px;
-  width: 2px;
-  background: var(--accent);
-  z-index: 30;
-  pointer-events: none;
-  box-shadow: 0 0 6px var(--accent-glow);
+  animation: et-nowline-pulse 4s ease-in-out infinite;
 }
 
 /* ── Event modal ──────────────────────────────────────────────────────────── */
