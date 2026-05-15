@@ -18,6 +18,7 @@ const _GROUP_ICONS = {
   "Secrets of the Obscure": "assets/mastery/Secrets_of_the_Obscure.png",
   "Janthir Wilds":       "assets/mastery/Janthir_Wilds.png",
   "Visions of Eternity": "assets/mastery/Visions_of_Eternity.png",
+  "Story Journal":       "assets/story_journal.png",
 };
 
 function _groupIconHtml(name) {

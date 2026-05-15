@@ -219,3 +219,13 @@ export function toggleHidden(id) {
   if (hiddenSet.has(id)) hiddenSet.delete(id); else hiddenSet.add(id);
   try { localStorage.setItem("gw2_hidden", JSON.stringify([...hiddenSet])); } catch {}
 }
+
+export function loadDailyCollapsed() {
+  return _loadSet("gw2_daily_collapsed");
+}
+
+export function toggleDailyCollapsed(catId) {
+  const s = loadDailyCollapsed();
+  if (s.has(catId)) s.delete(catId); else s.add(catId);
+  try { localStorage.setItem("gw2_daily_collapsed", JSON.stringify([...s])); } catch {}
+}

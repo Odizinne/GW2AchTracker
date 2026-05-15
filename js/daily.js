@@ -1,4 +1,4 @@
-import { loadCache, loadDailyFilter, saveDailyFilter } from "./cache.js";
+import { loadCache, loadDailyFilter, saveDailyFilter, loadDailyCollapsed, toggleDailyCollapsed } from "./cache.js";
 import { getCategories, getGroups, isFestivalGroup, getActiveFestivalCatIds } from "./browser.js";
 import { openModal, closeModal, barColor, stripGw2Markup } from "./ui.js";
 import { t } from "./i18n.js";
@@ -56,7 +56,7 @@ function buildDailyColumns(progressMap) {
     for (const id of cat.achievements) {
       const ach = cache[id];
       if (!ach) continue;
-      if (!catMap[catId]) catMap[catId] = { cat, rows: [] };
+      if (!catMap[catId]) catMap[catId] = { catId: Number(catId), cat, rows: [] };
       catMap[catId].rows.push(buildRow(id, ach, progressMap));
     }
   }
@@ -206,7 +206,9 @@ export function renderDailyView(container, progressMap, showCompleted, onOpenAch
     return { visibleCols, remaining };
   }
 
-  for (const { cat, rows } of columns) {
+  const collapsed = loadDailyCollapsed();
+
+  for (const { catId, cat, rows } of columns) {
     const allDone = rows.every(r => r.done);
     if (allDone && !showCompleted) continue;
 
@@ -216,13 +218,25 @@ export function renderDailyView(container, progressMap, showCompleted, onOpenAch
     visibleCols++;
     remaining += rows.filter(r => !r.done).length;
 
+    const isCollapsed = collapsed.has(catId);
     const col = document.createElement("div");
-    col.className = "daily-col" + (allDone ? " daily-col-done" : "");
+    col.className = "daily-col" + (allDone ? " daily-col-done" : "") + (isCollapsed ? " daily-col-collapsed" : "");
 
     const header = document.createElement("div");
     header.className = "daily-col-header";
     header.textContent = cat.name;
+    header.addEventListener("click", () => {
+      toggleDailyCollapsed(catId);
+      col.classList.toggle("daily-col-collapsed");
+    });
     col.appendChild(header);
+
+    const colBody = document.createElement("div");
+    colBody.className = "daily-col-body";
+    const colBodyInner = document.createElement("div");
+    colBodyInner.className = "daily-col-body-inner";
+    colBody.appendChild(colBodyInner);
+    col.appendChild(colBody);
 
     for (const row of rows) {
       if (!showCompleted && row.done) continue;
@@ -233,7 +247,7 @@ export function renderDailyView(container, progressMap, showCompleted, onOpenAch
       item.className = "daily-item" + (row.done ? " daily-item-done" : "");
       item.innerHTML = top + body;
       item.addEventListener("click", () => onOpenAch(row.id, cat));
-      col.appendChild(item);
+      colBodyInner.appendChild(item);
     }
 
     container.appendChild(col);
