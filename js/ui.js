@@ -27,6 +27,7 @@ export function showView(name) {
     "nearly-completed": "view-nearly-completed",
     "daily":            "view-daily",
     "browser":          "view-browser",
+    "event-timer":      "view-event-timer",
   };
   const id = viewMap[name];
   if (id) document.getElementById(id)?.classList.add("active-view");

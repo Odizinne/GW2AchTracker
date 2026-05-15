@@ -1,0 +1,477 @@
+import { openModal, closeModal } from "./ui.js";
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const LABEL_W   = 178;      // px, sticky left column
+const ROW_H     = 34;       // px per event row
+const GROUP_H   = 26;       // px for group header rows
+const FRISE_H   = 38;       // px for the time frise
+const TOTAL_MIN = 1440;     // minutes in a day
+
+const LS_KEY = "gw2_et_settings";
+
+// Default group display order + colors (category string → group meta)
+const GROUP_DEFS = [
+  { id: "Core Tyria",              color: [212,112,96]  },
+  { id: "Living World Season 2",   color: [230,190,60]  },
+  { id: "Living World Season 3",   color: [80,200,130]  },
+  { id: "Living World Season 4",   color: [230,120,50]  },
+  { id: "The Icebrood Saga",       color: [80,150,220]  },
+  { id: "Heart of Thorns",         color: [139,195,74]  },
+  { id: "Path of Fire",            color: [192,80,172]  },
+  { id: "End of Dragons",          color: [52,188,208]  },
+  { id: "Secrets of the Obscure",  color: [216,160,60]  },
+  { id: "Janthir Wilds",           color: [100,185,145] },
+  { id: "Visions of Eternity",     color: [175,110,220] },
+];
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+function loadETSettings() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; }
+}
+
+function saveETSettings(s) {
+  localStorage.setItem(LS_KEY, JSON.stringify(s));
+}
+
+function getGroupList(rawSettings) {
+  const saved = rawSettings.groups;
+  if (saved && saved.length) return saved;
+  return GROUP_DEFS.map(g => ({ id: g.id, visible: true }));
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+let _cachedData = null;
+
+async function loadData() {
+  if (_cachedData) return _cachedData;
+  const resp = await fetch("data/event-timer.json");
+  _cachedData = await resp.json();
+  return _cachedData;
+}
+
+// ── Timeline computation ──────────────────────────────────────────────────────
+
+function computeTimeline(sequences) {
+  const slots = [];
+  let t = 0;
+
+  for (const step of (sequences.partial || [])) {
+    if (t >= TOTAL_MIN) break;
+    slots.push({ r: step.r, start: t, end: Math.min(t + step.d, TOTAL_MIN) });
+    t += step.d;
+  }
+
+  if (sequences.pattern?.length) {
+    outer: while (t < TOTAL_MIN) {
+      for (const step of sequences.pattern) {
+        if (t >= TOTAL_MIN) break outer;
+        slots.push({ r: step.r, start: t, end: Math.min(t + step.d, TOTAL_MIN) });
+        t += step.d;
+      }
+    }
+  }
+
+  return slots;
+}
+
+// Resolve CSS rgb string from bg field (handles gradient arrays)
+function bgCss(bg) {
+  if (!bg || bg.length === 0) return "#555";
+  const c = Array.isArray(bg[0]) ? bg[0] : bg;
+  return `rgb(${c.join(",")})`;
+}
+
+
+function wikiUrl(link) {
+  if (!link) return null;
+  return `https://wiki.guildwars2.com/wiki/${link}`;
+}
+
+function minToHHMM(min) {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function utcNowMin() {
+  const now = new Date();
+  return now.getUTCHours() * 60 + now.getUTCMinutes();
+}
+
+function localNowMin() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function localOffsetMin() {
+  return -new Date().getTimezoneOffset();
+}
+
+function localOffsetLabel() {
+  const off  = localOffsetMin();
+  const sign = off >= 0 ? "+" : "-";
+  const abs  = Math.abs(off);
+  const h    = Math.floor(abs / 60);
+  const m    = abs % 60;
+  return m === 0 ? `UTC${sign}${h}` : `UTC${sign}${h}:${String(m).padStart(2, "0")}`;
+}
+
+// ── Module-level state ────────────────────────────────────────────────────────
+
+let _nowTimer = null;
+let _currentEventModal = null;
+
+// ── Main render ───────────────────────────────────────────────────────────────
+
+export async function renderEventTimerView(container) {
+  // ── Build DOM structure immediately so layout is visible ─────────────────
+
+  container.innerHTML = `
+    <div class="et-outer" id="et-outer">
+      <div class="et-frise-row" id="et-frise-row">
+        <div class="et-corner">
+          <span class="et-utcnow" id="et-utcnow"></span>
+        </div>
+        <div class="et-frise-clip" id="et-frise-clip">
+          <div class="et-frise" id="et-frise"></div>
+        </div>
+        <div class="et-frise-now-line" id="et-frise-now-line"></div>
+      </div>
+
+      <div class="et-body" id="et-body">
+        <div class="et-labels-clip" id="et-labels-clip">
+          <div class="et-labels" id="et-labels"></div>
+        </div>
+        <div class="et-scroll" id="et-scroll">
+          <div class="et-content" id="et-content">
+            <div class="et-now-line" id="et-now-line"></div>
+            <div class="et-now-line-head" id="et-now-line-head"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const friseEl      = container.querySelector("#et-frise");
+  const friseClip    = container.querySelector("#et-frise-clip");
+  const friseNowLine = container.querySelector("#et-frise-now-line");
+  const labelsEl     = container.querySelector("#et-labels");
+  const contentEl    = container.querySelector("#et-content");
+  const scrollEl     = container.querySelector("#et-scroll");
+  const nowLine      = container.querySelector("#et-now-line");
+  const nowHead      = container.querySelector("#et-now-line-head");
+  const utcNowEl     = container.querySelector("#et-utcnow");
+
+  // Show exactly 2 hours in the visible scroll area.
+  // Round to integer px so repeating-gradient stops land on physical pixels.
+  const PX_PER_MIN = Math.round((scrollEl.clientWidth || 960) / 120);
+  const TOTAL_W    = TOTAL_MIN * PX_PER_MIN;
+  container.style.setProperty("--et-grid-px", (15 * PX_PER_MIN) + "px");
+
+  // ── Load data ─────────────────────────────────────────────────────────────
+
+  let data;
+  try {
+    data = await loadData();
+  } catch {
+    labelsEl.innerHTML = `<div style="padding:16px;color:var(--muted);font-size:12px;">Failed to load event data.</div>`;
+    return;
+  }
+
+  const settings = loadETSettings();
+  const groupList = getGroupList(settings);
+
+  // Build ordered, filtered list of groups to display
+  const orderedGroups = groupList
+    .filter(g => g.visible !== false)
+    .map(g => {
+      const def = GROUP_DEFS.find(d => d.id === g.id);
+      return def ? { ...def, ...g } : null;
+    })
+    .filter(Boolean);
+
+  // Bucket events by category (skip day/night cycles — shown in sidebar)
+  const SKIP_KEYS = new Set(["core-dn", "eod-dn"]);
+  const byCategory = {};
+  for (const [key, ev] of Object.entries(data.events)) {
+    if (SKIP_KEYS.has(key)) continue;
+    if (!byCategory[ev.category]) byCategory[ev.category] = [];
+    byCategory[ev.category].push({ key, ...ev });
+  }
+
+  // ── Build frise ──────────────────────────────────────────────────────────
+
+  const tzOffset = localOffsetMin();
+
+  friseEl.style.width = TOTAL_W + "px";
+  for (let m = 0; m < TOTAL_MIN; m += 15) {
+    const tick = document.createElement("div");
+    tick.className = "et-tick";
+    tick.style.left = (m * PX_PER_MIN) + "px";
+    const label = minToHHMM((m + tzOffset + TOTAL_MIN) % TOTAL_MIN);
+    if (m % 60 === 0) {
+      tick.classList.add("et-tick-hour");
+      tick.textContent = label;
+    } else if (m % 30 === 0) {
+      tick.classList.add("et-tick-half");
+      tick.textContent = label;
+    } else {
+      tick.classList.add("et-tick-quarter");
+      tick.textContent = label;
+    }
+    friseEl.appendChild(tick);
+  }
+
+  // ── Build content rows ───────────────────────────────────────────────────
+
+  contentEl.style.width = TOTAL_W + "px";
+
+  for (const group of orderedGroups) {
+    const rows = byCategory[group.id];
+    if (!rows || rows.length === 0) continue;
+
+    const groupColor = `rgb(${group.color.join(",")})`;
+
+    // Group header (labels side)
+    const glabel = document.createElement("div");
+    glabel.className = "et-group-label";
+    glabel.style.height = GROUP_H + "px";
+    glabel.style.borderLeft = `3px solid ${groupColor}`;
+    glabel.textContent = group.id;
+    labelsEl.appendChild(glabel);
+
+    // Group header (content side)
+    const gbar = document.createElement("div");
+    gbar.className = "et-group-bar";
+    gbar.style.height = GROUP_H + "px";
+    gbar.style.borderTop = `1px solid ${groupColor}44`;
+    contentEl.appendChild(gbar);
+
+    for (const row of rows) {
+      const slots = computeTimeline(row.sequences);
+
+      // Label
+      const label = document.createElement("div");
+      label.className = "et-row-label";
+      label.style.height = ROW_H + "px";
+      label.title = row.name;
+      label.textContent = row.name;
+      labelsEl.appendChild(label);
+
+      // Track
+      const track = document.createElement("div");
+      track.className = "et-row-track";
+      track.style.height = ROW_H + "px";
+      track.style.width   = TOTAL_W + "px";
+
+      for (const slot of slots) {
+        const seg = row.segments[String(slot.r)];
+        if (!seg || !seg.name) continue; // skip empty/downtime segments
+
+        const w = (slot.end - slot.start) * PX_PER_MIN;
+        if (w < 2) continue;
+
+        const block = document.createElement("div");
+        block.className = "et-block";
+        block.style.left       = (slot.start * PX_PER_MIN) + "px";
+        block.style.width      = w + "px";
+        block.style.background = bgCss(seg.bg);
+        block.title = seg.name;
+
+        const nameEl = document.createElement("span");
+        nameEl.className = "et-block-name";
+        nameEl.textContent = seg.name;
+        block.appendChild(nameEl);
+
+        block.addEventListener("click", () => {
+          openEventModal(seg, row, group, slot);
+        });
+
+        track.appendChild(block);
+      }
+
+      contentEl.appendChild(track);
+    }
+  }
+
+  // ── Scroll sync ──────────────────────────────────────────────────────────
+
+  scrollEl.addEventListener("scroll", () => {
+    const x = utcNowMin() * PX_PER_MIN;
+    friseEl.style.transform  = `translateX(-${scrollEl.scrollLeft}px)`;
+    labelsEl.style.transform = `translateY(-${scrollEl.scrollTop}px)`;
+    friseNowLine.style.left  = (LABEL_W + x - scrollEl.scrollLeft) + "px";
+  }, { passive: true });
+
+  // ── Now line ─────────────────────────────────────────────────────────────
+
+  function updateNowLine() {
+    const nowUtc = utcNowMin();
+    const x = nowUtc * PX_PER_MIN;
+    nowLine.style.left      = x + "px";
+    nowHead.style.left      = (x - LABEL_W) + "px";
+    friseNowLine.style.left = (LABEL_W + x - scrollEl.scrollLeft) + "px";
+    utcNowEl.textContent = minToHHMM(localNowMin()) + " (" + localOffsetLabel() + ")";
+  }
+
+  updateNowLine();
+  if (_nowTimer) clearInterval(_nowTimer);
+  _nowTimer = setInterval(updateNowLine, 30_000);
+
+  // ── Auto-scroll to current time ──────────────────────────────────────────
+
+  requestAnimationFrame(() => {
+    const nowMin = utcNowMin();
+    const nowPx  = nowMin * PX_PER_MIN;
+    scrollEl.scrollLeft = Math.max(0, nowPx - scrollEl.clientWidth * 0.3);
+  });
+}
+
+// ── Event modal ───────────────────────────────────────────────────────────────
+
+function openEventModal(seg, row, group, slot) {
+  _currentEventModal = { seg, row, group, slot };
+
+  document.getElementById("et-event-name").textContent = seg.name;
+  document.getElementById("et-event-row").textContent  =
+    group.id + " — " + row.name;
+  document.getElementById("et-event-time").textContent =
+    minToHHMM(slot.start) + " → " + minToHHMM(slot.end) + " UTC";
+
+  const wikiLink = seg.link || row.link || null;
+  const wikiBtn  = document.getElementById("et-event-wiki");
+  if (wikiLink) {
+    wikiBtn.href = wikiUrl(wikiLink);
+    wikiBtn.classList.remove("hidden");
+  } else {
+    wikiBtn.classList.add("hidden");
+  }
+
+  const copyBtn = document.getElementById("et-event-copy");
+  if (seg.chatlink) {
+    copyBtn.classList.remove("hidden");
+    copyBtn.dataset.chatlink = seg.chatlink;
+  } else {
+    copyBtn.classList.add("hidden");
+  }
+
+  openModal("et-event-overlay");
+}
+
+// ── Filter modal ──────────────────────────────────────────────────────────────
+
+export function openETFilterModal() {
+  const settings   = loadETSettings();
+  const groupList  = getGroupList(settings);
+  const body       = document.getElementById("et-filter-body");
+  body.innerHTML   = "";
+
+  function renderList(list) {
+    body.innerHTML = "";
+    list.forEach((g, i) => {
+      const def = GROUP_DEFS.find(d => d.id === g.id);
+      if (!def) return;
+      const color = `rgb(${def.color.join(",")})`;
+
+      const row = document.createElement("div");
+      row.className = "et-filter-row";
+
+      row.innerHTML = `
+        <div class="et-filter-row-left">
+          <label class="checkbox-label et-filter-check">
+            <input type="checkbox" data-id="${g.id}" ${g.visible !== false ? "checked" : ""}>
+            <span class="et-filter-dot" style="background:${color}"></span>
+            <span>${g.id}</span>
+          </label>
+        </div>
+        <div class="et-filter-row-right">
+          <button class="btn small et-filter-up" data-idx="${i}" ${i === 0 ? "disabled" : ""} title="Move up">▲</button>
+          <button class="btn small et-filter-down" data-idx="${i}" ${i === list.length - 1 ? "disabled" : ""} title="Move down">▼</button>
+        </div>
+      `;
+      body.appendChild(row);
+    });
+
+    // Wire up reorder buttons
+    body.querySelectorAll(".et-filter-up").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = +btn.dataset.idx;
+        if (idx <= 0) return;
+        [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
+        renderList(list);
+      });
+    });
+    body.querySelectorAll(".et-filter-down").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = +btn.dataset.idx;
+        if (idx >= list.length - 1) return;
+        [list[idx + 1], list[idx]] = [list[idx], list[idx + 1]];
+        renderList(list);
+      });
+    });
+  }
+
+  renderList(groupList);
+
+  document.getElementById("btn-et-filter-done").onclick = () => {
+    const checks = body.querySelectorAll("input[type='checkbox']");
+    checks.forEach(cb => {
+      const g = groupList.find(x => x.id === cb.dataset.id);
+      if (g) g.visible = cb.checked;
+    });
+    const s = loadETSettings();
+    s.groups = groupList;
+    saveETSettings(s);
+    closeModal("et-filter-overlay");
+
+    // Re-render the timeline
+    const container = document.getElementById("view-event-timer");
+    if (container) renderEventTimerView(container);
+  };
+
+  document.getElementById("btn-et-filter-reset").onclick = () => {
+    const s = loadETSettings();
+    delete s.groups;
+    saveETSettings(s);
+    closeModal("et-filter-overlay");
+    const container = document.getElementById("view-event-timer");
+    if (container) renderEventTimerView(container);
+  };
+
+  openModal("et-filter-overlay");
+}
+
+// ── Init (wire modal close buttons) ──────────────────────────────────────────
+
+export function initEventTimer() {
+  document.getElementById("btn-et-event-close").addEventListener("click", () =>
+    closeModal("et-event-overlay")
+  );
+  document.getElementById("et-event-overlay").addEventListener("click", e => {
+    if (e.target.id === "et-event-overlay") closeModal("et-event-overlay");
+  });
+
+  document.getElementById("et-event-copy").addEventListener("click", e => {
+    const chatlink = e.currentTarget.dataset.chatlink;
+    if (!chatlink) return;
+    navigator.clipboard.writeText(chatlink).then(() => {
+      const orig = e.currentTarget.textContent;
+      e.currentTarget.textContent = "Copied!";
+      setTimeout(() => { e.currentTarget.textContent = orig; }, 2000);
+    }).catch(() => {});
+  });
+
+  document.getElementById("btn-et-filter-close").addEventListener("click", () =>
+    closeModal("et-filter-overlay")
+  );
+  document.getElementById("et-filter-overlay").addEventListener("click", e => {
+    if (e.target.id === "et-filter-overlay") closeModal("et-filter-overlay");
+  });
+}
+
+export function stopETTimer() {
+  if (_nowTimer) { clearInterval(_nowTimer); _nowTimer = null; }
+}

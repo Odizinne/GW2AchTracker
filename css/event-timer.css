@@ -1,0 +1,366 @@
+/* ── Event Timer layout ──────────────────────────────────────────────────── */
+
+#view-event-timer {
+  padding: 0;
+}
+
+.et-outer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+/* ── Frise header row (sticky top) ───────────────────────────────────────── */
+
+.et-frise-row {
+  display: flex;
+  flex-shrink: 0;
+  height: 38px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 20;
+}
+
+.et-corner {
+  flex-shrink: 0;
+  width: 178px;
+  min-width: 178px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+}
+
+.et-utcnow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
+
+.et-frise-clip {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.et-frise {
+  position: relative;
+  height: 38px;
+}
+
+.et-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-left: 1px solid var(--border-soft);
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 5px;
+  padding-left: 3px;
+  font-size: 10px;
+  color: transparent;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.et-tick-half {
+  border-left-color: var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.et-tick-quarter {
+  border-left-color: var(--border-soft);
+  color: var(--muted);
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+.et-tick-hour {
+  border-left-color: var(--border);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Body row ─────────────────────────────────────────────────────────────── */
+
+.et-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Labels sticky column */
+.et-labels-clip {
+  flex-shrink: 0;
+  width: 178px;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  z-index: 10;
+  position: relative;
+}
+
+.et-labels {
+  position: relative;
+}
+
+.et-group-label {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.et-row-label {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+/* Main scrollable area */
+.et-scroll {
+  flex: 1;
+  overflow: auto;
+  overflow-anchor: none;
+}
+
+.et-scroll::-webkit-scrollbar        { height: 8px; width: 8px; }
+.et-scroll::-webkit-scrollbar-track  { background: var(--bg3); }
+.et-scroll::-webkit-scrollbar-thumb  { background: var(--muted); border-radius: 4px; }
+
+.et-content {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Group bar in content (divider line) */
+.et-group-bar {
+  width: 100%;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* Track row in content */
+.et-row-track {
+  position: relative; /* blocks are abs-positioned within each track row */
+  border-bottom: 1px solid var(--border-soft);
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent calc(var(--et-grid-px) - 1px),
+    var(--border-soft) calc(var(--et-grid-px) - 1px),
+    var(--border-soft) var(--et-grid-px)
+  );
+}
+
+/* ── Event blocks ─────────────────────────────────────────────────────────── */
+
+.et-block {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+  transition: filter 0.1s, opacity 0.1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  min-width: 4px;
+}
+
+.et-block:hover {
+  filter: brightness(1.18);
+  z-index: 5;
+}
+
+[data-theme="light"] .et-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  z-index: -1;
+  pointer-events: none;
+}
+
+[data-theme="light"] .et-block:hover::before {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] .et-block-name {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+[data-theme="light"] .et-row-label,
+[data-theme="light"] .et-group-label {
+  color: var(--text);
+}
+
+.et-block-name {
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+/* ── Now line ─────────────────────────────────────────────────────────────── */
+
+.et-now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  z-index: 8;
+  pointer-events: none;
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* Triangle indicator in the frise (positioned relative to frise-row) */
+.et-now-line-head {
+  display: none; /* hidden, utcnow label serves the purpose */
+}
+
+.et-frise-now-line {
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  width: 2px;
+  background: var(--accent);
+  z-index: 30;
+  pointer-events: none;
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* ── Event modal ──────────────────────────────────────────────────────────── */
+
+#et-event-overlay .modal {
+  max-width: 400px;
+}
+
+.et-event-modal-row-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.et-event-time-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.et-event-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.et-event-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Filter modal ─────────────────────────────────────────────────────────── */
+
+#et-filter-overlay .modal {
+  max-width: 380px;
+}
+
+.et-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.et-filter-row:last-child {
+  border-bottom: none;
+}
+
+.et-filter-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.et-filter-row-right {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.et-filter-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+}
+
+.et-filter-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.et-filter-up,
+.et-filter-down {
+  font-size: 10px;
+  padding: 1px 5px;
+  line-height: 1.6;
+}
+
+/* ── Topbar filter button ─────────────────────────────────────────────────── */
+
+#btn-et-filter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
