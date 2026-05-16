@@ -21,7 +21,7 @@ import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } fr
 import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
-import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer } from "./event-timer.js";
+import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll } from "./event-timer.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -85,6 +85,7 @@ const btnShowHidden           = document.getElementById("btn-show-hidden");
 const btnShowCompletedDaily   = document.getElementById("btn-show-completed-daily");
 const btnDailyFilter          = document.getElementById("btn-daily-filter");
 const btnEtFilter             = document.getElementById("btn-et-filter");
+const btnEtAutoScroll         = document.getElementById("btn-et-autoscroll");
 const favoritesBody     = document.getElementById("favorites-body");
 const btnViewList       = document.getElementById("btn-view-list");
 const btnViewTile       = document.getElementById("btn-view-tile");
@@ -512,6 +513,17 @@ function renderListView(viewEl) {
   viewEl.querySelector(".tile-grid")?.remove();
 }
 
+// ── Auto-update ───────────────────────────────────────────────────────────────
+
+let _autoUpdateTimer = null;
+
+function applyAutoUpdate(intervalMin) {
+  if (_autoUpdateTimer) { clearInterval(_autoUpdateTimer); _autoUpdateTimer = null; }
+  if (intervalMin > 0) {
+    _autoUpdateTimer = setInterval(() => doFetch(), intervalMin * 60_000);
+  }
+}
+
 // ── View routing ──────────────────────────────────────────────────────────────
 
 function navigateTo(name) {
@@ -528,6 +540,7 @@ function navigateTo(name) {
   _updateFriseVisibility(name);
   btnDailyFilter.classList.toggle("hidden", name !== "daily");
   btnEtFilter.classList.toggle("hidden", name !== "event-timer");
+  btnEtAutoScroll.classList.toggle("hidden", name !== "event-timer");
   sortControls.classList.toggle("hidden", name !== "browser");
   const hideViewToggle = name === "daily" || name === "event-timer";
   btnViewList.classList.toggle("hidden", hideViewToggle);
@@ -550,6 +563,7 @@ function navigateTo(name) {
   } else if (name === "event-timer") {
     viewTitle.textContent = t("titleEventTimer");
     viewSubtitle.textContent = "";
+    enableETAutoScroll();
     renderEventTimerView(document.getElementById("view-event-timer"));
   }
 }
@@ -1175,6 +1189,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-threshold").value        = settings.thresholdPct;
   document.getElementById("s-tier").value             = settings.useFinalTier ? "last" : "next";
   document.getElementById("s-fetch-mode").value       = settings.fetchMode ?? "account-all";
+  document.getElementById("s-auto-update").value      = settings.autoUpdateInterval ?? 0;
   document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
@@ -1246,7 +1261,9 @@ function doSaveSettings() {
   settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
   settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
   settings.useFinalTier  = document.getElementById("s-tier").value === "last";
-  settings.fetchMode     = document.getElementById("s-fetch-mode").value;
+  settings.fetchMode          = document.getElementById("s-fetch-mode").value;
+  settings.autoUpdateInterval = parseInt(document.getElementById("s-auto-update").value) || 0;
+  applyAutoUpdate(settings.autoUpdateInterval);
   settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
@@ -1392,6 +1409,7 @@ if (settings.accounts.length) {
     if (currentView === "favorites") renderFavoritesView();
     if (currentView === "daily") renderDailyViewWrapper();
   }
+  applyAutoUpdate(settings.autoUpdateInterval ?? 0);
   doFetch();
 }
 

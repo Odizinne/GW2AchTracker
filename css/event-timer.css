@@ -358,10 +358,17 @@
   line-height: 1.6;
 }
 
-/* ── Topbar filter button ─────────────────────────────────────────────────── */
+/* ── Topbar buttons ───────────────────────────────────────────────────────── */
 
-#btn-et-filter {
+#btn-et-filter,
+#btn-et-autoscroll {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+#btn-et-autoscroll.active {
+  background: var(--accent);
+  color: var(--bg1);
+  border-color: var(--accent);
 }

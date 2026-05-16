@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   clearCompletedFavorites: false,
   accentPalette: "orange",
   fetchMode: "account-all",
+  autoUpdateInterval: 0,
   theme: "dark",
   viewMode: "list",
   lang: "en",

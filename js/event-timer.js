@@ -128,6 +128,19 @@ function localOffsetLabel() {
 
 let _nowTimer = null;
 let _currentEventModal = null;
+let _autoScroll = false;
+let _isProgrammaticScroll = false;
+let _doAutoScroll = null; // closure set by renderEventTimerView
+
+function setAutoScrollState(enabled) {
+  _autoScroll = enabled;
+  const btn = document.getElementById("btn-et-autoscroll");
+  if (btn) btn.classList.toggle("active", enabled);
+}
+
+export function enableETAutoScroll() {
+  setAutoScrollState(true);
+}
 
 // ── Main render ───────────────────────────────────────────────────────────────
 
@@ -305,6 +318,7 @@ export async function renderEventTimerView(container) {
     friseEl.style.transform  = `translateX(-${scrollEl.scrollLeft}px)`;
     labelsEl.style.transform = `translateY(-${scrollEl.scrollTop}px)`;
     updateNowLine(false);
+    if (!_isProgrammaticScroll) setAutoScrollState(false);
   }, { passive: true });
 
   // ── Now line ─────────────────────────────────────────────────────────────
@@ -312,21 +326,31 @@ export async function renderEventTimerView(container) {
   function updateNowLine(animated = true) {
     const nowSec = utcNowSec();
     const x = (nowSec / 60) * PX_PER_MIN;
-    nowLine.style.transition = animated ? 'left 1s linear' : 'none';
+    nowLine.style.transition = (animated && !_autoScroll) ? 'left 1s linear' : 'none';
     nowLine.style.left = (x - scrollEl.scrollLeft) + "px";
     utcNowEl.textContent = minToHHMM(Math.floor(nowSec / 60)) + " (" + localOffsetLabel() + ")";
   }
 
+  function doAutoScroll() {
+    if (!_autoScroll) return;
+    const target = Math.max(0, (utcNowSec() / 60) * PX_PER_MIN - 15 * PX_PER_MIN);
+    if (Math.abs(scrollEl.scrollLeft - target) < 0.5) return;
+    _isProgrammaticScroll = true;
+    scrollEl.scrollLeft = target;
+    requestAnimationFrame(() => { _isProgrammaticScroll = false; });
+  }
+  _doAutoScroll = doAutoScroll;
+
   updateNowLine(false);
   if (_nowTimer) clearInterval(_nowTimer);
-  _nowTimer = setInterval(() => updateNowLine(true), 1_000);
+  _nowTimer = setInterval(() => { updateNowLine(true); doAutoScroll(); }, 1_000);
 
-  // ── Auto-scroll to current time ──────────────────────────────────────────
+  // ── Scroll to current time on load ───────────────────────────────────────
 
   requestAnimationFrame(() => {
-    const nowMin = utcNowMin();
-    const nowPx  = nowMin * PX_PER_MIN;
-    scrollEl.scrollLeft = Math.max(0, nowPx - scrollEl.clientWidth * 0.3);
+    _isProgrammaticScroll = true;
+    scrollEl.scrollLeft = Math.max(0, utcNowMin() * PX_PER_MIN - 15 * PX_PER_MIN);
+    requestAnimationFrame(() => { _isProgrammaticScroll = false; });
   });
 }
 
@@ -447,6 +471,11 @@ export function openETFilterModal() {
 // ── Init (wire modal close buttons) ──────────────────────────────────────────
 
 export function initEventTimer() {
+  document.getElementById("btn-et-autoscroll").addEventListener("click", () => {
+    setAutoScrollState(!_autoScroll);
+    if (_autoScroll && _doAutoScroll) _doAutoScroll();
+  });
+
   document.getElementById("btn-et-event-close").addEventListener("click", () =>
     closeModal("et-event-overlay")
   );
