@@ -965,6 +965,7 @@ function selectCategory(cat) {
     showView("browser");
     btnShowHidden.classList.add("hidden");
     sortControls.classList.remove("hidden");
+    _updateFriseVisibility("browser");
   }
 
   viewTitle.textContent = cat.name;
