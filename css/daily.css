@@ -193,6 +193,124 @@
   flex-shrink: 0;
 }
 
+/* ── Fractal daily table ── */
+.fractal-table-wrap {
+  flex-shrink: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.fractal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.fractal-tier-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.fractal-tier-cell:nth-child(even) { border-right: none; }
+.fractal-tier-cell:nth-last-child(-n+2) { border-bottom: none; }
+
+.fractal-compact-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.fractal-tier-header {
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.fractal-tier-label {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.fractal-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.fractal-row:last-child { border-bottom: none; }
+.fractal-row:hover { background: var(--bg3); }
+
+.fractal-row-inactive {
+  opacity: 0.3;
+}
+
+.fractal-row-done {
+  opacity: 0.45;
+  background: var(--bg1);
+}
+
+.fractal-row-icon-slot {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fractal-row-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.fractal-row-num {
+  flex-shrink: 0;
+  width: 22px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: right;
+}
+
+.fractal-row-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
 .daily-empty {
   font-size: 13px;
   color: var(--muted);
@@ -267,4 +385,20 @@
   height: 1px;
   background: var(--border);
   margin: 6px 0;
+}
+
+.daily-filter-section-label {
+  padding: 4px 1.4rem 2px;
+  margin: 0 -1.4rem;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.daily-filter-item-indent {
+  padding-left: 2.2rem;
+  font-size: 12px;
+  color: var(--muted);
 }
