@@ -14,15 +14,9 @@
   height: 160px;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
   cursor: grab;
   user-select: none;
 }
-
-#ap-frise-scroll::-webkit-scrollbar { height: 4px; }
-#ap-frise-scroll::-webkit-scrollbar-track { background: transparent; }
-#ap-frise-scroll::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 #ap-frise-canvas {
   position: relative;
@@ -44,20 +38,20 @@
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  background: color-mix(in srgb, var(--accent) 30%, white);
-  box-shadow: 0 0 3px 1px color-mix(in srgb, var(--accent) 50%, white);
-  transform: translate(-50%, -50%);
-  animation: ap-particle-fly 0.8s ease-out forwards;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent) 65%, white) 15%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 50%,
+    transparent 90%
+  );
+  animation: ap-particle-glow 2s ease-in-out infinite;
 }
 
-[data-theme="light"] .ap-particle {
-  background: color-mix(in srgb, var(--accent) 60%, black);
-  box-shadow: 0 0 3px 1px color-mix(in srgb, var(--accent) 70%, black);
-}
-
-@keyframes ap-particle-fly {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0px, 0px); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)); }
+@keyframes ap-particle-glow {
+  0%   { opacity: 0.7; transform: translate(-50%, -50%) scale(0.7); }
+  50%  { opacity: 1;   transform: translate(-50%, -50%) scale(1.0); }
+  100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.7); }
 }
 
 .ap-chest-line {

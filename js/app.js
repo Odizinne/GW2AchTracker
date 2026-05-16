@@ -200,9 +200,10 @@ const _apTopbarLabel = document.getElementById("ap-topbar-label");
 const _btnFriseToggle = document.getElementById("btn-frise-toggle");
 const _friseChevron   = document.getElementById("frise-chevron");
 
-let friseExpanded  = localStorage.getItem("gw2_frise_expanded") !== "false";
-let _apDataReady   = false;
-let _lastFriseAp   = 0;
+let friseExpanded      = localStorage.getItem("gw2_frise_expanded") !== "false";
+let _apDataReady       = false;
+let _lastFriseAp       = 0;
+let _lastRenderedFriseAp = -1;
 
 function _updateFriseToggle() {
   _friseChevron.setAttribute("points", friseExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9");
@@ -212,8 +213,11 @@ function _updateFriseVisibility(viewName = currentView) {
   const show = _apDataReady && viewName === "nearly-completed";
   _apTopbarLabel.classList.toggle("hidden", !show);
   _btnFriseToggle.classList.toggle("hidden", !show);
-  if (!show) { stopApParticles(); _friseEl.classList.add("hidden"); return; }
-  if (_friseCanvas.children.length === 0) renderApFrise(_friseCanvas, _friseScroll, _friseTooltip, _lastFriseAp);
+  if (!show) { _friseEl.classList.add("hidden"); return; }
+  if (_friseCanvas.children.length === 0 || _lastFriseAp !== _lastRenderedFriseAp) {
+    renderApFrise(_friseCanvas, _friseScroll, _friseTooltip, _lastFriseAp);
+    _lastRenderedFriseAp = _lastFriseAp;
+  }
   _friseEl.classList.toggle("hidden", !friseExpanded);
 }
 
@@ -221,7 +225,6 @@ _btnFriseToggle.addEventListener("click", () => {
   friseExpanded = !friseExpanded;
   localStorage.setItem("gw2_frise_expanded", friseExpanded);
   _friseEl.classList.toggle("hidden", !friseExpanded);
-  if (!friseExpanded) stopApParticles();
   _updateFriseToggle();
 });
 

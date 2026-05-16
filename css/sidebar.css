@@ -254,13 +254,7 @@
   min-height: 0;
   overflow-y: auto;
   padding: 8px 10px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
 }
-
-#browser-tree:not(.hidden)::-webkit-scrollbar { width: 4px; }
-#browser-tree:not(.hidden)::-webkit-scrollbar-track { background: transparent; }
-#browser-tree:not(.hidden)::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .browser-group { display: flex; flex-direction: column; }
 

@@ -172,13 +172,7 @@
   z-index: 200;
   max-height: 340px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
 }
-
-.global-search-results::-webkit-scrollbar { width: 4px; }
-.global-search-results::-webkit-scrollbar-track { background: transparent; }
-.global-search-results::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .search-result-item {
   display: block;

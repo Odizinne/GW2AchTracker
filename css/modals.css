@@ -72,13 +72,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
 }
-
-.modal-body::-webkit-scrollbar { width: 4px; }
-.modal-body::-webkit-scrollbar-track { background: transparent; }
-.modal-body::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .modal-footer {
   display: flex;
@@ -126,13 +120,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
 }
-
-.settings-tab-panels::-webkit-scrollbar { width: 4px; }
-.settings-tab-panels::-webkit-scrollbar-track { background: transparent; }
-.settings-tab-panels::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .settings-tab-panel {
   grid-area: 1 / 1;
@@ -363,14 +351,8 @@
   gap: 3px;
   max-height: 200px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
   padding-right: 2px;
 }
-
-.ach-bits-list::-webkit-scrollbar { width: 4px; }
-.ach-bits-list::-webkit-scrollbar-track { background: transparent; }
-.ach-bits-list::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .ach-bit {
   display: flex;

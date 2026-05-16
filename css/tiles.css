@@ -9,13 +9,7 @@
   align-content: start;
   flex: 1;
   min-height: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg4) transparent;
 }
-
-.tile-grid::-webkit-scrollbar { width: 4px; }
-.tile-grid::-webkit-scrollbar-track { background: transparent; }
-.tile-grid::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
 
 .tile-empty {
   grid-column: 1 / -1;

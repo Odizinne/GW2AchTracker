@@ -49,6 +49,11 @@
   --shadow-sm:   0 2px 8px rgba(0,0,0,0.08);
 }
 
+* { scrollbar-width: thin; scrollbar-color: var(--muted) var(--bg3); }
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--bg3); }
+::-webkit-scrollbar-thumb  { background: var(--muted); border-radius: 4px; }
+
 html, body { height: 100%; }
 
 body {
