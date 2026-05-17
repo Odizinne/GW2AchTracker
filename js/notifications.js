@@ -38,6 +38,9 @@ export function initNotifications(volume, onFire, onTick) {
   _volume = volume;
   if (_interval) clearInterval(_interval);
 
+  const now = Date.now();
+  save(load().filter(r => !r.fireAt || r.fireAt > now));
+
   _interval = setInterval(() => {
     const all = load();
     onTick?.(all);
