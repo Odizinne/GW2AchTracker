@@ -555,10 +555,12 @@ function navigateTo(name) {
     enableETAutoScroll();
     renderEventTimerView(document.getElementById("view-event-timer"));
   }
+  updateSplitConflicts();
 }
 
 document.querySelectorAll(".nav-item[data-view]").forEach(item => {
   item.addEventListener("click", () => {
+    if (item.dataset.view === splitViewName) return;
     if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "weekly") return;
     navigateTo(item.dataset.view);
   });
@@ -902,6 +904,7 @@ async function doFetch() {
 
   updateCacheInfo();
   setFetching(false);
+  if (splitViewActive) renderSplitContent();
 }
 
 btnRefresh.addEventListener("click", () => { doFetch(); });
@@ -1082,6 +1085,7 @@ btnShowCompletedDaily.addEventListener("click", () => {
   showDailyCompleted = !showDailyCompleted;
   btnShowCompletedDaily.classList.toggle("active", showDailyCompleted);
   renderDailyViewWrapper();
+  if (splitViewActive && splitViewName === "daily") renderSplitContent();
 });
 
 btnDailyFilter.addEventListener("click", () => {
@@ -1404,11 +1408,185 @@ btnShowHidden.addEventListener("click", () => {
   showHidden = !showHidden;
   btnShowHidden.classList.toggle("active", showHidden);
   renderNearlyDoneRows(lastNearlyDoneRows);
+  if (splitViewActive && splitViewName === "nearly-completed") renderSplitContent();
 });
 
 // ── Event Timer filter button ─────────────────────────────────────────────────
 
 btnEtFilter.addEventListener("click", () => openETFilterModal());
+
+// ── Split view ────────────────────────────────────────────────────────────────
+
+let splitViewActive = false;
+let splitViewName   = null;
+
+const btnSplitView    = document.getElementById("btn-split-view");
+const splitDropdown   = document.getElementById("split-dropdown");
+const splitPanel      = document.getElementById("split-panel");
+const splitPanelTitle = document.getElementById("split-panel-title");
+const splitPanelBody  = document.getElementById("split-panel-body");
+const btnSplitClose   = document.getElementById("btn-split-close");
+const viewScaleSlider = document.getElementById("view-scale-slider");
+const scaleLabel      = document.getElementById("scale-label");
+
+const SPLIT_LABELS = {
+  "favorites":        "Favorites",
+  "nearly-completed": "Nearly completed",
+  "daily":            "Daily",
+  "weekly":           "Weekly",
+  "event-timer":      "Event Timer",
+};
+
+btnSplitView.addEventListener("click", e => {
+  e.stopPropagation();
+  splitDropdown.classList.toggle("hidden");
+});
+
+document.addEventListener("click", () => splitDropdown.classList.add("hidden"));
+splitDropdown.addEventListener("click", e => e.stopPropagation());
+
+splitDropdown.querySelectorAll(".split-choice").forEach(btn => {
+  btn.addEventListener("click", () => {
+    splitDropdown.classList.add("hidden");
+    if (btn.dataset.view === "none") { deactivateSplitPanel(); return; }
+    splitViewName = btn.dataset.view;
+    splitDropdown.querySelectorAll(".split-choice").forEach(b =>
+      b.classList.toggle("active", b === btn && b.dataset.view !== "none"));
+    activateSplitPanel();
+  });
+});
+
+btnSplitClose.addEventListener("click", () => deactivateSplitPanel());
+
+function activateSplitPanel() {
+  splitViewActive = true;
+  splitPanel.classList.remove("hidden");
+  btnSplitView.classList.add("active");
+  splitPanelTitle.textContent = SPLIT_LABELS[splitViewName] ?? splitViewName;
+  localStorage.setItem("gw2_split_view", splitViewName);
+  updateSplitConflicts();
+  renderSplitContent();
+}
+
+function deactivateSplitPanel() {
+  if (splitViewName === "event-timer" && currentView !== "event-timer") stopETTimer();
+  splitViewActive = false;
+  splitViewName   = null;
+  splitPanel.classList.add("hidden");
+  btnSplitView.classList.remove("active");
+  splitPanelBody.innerHTML = "";
+  splitDropdown.querySelectorAll(".split-choice").forEach(b => b.classList.remove("active"));
+  localStorage.removeItem("gw2_split_view");
+  updateSplitConflicts();
+}
+
+function updateSplitConflicts() {
+  document.querySelectorAll(".nav-item[data-view]").forEach(item => {
+    item.disabled = item.dataset.view === splitViewName;
+  });
+  splitDropdown.querySelectorAll(".split-choice").forEach(btn => {
+    if (btn.dataset.view === "none") return;
+    btn.disabled = btn.dataset.view === currentView;
+  });
+}
+
+function renderSplitContent() {
+  if (!splitViewActive || !splitViewName) return;
+  splitPanelBody.innerHTML = "";
+
+  if (splitViewName === "daily") {
+    const pm = getProgressMap();
+    if (!pm) { splitPanelBody.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`; return; }
+    renderDailyView(splitPanelBody, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat));
+    return;
+  }
+
+  if (splitViewName === "weekly") {
+    const pm = getProgressMap();
+    renderWeeklyView(splitPanelBody, pm, (id, cat) => openAchFromCache(id, cat));
+    return;
+  }
+
+  if (splitViewName === "event-timer") {
+    renderEventTimerView(splitPanelBody);
+    return;
+  }
+
+  if (splitViewName === "favorites")        { renderSplitTable(splitPanelBody, _buildFavRows());       return; }
+  if (splitViewName === "nearly-completed") { renderSplitNearlyCompleted(splitPanelBody);              return; }
+}
+
+function _buildFavRows() {
+  const cache = loadCache(), pm = getProgressMap();
+  const itemNameMap = getItemNameMap(), titleNameMap = getTitleNameMap();
+  return [...favoritesSet].flatMap(id => {
+    const ach = cache[id];
+    if (!ach) return [];
+    const entry = pm?.[id] || {};
+    const tiers = ach.tiers || [];
+    const progress = entry.current || 0;
+    const done     = entry.done    || false;
+    const maxTier  = tiers[tiers.length - 1];
+    const required = maxTier?.count ?? null;
+    const pct = done ? 100 : required ? Math.min(100, Math.round((progress / required) * 1000) / 10) : null;
+    const totalPts = ach.point_cap ?? tiers.reduce((s, tier) => s + (tier.points || 0), 0);
+    return [{ id, name: ach.name, progress, required, percent: pct, done,
+      rewardStr: formatRewards(ach.rewards || [], itemNameMap, titleNameMap, totalPts) }];
+  });
+}
+
+function renderSplitNearlyCompleted(container) {
+  let rows = lastNearlyDoneRows;
+  if (!showHidden) rows = rows.filter(r => !hiddenSet.has(r.id));
+  renderSplitTable(container, rows);
+}
+
+function renderSplitTable(container, rows) {
+  if (!rows.length) {
+    container.innerHTML = `<div class="daily-empty" style="padding:24px 16px;color:var(--muted);font-size:13px;text-align:center">No items</div>`;
+    return;
+  }
+  const visible = settings.hideCompleted ? rows.filter(r => !r.done) : rows;
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-pct">${t("thPct")}</th>
+            <th class="col-prog">${t("thProgress")}</th>
+            <th class="col-name">${t("thAchievement")}</th>
+          </tr>
+        </thead>
+        <tbody>${visible.map(row => {
+          const hasProgress = row.percent !== null && row.percent !== undefined;
+          const pctCell = row.done
+            ? `<span class="pct-done">✓</span>`
+            : hasProgress
+              ? `<span class="${pctClass(row.percent)}">${row.percent.toFixed(1)}%</span>`
+              : `<span class="pct-na">—</span>`;
+          return `<tr class="${row.done ? "row-done" : ""}">
+            <td class="col-pct">${pctCell}</td>
+            <td class="col-prog">${buildProgCell(row)}</td>
+            <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>
+    </div>`;
+  container.querySelectorAll(".ach-row-btn").forEach(btn =>
+    btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id))));
+}
+
+// ── Scale slider ──────────────────────────────────────────────────────────────
+
+updateRangeFill(viewScaleSlider);
+
+viewScaleSlider.addEventListener("input", () => {
+  const pct = parseInt(viewScaleSlider.value);
+  scaleLabel.textContent = pct + "%";
+  document.documentElement.style.setProperty("--view-scale", pct / 100);
+  localStorage.setItem("gw2_view_scale", pct);
+  updateRangeFill(viewScaleSlider);
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -1510,6 +1688,22 @@ setModalBackCallback(targetCat => {
 initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), getCategoryForAchievement(ach.id)));
 checkSetup();
 updateCacheInfo();
+
+// ── Restore split view & scale ────────────────────────────────────────────────
+const _savedScale = parseInt(localStorage.getItem("gw2_view_scale"));
+if (_savedScale >= 50 && _savedScale <= 100) {
+  viewScaleSlider.value = _savedScale;
+  scaleLabel.textContent = _savedScale + "%";
+  document.documentElement.style.setProperty("--view-scale", _savedScale / 100);
+  updateRangeFill(viewScaleSlider);
+}
+const _savedSplit = localStorage.getItem("gw2_split_view");
+if (_savedSplit && _savedSplit !== currentView) {
+  splitViewName = _savedSplit;
+  splitDropdown.querySelectorAll(".split-choice").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === _savedSplit));
+  activateSplitPanel();
+}
 if (settings.accounts.length) {
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());

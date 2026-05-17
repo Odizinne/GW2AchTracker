@@ -1,0 +1,135 @@
+/* ── Views container ── */
+#views-container {
+  flex: 1;
+  display: flex;
+  gap: 14px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#views-primary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Split panel ── */
+#split-panel {
+  width: 50%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+#split-panel.hidden { display: none; }
+
+.split-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#split-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.split-panel-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  zoom: var(--view-scale, 1);
+}
+
+/* ── Scale control ── */
+.scale-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scale-label {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 30px;
+  text-align: right;
+  line-height: 1;
+}
+
+.scale-slider {
+  width: 72px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* ── Split view button & dropdown ── */
+.split-view-wrap {
+  position: relative;
+}
+
+.split-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 200;
+  min-width: 170px;
+  padding: 4px;
+}
+
+.split-dropdown.hidden { display: none; }
+
+.split-choice {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.split-choice:hover  { background: var(--bg3); color: var(--accent); }
+.split-choice.active { background: var(--accent-glow); color: var(--accent); }
+
+.split-dropdown-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Conflict disabled states ── */
+.nav-item[data-view]:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.split-choice:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Primary view zoom ── */
+#views-primary > .view.active-view {
+  zoom: var(--view-scale, 1);
+}
