@@ -132,6 +132,7 @@ let _currentEventModal = null;
 let _autoScroll = false;
 let _isProgrammaticScroll = false;
 let _doAutoScroll = null; // closure set by renderEventTimerView
+let _pxPerMin = 8; // shared across renders so split and main views use the same scale
 
 function setAutoScrollState(enabled) {
   _autoScroll = enabled;
@@ -181,9 +182,11 @@ export async function renderEventTimerView(container) {
   const nowLine  = container.querySelector("#et-now-line");
   const utcNowEl = container.querySelector("#et-utcnow");
 
-  // Show exactly 2 hours in the visible scroll area.
-  // Round to integer px so repeating-gradient stops land on physical pixels.
-  const PX_PER_MIN = Math.round((scrollEl.clientWidth || 960) / 120);
+  // Only update the shared scale from a wide container (the main view).
+  // The split panel is narrow and would produce a compressed scale — reuse the stored value instead.
+  const measured = Math.round(scrollEl.clientWidth / 120);
+  if (measured > 5) _pxPerMin = measured;
+  const PX_PER_MIN = _pxPerMin;
   const TOTAL_W    = TOTAL_MIN * PX_PER_MIN;
   container.style.setProperty("--et-grid-px", (15 * PX_PER_MIN) + "px");
 

@@ -527,6 +527,7 @@ function navigateTo(name) {
   btnDailyFilter.classList.toggle("hidden", name !== "daily");
   btnEtFilter.classList.toggle("hidden", name !== "event-timer");
   btnEtAutoScroll.classList.toggle("hidden", name !== "event-timer");
+  btnSplitView.disabled = name === "event-timer";
   sortControls.classList.toggle("hidden", name !== "browser");
   const hideViewToggle = name === "daily" || name === "weekly" || name === "event-timer";
   btnViewList.classList.toggle("hidden", hideViewToggle);
@@ -1085,7 +1086,6 @@ btnShowCompletedDaily.addEventListener("click", () => {
   showDailyCompleted = !showDailyCompleted;
   btnShowCompletedDaily.classList.toggle("active", showDailyCompleted);
   renderDailyViewWrapper();
-  if (splitViewActive && splitViewName === "daily") renderSplitContent();
 });
 
 btnDailyFilter.addEventListener("click", () => {
@@ -1408,7 +1408,6 @@ btnShowHidden.addEventListener("click", () => {
   showHidden = !showHidden;
   btnShowHidden.classList.toggle("active", showHidden);
   renderNearlyDoneRows(lastNearlyDoneRows);
-  if (splitViewActive && splitViewName === "nearly-completed") renderSplitContent();
 });
 
 // ── Event Timer filter button ─────────────────────────────────────────────────
@@ -1421,61 +1420,33 @@ let splitViewActive = false;
 let splitViewName   = null;
 
 const btnSplitView    = document.getElementById("btn-split-view");
-const splitDropdown   = document.getElementById("split-dropdown");
 const splitPanel      = document.getElementById("split-panel");
-const splitPanelTitle = document.getElementById("split-panel-title");
 const splitPanelBody  = document.getElementById("split-panel-body");
-const btnSplitClose   = document.getElementById("btn-split-close");
 const viewScaleSlider = document.getElementById("view-scale-slider");
 const scaleLabel      = document.getElementById("scale-label");
 
-const SPLIT_LABELS = {
-  "favorites":        "Favorites",
-  "nearly-completed": "Nearly completed",
-  "daily":            "Daily",
-  "weekly":           "Weekly",
-  "event-timer":      "Event Timer",
-};
-
-btnSplitView.addEventListener("click", e => {
-  e.stopPropagation();
-  splitDropdown.classList.toggle("hidden");
+btnSplitView.addEventListener("click", () => {
+  if (splitViewActive) deactivateSplitPanel();
+  else { splitViewName = "event-timer"; activateSplitPanel(); }
 });
 
-document.addEventListener("click", () => splitDropdown.classList.add("hidden"));
-splitDropdown.addEventListener("click", e => e.stopPropagation());
-
-splitDropdown.querySelectorAll(".split-choice").forEach(btn => {
-  btn.addEventListener("click", () => {
-    splitDropdown.classList.add("hidden");
-    if (btn.dataset.view === "none") { deactivateSplitPanel(); return; }
-    splitViewName = btn.dataset.view;
-    splitDropdown.querySelectorAll(".split-choice").forEach(b =>
-      b.classList.toggle("active", b === btn && b.dataset.view !== "none"));
-    activateSplitPanel();
-  });
-});
-
-btnSplitClose.addEventListener("click", () => deactivateSplitPanel());
 
 function activateSplitPanel() {
   splitViewActive = true;
   splitPanel.classList.remove("hidden");
   btnSplitView.classList.add("active");
-  splitPanelTitle.textContent = SPLIT_LABELS[splitViewName] ?? splitViewName;
-  localStorage.setItem("gw2_split_view", splitViewName);
+localStorage.setItem("gw2_split_view", splitViewName);
   updateSplitConflicts();
   renderSplitContent();
 }
 
 function deactivateSplitPanel() {
-  if (splitViewName === "event-timer" && currentView !== "event-timer") stopETTimer();
+  if (currentView !== "event-timer") stopETTimer();
   splitViewActive = false;
   splitViewName   = null;
   splitPanel.classList.add("hidden");
   btnSplitView.classList.remove("active");
   splitPanelBody.innerHTML = "";
-  splitDropdown.querySelectorAll(".split-choice").forEach(b => b.classList.remove("active"));
   localStorage.removeItem("gw2_split_view");
   updateSplitConflicts();
 }
@@ -1484,36 +1455,12 @@ function updateSplitConflicts() {
   document.querySelectorAll(".nav-item[data-view]").forEach(item => {
     item.disabled = item.dataset.view === splitViewName;
   });
-  splitDropdown.querySelectorAll(".split-choice").forEach(btn => {
-    if (btn.dataset.view === "none") return;
-    btn.disabled = btn.dataset.view === currentView;
-  });
 }
 
 function renderSplitContent() {
-  if (!splitViewActive || !splitViewName) return;
+  if (!splitViewActive) return;
   splitPanelBody.innerHTML = "";
-
-  if (splitViewName === "daily") {
-    const pm = getProgressMap();
-    if (!pm) { splitPanelBody.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`; return; }
-    renderDailyView(splitPanelBody, pm, showDailyCompleted, (id, cat) => openAchFromCache(id, cat));
-    return;
-  }
-
-  if (splitViewName === "weekly") {
-    const pm = getProgressMap();
-    renderWeeklyView(splitPanelBody, pm, (id, cat) => openAchFromCache(id, cat));
-    return;
-  }
-
-  if (splitViewName === "event-timer") {
-    renderEventTimerView(splitPanelBody);
-    return;
-  }
-
-  if (splitViewName === "favorites")        { renderSplitTable(splitPanelBody, _buildFavRows());       return; }
-  if (splitViewName === "nearly-completed") { renderSplitNearlyCompleted(splitPanelBody);              return; }
+  renderEventTimerView(splitPanelBody);
 }
 
 function _buildFavRows() {
@@ -1697,11 +1644,8 @@ if (_savedScale >= 50 && _savedScale <= 100) {
   document.documentElement.style.setProperty("--view-scale", _savedScale / 100);
   updateRangeFill(viewScaleSlider);
 }
-const _savedSplit = localStorage.getItem("gw2_split_view");
-if (_savedSplit && _savedSplit !== currentView) {
-  splitViewName = _savedSplit;
-  splitDropdown.querySelectorAll(".split-choice").forEach(b =>
-    b.classList.toggle("active", b.dataset.view === _savedSplit));
+if (localStorage.getItem("gw2_split_view") && currentView !== "event-timer") {
+  splitViewName = "event-timer";
   activateSplitPanel();
 }
 if (settings.accounts.length) {

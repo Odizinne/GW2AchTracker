@@ -31,23 +31,12 @@
 
 #split-panel.hidden { display: none; }
 
-.split-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-#split-panel-title {
-  font-size: 13px;
-  font-weight: 600;
-}
 
 .split-panel-body {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   min-height: 0;
   zoom: var(--view-scale, 1);
 }
@@ -73,48 +62,11 @@
   accent-color: var(--accent);
 }
 
-/* ── Split view button & dropdown ── */
-.split-view-wrap {
-  position: relative;
-}
-
-.split-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  z-index: 200;
-  min-width: 170px;
-  padding: 4px;
-}
-
-.split-dropdown.hidden { display: none; }
-
-.split-choice {
-  display: block;
-  width: 100%;
-  padding: 7px 10px;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 13px;
-  font-family: var(--font);
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.1s, color 0.1s;
-}
-
-.split-choice:hover  { background: var(--bg3); color: var(--accent); }
-.split-choice.active { background: var(--accent-glow); color: var(--accent); }
-
-.split-dropdown-sep {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 0;
+/* ── Split view button ── */
+#btn-split-view.active {
+  background: var(--accent);
+  color: var(--bg1);
+  border-color: var(--accent);
 }
 
 /* ── Conflict disabled states ── */
@@ -122,11 +74,6 @@
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;
-}
-
-.split-choice:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 /* ── Primary view zoom ── */
