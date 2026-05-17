@@ -328,7 +328,7 @@ export async function renderEventTimerView(container) {
     const x = (nowSec / 60) * PX_PER_MIN;
     nowLine.style.transition = (animated && !_autoScroll) ? 'left 1s linear' : 'none';
     nowLine.style.left = (x - scrollEl.scrollLeft) + "px";
-    utcNowEl.textContent = minToHHMM(Math.floor(nowSec / 60)) + " (" + localOffsetLabel() + ")";
+    utcNowEl.textContent = minToHHMM(localNowMin()) + " (" + localOffsetLabel() + ")";
   }
 
   function doAutoScroll() {
