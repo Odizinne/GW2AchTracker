@@ -200,35 +200,6 @@
 }
 
 /* ── Loading bar ── */
-#loading-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  overflow: hidden;
-  background: transparent;
-}
-
-#loading-bar-fill {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 40%;
-  background: var(--accent);
-  animation: loading-slide 1.4s ease-in-out infinite;
-}
-
-#loading-bar.determinate #loading-bar-fill {
-  animation: none;
-  left: 0;
-  transition: width 0.25s ease;
-}
-
-@keyframes loading-slide {
-  0%   { left: -40%; }
-  100% { left: 100%; }
-}
 
 /* ── Views ── */
 .view {

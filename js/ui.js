@@ -26,6 +26,7 @@ export function showView(name) {
     "favorites":        "view-favorites",
     "nearly-completed": "view-nearly-completed",
     "daily":            "view-daily",
+    "weekly":           "view-weekly",
     "browser":          "view-browser",
     "event-timer":      "view-event-timer",
   };

@@ -396,3 +396,97 @@
   font-size: 12px;
   color: var(--muted);
 }
+
+/* ── Weekly view ── */
+#view-weekly.active-view {
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.weekly-wrap {
+  max-width: 780px;
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.weekly-tier-col {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.weekly-tier-col:last-child { border-right: none; }
+
+.weekly-tier-header {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.weekly-tier-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 6px;
+}
+
+.weekly-tier-name { color: var(--muted); }
+
+.weekly-tier-count { color: var(--muted); }
+
+.weekly-tier-progress-wrap {
+  height: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.weekly-tier-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.weekly-tier-progress-done { background: var(--green); }
+
+.weekly-fractal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: background 0.1s;
+}
+
+.weekly-fractal-row:last-child { border-bottom: none; }
+
+.weekly-fractal-row:hover { background: var(--bg3); }
+
+.weekly-fractal-done { opacity: 0.4; }
+
+.weekly-fractal-num {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.weekly-fractal-name {
+  font-size: 12px;
+  flex: 1;
+  color: var(--text);
+}
