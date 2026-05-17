@@ -279,13 +279,13 @@
 .et-event-modal-row-label {
   font-size: 11px;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin: 0;
 }
 
 .et-event-time-label {
   font-size: 11px;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin: 0;
   font-family: monospace;
   letter-spacing: 0.5px;
 }
@@ -302,6 +302,30 @@
   align-items: center;
   gap: 6px;
 }
+
+/* ── Remind me row (inside event modal) ──────────────────────────────────── */
+
+.et-remind-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.et-remind-spin {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.et-remind-label {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+}
+
+.et-remind-row.cancel-mode .et-remind-spin,
+.et-remind-row.cancel-mode .et-remind-label { display: none; }
 
 /* ── Filter modal ─────────────────────────────────────────────────────────── */
 

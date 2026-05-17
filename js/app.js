@@ -22,7 +22,8 @@ import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { renderWeeklyView, weeklyResetCountdown } from "./weekly.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
-import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll } from "./event-timer.js";
+import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll, openEventModalForReminder } from "./event-timer.js";
+import { initNotifications, setVolume, playNotificationSound, removeReminder } from "./notifications.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -1156,7 +1157,7 @@ for (const p of PALETTES) {
 
 // ── Settings tab switching ───────────────────────────────────────────────────
 
-const SETTINGS_TAB_ORDER = ['api', 'ui', 'view'];
+const SETTINGS_TAB_ORDER = ['api', 'ui', 'view', 'notifications'];
 let settingsTabIdx = 0;
 let settingsTabAnimating = false;
 
@@ -1213,6 +1214,11 @@ btnSettings.addEventListener("click", () => {
   document.querySelector('[data-target="new-account-key"]').innerHTML = SVG_EYE;
   renderAccountsList();
   updateCacheInfo();
+  const _vol = settings.notificationVolume ?? 0.5;
+  const _volEl = document.getElementById("s-notif-volume");
+  _volEl.value = _vol;
+  document.getElementById("s-notif-volume-label").textContent = Math.round(_vol * 100) + "%";
+  updateRangeFill(_volEl);
   document.querySelectorAll(".settings-tab-btn").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".settings-tab-panel").forEach(p => p.classList.remove("active", "tab-exit-left", "tab-exit-right", "tab-enter-right", "tab-enter-left"));
   document.querySelector('.settings-tab-btn[data-tab="api"]').classList.add("active");
@@ -1279,6 +1285,8 @@ function doSaveSettings() {
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
   settings.lang                    = document.getElementById("s-lang").value;
   settings.fetchLang               = document.getElementById("s-fetch-lang").value;
+  settings.notificationVolume      = parseFloat(document.getElementById("s-notif-volume").value) || 0.7;
+  setVolume(settings.notificationVolume);
   applyTheme(settings.theme);
   saveSettings(settings);
 
@@ -1367,6 +1375,29 @@ document.querySelectorAll(".number-spin button").forEach(btn => {
   });
 });
 
+// ── Range input fill helper ───────────────────────────────────────────────────
+
+function updateRangeFill(input) {
+  const min = parseFloat(input.min) || 0;
+  const max = parseFloat(input.max) || 1;
+  const pct = (parseFloat(input.value) - min) / (max - min) * 100;
+  input.style.setProperty("--range-pct", pct + "%");
+}
+
+// ── Notification volume preview ───────────────────────────────────────────────
+
+document.getElementById("s-notif-volume").addEventListener("input", e => {
+  const vol = parseFloat(e.target.value);
+  document.getElementById("s-notif-volume-label").textContent = Math.round(vol * 100) + "%";
+  setVolume(vol);
+  updateRangeFill(e.target);
+});
+
+document.getElementById("s-notif-volume").addEventListener("change", e => {
+  setVolume(parseFloat(e.target.value));
+  playNotificationSound();
+});
+
 // ── Show hidden toggle ────────────────────────────────────────────────────────
 
 btnShowHidden.addEventListener("click", () => {
@@ -1383,6 +1414,82 @@ btnEtFilter.addEventListener("click", () => openETFilterModal());
 
 initAchModal();
 initEventTimer();
+
+// ── Event soon modal ──────────────────────────────────────────────────────────
+
+function openEventSoonModal(reminder) {
+  document.getElementById("et-soon-header").textContent =
+    "Event starting in ~" + reminder.minutesBefore + " min";
+  document.getElementById("et-soon-name").textContent = reminder.eventName;
+  document.getElementById("et-soon-row").textContent  = reminder.rowName ?? "";
+
+  const copyBtn = document.getElementById("et-soon-copy");
+  if (reminder.chatlink) {
+    copyBtn.classList.remove("hidden");
+    copyBtn.dataset.chatlink = reminder.chatlink;
+  } else {
+    copyBtn.classList.add("hidden");
+  }
+
+  openModal("et-soon-overlay");
+}
+
+document.getElementById("btn-et-soon-close-footer").addEventListener("click", () => closeModal("et-soon-overlay"));
+document.getElementById("et-soon-overlay").addEventListener("click", e => {
+  if (e.target.id === "et-soon-overlay") closeModal("et-soon-overlay");
+});
+document.getElementById("et-soon-copy").addEventListener("click", e => {
+  const chatlink = e.currentTarget.dataset.chatlink;
+  if (!chatlink) return;
+  const span = e.currentTarget.querySelector("span");
+  navigator.clipboard.writeText(chatlink).then(() => {
+    span.textContent = "Copied!";
+    setTimeout(() => { span.textContent = "Copy Location"; }, 2000);
+  }).catch(() => {});
+});
+
+let _sidebarReminder = null;
+
+function updateSidebarReminder(reminders) {
+  const section = document.getElementById("sb-reminder");
+  if (!reminders.length) {
+    _sidebarReminder = null;
+    section.classList.add("hidden");
+    return;
+  }
+
+  const now = Date.now();
+  const r = reminders.reduce((a, b) =>
+    ((a.fireAt ?? Infinity) - now) < ((b.fireAt ?? Infinity) - now) ? a : b
+  );
+
+  _sidebarReminder = r;
+  section.classList.remove("hidden");
+  document.getElementById("sb-reminder-name").textContent = r.eventName;
+  document.getElementById("sb-reminder-time").textContent = r.localFireTimeStr ?? "";
+  document.getElementById("btn-sb-reminder-cancel").dataset.reminderId = r.id ?? "";
+
+  const bar = document.getElementById("sb-reminder-bar");
+  if (r.createdAt && r.fireAt && r.fireAt > r.createdAt) {
+    const pct = Math.max(0, Math.min(100, (r.fireAt - now) / (r.fireAt - r.createdAt) * 100));
+    bar.style.width = pct + "%";
+  } else {
+    bar.style.width = "100%";
+  }
+}
+
+document.getElementById("btn-sb-reminder-cancel").addEventListener("click", () => {
+  const id = document.getElementById("btn-sb-reminder-cancel").dataset.reminderId;
+  if (id) removeReminder(id);
+  _sidebarReminder = null;
+  document.getElementById("sb-reminder").classList.add("hidden");
+});
+
+document.getElementById("sb-reminder-name").addEventListener("click", () => {
+  if (_sidebarReminder) openEventModalForReminder(_sidebarReminder);
+});
+
+initNotifications(settings.notificationVolume ?? 0.5, openEventSoonModal, updateSidebarReminder);
 setModalStateCallback((_achId, type) => {
   if (currentView === "nearly-completed") renderNearlyDoneRows(lastNearlyDoneRows);
   if (currentView === "favorites")        renderFavoritesView();

@@ -1,4 +1,5 @@
 import { openModal, closeModal } from "./ui.js";
+import { addReminder, getReminders, removeReminder } from "./notifications.js";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -356,14 +357,25 @@ export async function renderEventTimerView(container) {
 
 // ── Event modal ───────────────────────────────────────────────────────────────
 
+function _setRemindMode(hasReminder) {
+  const row = document.querySelector(".et-remind-row");
+  const btn = document.getElementById("btn-et-remind");
+  if (!row || !btn) return;
+  row.classList.toggle("cancel-mode", hasReminder);
+  btn.textContent = hasReminder ? "Cancel reminder" : "Remind me";
+  btn.classList.toggle("danger", hasReminder);
+}
+
 function openEventModal(seg, row, group, slot) {
   _currentEventModal = { seg, row, group, slot };
 
   document.getElementById("et-event-name").textContent = seg.name;
   document.getElementById("et-event-row").textContent  =
     group.id + " — " + row.name;
+  const localStart = (slot.start + localOffsetMin() + TOTAL_MIN) % TOTAL_MIN;
+  const localEnd   = (slot.end   + localOffsetMin() + TOTAL_MIN) % TOTAL_MIN;
   document.getElementById("et-event-time").textContent =
-    minToHHMM(slot.start) + " → " + minToHHMM(slot.end) + " UTC";
+    minToHHMM(localStart) + " → " + minToHHMM(localEnd);
 
   const wikiLink = seg.link || row.link || null;
   const wikiBtn  = document.getElementById("et-event-wiki");
@@ -382,7 +394,37 @@ function openEventModal(seg, row, group, slot) {
     copyBtn.classList.add("hidden");
   }
 
+  const eventKey     = seg.name + "_" + slot.start;
+  const hasReminder  = getReminders().some(r => r.eventKey === eventKey);
+  _setRemindMode(hasReminder);
+
+  const rawDiff   = slot.start - utcNowMin(); // negative = event already started
+  const tooLate   = rawDiff <= 1;
+  const remindRow = document.querySelector(".et-remind-row");
+  const minInput  = document.getElementById("et-remind-min");
+  const remindBtn = document.getElementById("btn-et-remind");
+
+  if (tooLate && !hasReminder) {
+    remindRow.classList.add("hidden");
+  } else {
+    remindRow.classList.remove("hidden");
+    remindBtn.disabled = false;
+    if (!tooLate) {
+      const maxRemind = Math.min(15, rawDiff - 1);
+      minInput.max = maxRemind;
+      if (parseInt(minInput.value) > maxRemind) minInput.value = maxRemind;
+    }
+  }
+
   openModal("et-event-overlay");
+}
+
+export function openEventModalForReminder(r) {
+  const seg   = { name: r.eventName, chatlink: r.chatlink ?? null, link: r.wikiLink ?? null };
+  const row   = { name: r.rowName ?? "", link: null };
+  const group = { id: r.groupId ?? "" };
+  const slot  = { start: r.utcStartMin ?? 0, end: r.utcEndMin ?? (r.utcStartMin ?? 0) };
+  openEventModal(seg, row, group, slot);
 }
 
 // ── Filter modal ──────────────────────────────────────────────────────────────
@@ -491,6 +533,53 @@ export function initEventTimer() {
       e.currentTarget.textContent = "Copied!";
       setTimeout(() => { e.currentTarget.textContent = orig; }, 2000);
     }).catch(() => {});
+  });
+
+  document.getElementById("btn-et-remind").addEventListener("click", () => {
+    if (!_currentEventModal) return;
+    const { seg, row, group, slot } = _currentEventModal;
+    const eventKey = seg.name + "_" + slot.start;
+    const existing = getReminders().find(r => r.eventKey === eventKey);
+
+    if (existing) {
+      removeReminder(existing.id);
+      _setRemindMode(false);
+      return;
+    }
+
+    const rawDiff = slot.start - utcNowMin();
+    if (rawDiff <= 1) return;
+    const minInput    = document.getElementById("et-remind-min");
+    const maxRemind   = Math.min(15, rawDiff - 1);
+    const reminderMin = Math.min(maxRemind, Math.max(1, parseInt(minInput.value) || 5));
+    const utcFireMin  = (slot.start - reminderMin + TOTAL_MIN) % TOTAL_MIN;
+    const localStart  = (slot.start + localOffsetMin() + TOTAL_MIN) % TOTAL_MIN;
+
+    const createdAt    = Date.now();
+    const d            = new Date();
+    const todayStart   = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    let   fireAt       = todayStart + utcFireMin * 60_000;
+    if (fireAt <= createdAt) fireAt += 86_400_000;
+    const localFireMin = (utcFireMin + localOffsetMin() + TOTAL_MIN) % TOTAL_MIN;
+
+    addReminder({
+      eventKey,
+      eventName:        seg.name,
+      rowName:          row.name,
+      groupId:          group.id,
+      chatlink:         seg.chatlink || null,
+      wikiLink:         seg.link || row.link || null,
+      utcStartMin:      slot.start,
+      utcEndMin:        slot.end,
+      utcFireMin,
+      timeLabel:        minToHHMM(slot.start) + " UTC / " + minToHHMM(localStart) + " local",
+      minutesBefore:    reminderMin,
+      createdAt,
+      fireAt,
+      localFireTimeStr: minToHHMM(localFireMin),
+    });
+
+    _setRemindMode(true);
   });
 
   document.getElementById("btn-et-filter-close").addEventListener("click", () =>

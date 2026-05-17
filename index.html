@@ -90,6 +90,21 @@
         <div id="browser-tree" class="browser-tree hidden"></div>
       </div>
 
+      <div class="sb-reminder hidden" id="sb-reminder">
+        <div class="sb-reminder-header">
+          <button class="sb-reminder-name" id="sb-reminder-name"></button>
+          <button class="sb-reminder-cancel" id="btn-sb-reminder-cancel" aria-label="Cancel reminder">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sb-reminder-progress">
+          <div class="sb-reminder-bar-bg">
+            <div class="sb-reminder-bar-fill" id="sb-reminder-bar"></div>
+          </div>
+          <span class="sb-reminder-time" id="sb-reminder-time"></span>
+        </div>
+      </div>
+
       <div class="sb-bottom">
         <button class="sb-link" id="btn-settings">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -306,9 +321,16 @@
 
   <!-- Event timer: event detail modal -->
   <div class="modal-overlay" id="et-event-overlay">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal et-event-modal" role="dialog" aria-modal="true">
       <div class="modal-header">
         <h2 id="et-event-name">Event</h2>
+        <a class="btn small hidden" id="et-event-wiki" href="#" target="_blank" rel="noopener noreferrer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Wiki
+        </a>
+        <button class="btn small primary hidden" id="et-event-copy" aria-label="Copy Location">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
         <button class="modal-close" id="btn-et-event-close" aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -316,15 +338,18 @@
       <div class="modal-body">
         <p class="et-event-modal-row-label" id="et-event-row"></p>
         <p class="et-event-time-label" id="et-event-time"></p>
-        <div class="et-event-actions">
-          <a class="btn primary" id="et-event-wiki" href="#" target="_blank" rel="noopener noreferrer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Open Wiki
-          </a>
-          <button class="btn" id="et-event-copy">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy Location
-          </button>
+      </div>
+      <div class="modal-footer">
+        <div class="et-remind-row">
+          <button class="btn small" id="btn-et-remind">Remind me</button>
+          <div class="number-wrap et-remind-spin">
+            <input type="number" id="et-remind-min" min="1" max="15" value="5" />
+            <div class="number-spin">
+              <button type="button" data-target="et-remind-min" data-delta="1">▲</button>
+              <button type="button" data-target="et-remind-min" data-delta="-1">▼</button>
+            </div>
+          </div>
+          <span class="et-remind-label">min before</span>
         </div>
       </div>
     </div>
@@ -381,6 +406,7 @@
         <button class="settings-tab-btn active" data-tab="api" data-i18n="tabApi">API</button>
         <button class="settings-tab-btn" data-tab="ui" data-i18n="tabUi">UI</button>
         <button class="settings-tab-btn" data-tab="view" data-i18n="tabView">View</button>
+        <button class="settings-tab-btn" data-tab="notifications">Notifications</button>
       </div>
       <div class="settings-tab-panels">
 
@@ -492,6 +518,18 @@
               <input type="checkbox" id="s-light-mode" />
               <span data-i18n="labelLightMode">Light mode</span>
             </label>
+          </section>
+        </div>
+
+        <!-- Notifications tab -->
+        <div class="settings-tab-panel" id="stab-notifications">
+          <section class="settings-section">
+            <h3>Notification Sound</h3>
+            <div class="notif-volume-row">
+              <input type="range" id="s-notif-volume" min="0" max="1" step="0.05" />
+              <span id="s-notif-volume-label" class="notif-volume-label">50%</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:4px">Moving the slider previews the notification sound.</p>
           </section>
         </div>
 
@@ -608,6 +646,26 @@
       </div>
       <div class="modal-footer">
         <button id="btn-legal-close-bottom" class="btn primary" data-i18n="btnClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event soon notification modal -->
+  <div class="modal-overlay" id="et-soon-overlay">
+    <div class="modal et-soon-modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="et-soon-header">Event starting soon</h2>
+      </div>
+      <div class="modal-body et-soon-body">
+        <p id="et-soon-name" class="et-soon-name"></p>
+        <p id="et-soon-row" class="et-soon-row"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn primary hidden" id="et-soon-copy">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy Location</span>
+        </button>
+        <button class="btn" id="btn-et-soon-close-footer">Close</button>
       </div>
     </div>
   </div>

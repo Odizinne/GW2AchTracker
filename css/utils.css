@@ -89,7 +89,9 @@ input[type="number"] {
   outline: none;
 }
 
-input:focus { border-color: var(--accent); }
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus { border-color: var(--accent); }
 
 .api-key-wrap { position: relative; }
 .api-key-wrap input { padding-right: 34px; }
@@ -159,6 +161,69 @@ input:focus { border-color: var(--accent); }
 }
 
 .checkbox-label input[type="checkbox"]:focus { outline: none; border-color: var(--accent); }
+
+/* ── Range slider ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, var(--accent) var(--range-pct, 0%), var(--bg4) var(--range-pct, 0%));
+  border: 1px solid var(--border);
+  border-radius: 99px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  cursor: pointer;
+  margin-top: -6px;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 4px;
+  background: var(--accent);
+  border-radius: 99px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  cursor: pointer;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
 
 /* ── Number spinner ── */
 input[type="number"] { -moz-appearance: textfield; padding-right: 1.5rem; }

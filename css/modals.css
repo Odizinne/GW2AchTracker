@@ -48,7 +48,7 @@
   gap: 12px;
 }
 
-.modal-header h2 { font-size: 14px; font-weight: 600; }
+.modal-header h2 { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
 
 .modal-close {
   background: transparent;
@@ -421,6 +421,60 @@
   border-radius: var(--radius-sm);
   font-size: 13px;
   color: var(--text);
+}
+
+/* ── Notification volume slider ── */
+.notif-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.notif-volume-row input[type="range"] {
+  flex: 1;
+}
+
+.notif-volume-label {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Event detail modal ── */
+.et-event-modal { max-width: 380px; }
+.et-event-modal .modal-body { flex: none; gap: 0.35rem; }
+.et-event-modal .modal-footer { justify-content: flex-start; }
+.et-event-modal .et-remind-row { width: 100%; border-top: none; padding-top: 0; }
+
+/* ── Event soon modal ── */
+#et-soon-overlay .modal {
+  max-width: 380px;
+}
+
+.et-soon-body {
+  gap: 0.6rem;
+}
+
+.et-soon-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.et-soon-row {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.et-soon-time {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Modal action buttons ── */

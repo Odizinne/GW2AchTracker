@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS = {
   lang: "en",
   fetchLang: "en",
   defaultSection: "nearly-completed",
+  notificationVolume: 0.5,
 };
 
 export function loadSettings() {

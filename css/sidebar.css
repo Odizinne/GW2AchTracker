@@ -363,6 +363,83 @@
   padding: 6px 10px;
 }
 
+/* ── Active reminder ── */
+.sb-reminder {
+  flex-shrink: 0;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sb-reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.sb-reminder-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sb-reminder-name:hover { color: var(--accent); }
+
+.sb-reminder-cancel {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.1s, background 0.1s;
+}
+
+.sb-reminder-cancel:hover { color: var(--text); background: var(--bg3); }
+
+.sb-reminder-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-reminder-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: var(--bg4);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sb-reminder-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 1s linear;
+  width: 100%;
+}
+
+.sb-reminder-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
 /* ── Bottom links ── */
 .sb-bottom {
   flex-shrink: 0;
