@@ -4,14 +4,68 @@
       "category": "Core Tyria",
       "name": "Day / Night",
       "segments": {
-        "1": { "name": "Day",   "bg": [255,255,255] },
-        "2": { "name": "Dusk",  "bg": [188,196,213] },
-        "3": { "name": "Night", "bg": [122,134,171] },
-        "4": { "name": "Dawn",  "bg": [188,196,213] }
+        "1": {
+          "name": "Day",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        "2": {
+          "name": "Dusk",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        },
+        "3": {
+          "name": "Night",
+          "bg": [
+            122,
+            134,
+            171
+          ]
+        },
+        "4": {
+          "name": "Dawn",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":3,"d":25},{"r":4,"d":5}],
-        "pattern": [{"r":1,"d":70},{"r":2,"d":5},{"r":3,"d":40},{"r":4,"d":5}]
+        "partial": [
+          {
+            "r": 3,
+            "d": 25
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 70
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 40
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ]
       }
     },
     "core-wb": {
@@ -19,24 +73,206 @@
       "name": "World Bosses",
       "link": "World_boss",
       "segments": {
-        "1":  { "name": "Admiral Taidha Covington", "link": "Kill_Admiral_Taidha_Covington",  "chatlink": "[&BKgBAAA=]", "bg": [215,100,100] },
-        "2":  { "name": "Svanir Shaman Chief",      "link": "Svanir_Shaman_Chief",            "chatlink": "[&BMIDAAA=]", "bg": [236,128,128] },
-        "3":  { "name": "Megadestroyer",            "link": "Megadestroyer",                  "chatlink": "[&BM0CAAA=]", "bg": [215,100,100] },
-        "4":  { "name": "Fire Elemental",           "link": "Fire_Elemental",                 "chatlink": "[&BEcAAAA=]", "bg": [236,128,128] },
-        "5":  { "name": "The Shatterer",            "link": "The_Shatterer",                  "chatlink": "[&BE4DAAA=]", "bg": [215,100,100] },
-        "6":  { "name": "Great Jungle Wurm",        "link": "Great_Jungle_Wurm",              "chatlink": "[&BEEFAAA=]", "bg": [236,128,128] },
-        "7":  { "name": "Modniir Ulgoth",           "link": "Modniir_Ulgoth",                 "chatlink": "[&BLAAAAA=]", "bg": [215,100,100] },
-        "8":  { "name": "Shadow Behemoth",          "link": "Shadow_Behemoth",                "chatlink": "[&BPcAAAA=]", "bg": [236,128,128] },
-        "9":  { "name": "Claw of Jormag",           "link": "Claw_of_Jormag",                 "chatlink": "[&BHoCAAA=]", "bg": [215,100,100] },
-        "10": { "name": "Golem Mark II",            "link": "Golem_Mark_II",                  "chatlink": "[&BNQCAAA=]", "bg": [215,100,100] }
+        "1": {
+          "name": "Admiral Taidha Covington",
+          "link": "Kill_Admiral_Taidha_Covington",
+          "chatlink": "[&BKgBAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Svanir Shaman Chief",
+          "link": "Svanir_Shaman_Chief",
+          "chatlink": "[&BMIDAAA=]",
+          "bg": [
+            236,
+            128,
+            128
+          ]
+        },
+        "3": {
+          "name": "Megadestroyer",
+          "link": "Megadestroyer",
+          "chatlink": "[&BM0CAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "4": {
+          "name": "Fire Elemental",
+          "link": "Fire_Elemental",
+          "chatlink": "[&BEcAAAA=]",
+          "bg": [
+            236,
+            128,
+            128
+          ]
+        },
+        "5": {
+          "name": "The Shatterer",
+          "link": "The_Shatterer",
+          "chatlink": "[&BE4DAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "6": {
+          "name": "Great Jungle Wurm",
+          "link": "Great_Jungle_Wurm",
+          "chatlink": "[&BEEFAAA=]",
+          "bg": [
+            236,
+            128,
+            128
+          ]
+        },
+        "7": {
+          "name": "Modniir Ulgoth",
+          "link": "Modniir_Ulgoth",
+          "chatlink": "[&BLAAAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "8": {
+          "name": "Shadow Behemoth",
+          "link": "Shadow_Behemoth",
+          "chatlink": "[&BPcAAAA=]",
+          "bg": [
+            236,
+            128,
+            128
+          ]
+        },
+        "9": {
+          "name": "Claw of Jormag",
+          "link": "Claw_of_Jormag",
+          "chatlink": "[&BHoCAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "10": {
+          "name": "Golem Mark II",
+          "link": "Golem_Mark_II",
+          "chatlink": "[&BNQCAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
       },
       "sequences": {
         "partial": [],
         "pattern": [
-          {"r":1,"d":15},{"r":2,"d":15},{"r":3,"d":15},{"r":4,"d":15},{"r":5,"d":15},{"r":6,"d":15},
-          {"r":7,"d":15},{"r":8,"d":15},{"r":10,"d":15},{"r":2,"d":15},{"r":9,"d":15},{"r":4,"d":15},
-          {"r":1,"d":15},{"r":6,"d":15},{"r":3,"d":15},{"r":8,"d":15},{"r":5,"d":15},{"r":2,"d":15},
-          {"r":7,"d":15},{"r":4,"d":15},{"r":10,"d":15},{"r":6,"d":15},{"r":9,"d":15},{"r":8,"d":15}
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 15
+          },
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 5,
+            "d": 15
+          },
+          {
+            "r": 6,
+            "d": 15
+          },
+          {
+            "r": 7,
+            "d": 15
+          },
+          {
+            "r": 8,
+            "d": 15
+          },
+          {
+            "r": 10,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 9,
+            "d": 15
+          },
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 6,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 15
+          },
+          {
+            "r": 8,
+            "d": 15
+          },
+          {
+            "r": 5,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 7,
+            "d": 15
+          },
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 10,
+            "d": 15
+          },
+          {
+            "r": 6,
+            "d": 15
+          },
+          {
+            "r": 9,
+            "d": 15
+          },
+          {
+            "r": 8,
+            "d": 15
+          }
         ]
       }
     },
@@ -45,20 +281,203 @@
       "name": "Hard World Bosses",
       "link": "World_boss",
       "segments": {
-        "0": { "name": "",                    "bg": [50,50,55] },
-        "1": { "name": "Triple Trouble",      "link": "Triple_Trouble",      "chatlink": "[&BKoBAAA=]", "bg": [215,100,100] },
-        "2": { "name": "Karka Queen",         "link": "Karka_Queen",         "chatlink": "[&BNUGAAA=]", "bg": [215,100,100] },
-        "3": { "name": "Tequatl the Sunless", "link": "Tequatl_the_Sunless", "chatlink": "[&BNABAAA=]", "bg": [215,100,100] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Triple Trouble",
+          "link": "Triple_Trouble",
+          "chatlink": "[&BKoBAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Karka Queen",
+          "link": "Karka_Queen",
+          "chatlink": "[&BNUGAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Tequatl the Sunless",
+          "link": "Tequatl_the_Sunless",
+          "chatlink": "[&BNABAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
       },
       "sequences": {
         "partial": [
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":30},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":90},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":120},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":120},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":30},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30},{"r":0,"d":150},{"r":2,"d":30},{"r":0,"d":30},
-          {"r":3,"d":30},{"r":0,"d":30},{"r":1,"d":30}
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 90
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 150
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 30
+          }
         ],
         "pattern": []
       }
@@ -68,27 +487,164 @@
       "name": "Ley-Line Anomaly",
       "link": "Legendary_Ley-Line_Anomaly",
       "segments": {
-        "0": { "name": "",                 "bg": [50,50,55] },
-        "1": { "name": "Timberline Falls", "link": "Legendary_Ley-Line_Anomaly", "chatlink": "[&BEwCAAA=]", "bg": [215,100,100] },
-        "2": { "name": "Iron Marches",     "link": "Legendary_Ley-Line_Anomaly", "chatlink": "[&BOcBAAA=]", "bg": [215,100,100] },
-        "3": { "name": "Gendarran Fields", "link": "Legendary_Ley-Line_Anomaly", "chatlink": "[&BOQAAAA=]", "bg": [215,100,100] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Timberline Falls",
+          "link": "Legendary_Ley-Line_Anomaly",
+          "chatlink": "[&BEwCAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Iron Marches",
+          "link": "Legendary_Ley-Line_Anomaly",
+          "chatlink": "[&BOcBAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Gendarran Fields",
+          "link": "Legendary_Ley-Line_Anomaly",
+          "chatlink": "[&BOQAAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":20},{"r":1,"d":20},{"r":0,"d":100},{"r":2,"d":20},{"r":0,"d":100},{"r":3,"d":20}],
-        "pattern": [{"r":0,"d":100},{"r":1,"d":20},{"r":0,"d":100},{"r":2,"d":20},{"r":0,"d":100},{"r":3,"d":20}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 20
+          },
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ]
       }
     },
     "core-in": {
       "category": "Core Tyria",
       "name": "Invasions",
       "segments": {
-        "0": { "name": "",                         "bg": [50,50,55] },
-        "1": { "name": "Awakened Invasion",         "link": "Awakened",                                    "bg": [236,128,128] },
-        "2": { "name": "Defeat Scarlet's Minions",  "link": "Defeat_the_invading_minions_of_Scarlet_Briar", "bg": [215,100,100] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Awakened Invasion",
+          "link": "Awakened",
+          "bg": [
+            236,
+            128,
+            128
+          ]
+        },
+        "2": {
+          "name": "Defeat Scarlet's Minions",
+          "link": "Defeat_the_invading_minions_of_Scarlet_Briar",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":30}],
-        "pattern": [{"r":1,"d":15},{"r":0,"d":15},{"r":2,"d":15},{"r":0,"d":15},{"r":1,"d":15},{"r":0,"d":45}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 30
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 15
+          },
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 45
+          }
+        ]
       }
     },
     "core-fi": {
@@ -96,223 +652,1088 @@
       "name": "Fractal Incursions",
       "link": "Fractal_of_the_Mists",
       "segments": {
-        "0": { "name": "",                "bg": [50,50,55] },
-        "1": { "name": "Diessa Plateau",  "link": "Fractal_of_the_Mists", "chatlink": "[&BN0AAAA=]", "bg": [215,100,100] },
-        "2": { "name": "Brisban Wildlands","link": "Fractal_of_the_Mists", "chatlink": "[&BHUAAAA=]", "bg": [215,100,100] },
-        "3": { "name": "Snowden Drifts",  "link": "Fractal_of_the_Mists", "chatlink": "[&BLQAAAA=]", "bg": [215,100,100] },
-        "4": { "name": "Kessex Hills",    "link": "Fractal_of_the_Mists", "chatlink": "[&BBIAAAA=]", "bg": [215,100,100] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Diessa Plateau",
+          "link": "Fractal_of_the_Mists",
+          "chatlink": "[&BN0AAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Brisban Wildlands",
+          "link": "Fractal_of_the_Mists",
+          "chatlink": "[&BHUAAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Snowden Drifts",
+          "link": "Fractal_of_the_Mists",
+          "chatlink": "[&BLQAAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "4": {
+          "name": "Kessex Hills",
+          "link": "Fractal_of_the_Mists",
+          "chatlink": "[&BBIAAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":4,"d":15},{"r":0,"d":45},{"r":1,"d":15},{"r":0,"d":45},{"r":2,"d":15},{"r":0,"d":45},{"r":3,"d":15},{"r":0,"d":45}]
+        "pattern": [
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 45
+          },
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 45
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 45
+          },
+          {
+            "r": 3,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 45
+          }
+        ]
       }
     },
     "lws2-dt": {
       "category": "Living World Season 2",
       "name": "Dry Top",
       "segments": {
-        "1": { "name": "Crash Site", "link": "Crash_Site_(meta_event)",  "bg": [251,227,132] },
-        "2": { "name": "Sandstorm!", "link": "Sandstorm!",               "chatlink": "[&BIAHAAA=]", "bg": [215,185,66] }
+        "1": {
+          "name": "Crash Site",
+          "link": "Crash_Site_(meta_event)",
+          "bg": [
+            251,
+            227,
+            132
+          ]
+        },
+        "2": {
+          "name": "Sandstorm!",
+          "link": "Sandstorm!",
+          "chatlink": "[&BIAHAAA=]",
+          "bg": [
+            215,
+            185,
+            66
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":1,"d":40},{"r":2,"d":20}]
+        "pattern": [
+          {
+            "r": 1,
+            "d": 40
+          },
+          {
+            "r": 2,
+            "d": 20
+          }
+        ]
       }
     },
     "lws3-ld": {
       "category": "Living World Season 3",
       "name": "Lake Doric",
       "segments": {
-        "1": { "name": "Saidra's Haven",    "link": "White_Mantle_Control:_Saidra%27s_Haven",    "chatlink": "[&BK0JAAA=]", "bg": [121,181,108] },
-        "2": { "name": "New Loamhurst",     "link": "White_Mantle_Control:_New_Loamhurst",        "chatlink": "[&BLQJAAA=]", "bg": [94,159,80]   },
-        "3": { "name": "Noran's Homestead", "link": "White_Mantle_Control:_Noran%27s_Homestead",  "chatlink": "[&BK8JAAA=]", "bg": [159,217,147] }
+        "1": {
+          "name": "Saidra's Haven",
+          "link": "White_Mantle_Control:_Saidra%27s_Haven",
+          "chatlink": "[&BK0JAAA=]",
+          "bg": [
+            121,
+            181,
+            108
+          ]
+        },
+        "2": {
+          "name": "New Loamhurst",
+          "link": "White_Mantle_Control:_New_Loamhurst",
+          "chatlink": "[&BLQJAAA=]",
+          "bg": [
+            94,
+            159,
+            80
+          ]
+        },
+        "3": {
+          "name": "Noran's Homestead",
+          "link": "White_Mantle_Control:_Noran%27s_Homestead",
+          "chatlink": "[&BK8JAAA=]",
+          "bg": [
+            159,
+            217,
+            147
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":2,"d":30}],
-        "pattern": [{"r":3,"d":30},{"r":1,"d":45},{"r":2,"d":45}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 30
+          }
+        ],
+        "pattern": [
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 45
+          },
+          {
+            "r": 2,
+            "d": 45
+          }
+        ]
       }
     },
     "lws4-di": {
       "category": "Living World Season 4",
       "name": "Domain of Istan",
       "segments": {
-        "0": { "name": "",          "bg": [50,50,55] },
-        "1": { "name": "Palawadan", "link": "Palawadan,_Jewel_of_Istan_(meta_event)", "chatlink": "[&BAkLAAA=]", "bg": [170,150,209] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Palawadan",
+          "link": "Palawadan,_Jewel_of_Istan_(meta_event)",
+          "chatlink": "[&BAkLAAA=]",
+          "bg": [
+            170,
+            150,
+            209
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":1,"d":15}],
-        "pattern": [{"r":0,"d":90},{"r":1,"d":30}]
+        "partial": [
+          {
+            "r": 1,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 90
+          },
+          {
+            "r": 1,
+            "d": 30
+          }
+        ]
       }
     },
     "lws4-jb": {
       "category": "Living World Season 4",
       "name": "Jahai Bluffs",
       "segments": {
-        "0": { "name": "",                        "bg": [50,50,55] },
-        "1": { "name": "Escorts",                 "link": "Dangerous_Prey",                    "chatlink": "[&BIMLAAA=]", "bg": [170,150,209] },
-        "2": { "name": "Death-Branded Shatterer", "link": "Destroy_the_Death-Branded_Shatterer","chatlink": "[&BJMLAAA=]", "bg": [160,135,212] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Escorts",
+          "link": "Dangerous_Prey",
+          "chatlink": "[&BIMLAAA=]",
+          "bg": [
+            170,
+            150,
+            209
+          ]
+        },
+        "2": {
+          "name": "Death-Branded Shatterer",
+          "link": "Destroy_the_Death-Branded_Shatterer",
+          "chatlink": "[&BJMLAAA=]",
+          "bg": [
+            160,
+            135,
+            212
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":60},{"r":1,"d":15},{"r":2,"d":15}],
-        "pattern": [{"r":0,"d":90},{"r":1,"d":15},{"r":2,"d":15}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 60
+          },
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 90
+          },
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 15
+          }
+        ]
       }
     },
     "lws4-tp": {
       "category": "Living World Season 4",
       "name": "Thunderhead Peaks",
       "segments": {
-        "0": { "name": "",                 "bg": [50,50,55] },
-        "1": { "name": "Thunderhead Keep", "link": "Thunderhead_Keep_(meta_event)", "chatlink": "[&BLsLAAA=]", "bg": [170,150,209] },
-        "2": { "name": "The Oil Floes",                                             "chatlink": "[&BKYLAAA=]", "bg": [160,135,212] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Thunderhead Keep",
+          "link": "Thunderhead_Keep_(meta_event)",
+          "chatlink": "[&BLsLAAA=]",
+          "bg": [
+            170,
+            150,
+            209
+          ]
+        },
+        "2": {
+          "name": "The Oil Floes",
+          "chatlink": "[&BKYLAAA=]",
+          "bg": [
+            160,
+            135,
+            212
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":1,"d":5},{"r":0,"d":40},{"r":2,"d":15}],
-        "pattern": [{"r":0,"d":45},{"r":1,"d":20},{"r":0,"d":40},{"r":2,"d":15}]
+        "partial": [
+          {
+            "r": 1,
+            "d": 5
+          },
+          {
+            "r": 0,
+            "d": 40
+          },
+          {
+            "r": 2,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 45
+          },
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 40
+          },
+          {
+            "r": 2,
+            "d": 15
+          }
+        ]
       }
     },
     "lws5-gv": {
       "category": "The Icebrood Saga",
       "name": "Grothmar Valley",
       "segments": {
-        "0": { "name": "",               "bg": [50,50,55] },
-        "1": { "name": "Effigy",         "link": "Ceremony_of_the_Sacred_Flame",  "chatlink": "[&BA4MAAA=]", "bg": [98,177,234]  },
-        "2": { "name": "Doomlore Shrine","link": "The_Haunting_of_Doomlore_Shrine","chatlink": "[&BA4MAAA=]", "bg": [66,153,215]  },
-        "3": { "name": "Ooze Pits",      "link": "The_Ooze_Pit_Trials",           "chatlink": "[&BPgLAAA=]", "bg": [98,177,234]  },
-        "4": { "name": "Metal Concert",  "link": "A_Concert_for_the_Ages",        "chatlink": "[&BPgLAAA=]", "bg": [66,153,215]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Effigy",
+          "link": "Ceremony_of_the_Sacred_Flame",
+          "chatlink": "[&BA4MAAA=]",
+          "bg": [
+            98,
+            177,
+            234
+          ]
+        },
+        "2": {
+          "name": "Doomlore Shrine",
+          "link": "The_Haunting_of_Doomlore_Shrine",
+          "chatlink": "[&BA4MAAA=]",
+          "bg": [
+            66,
+            153,
+            215
+          ]
+        },
+        "3": {
+          "name": "Ooze Pits",
+          "link": "The_Ooze_Pit_Trials",
+          "chatlink": "[&BPgLAAA=]",
+          "bg": [
+            98,
+            177,
+            234
+          ]
+        },
+        "4": {
+          "name": "Metal Concert",
+          "link": "A_Concert_for_the_Ages",
+          "chatlink": "[&BPgLAAA=]",
+          "bg": [
+            66,
+            153,
+            215
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":10}],
-        "pattern": [{"r":1,"d":15},{"r":0,"d":13},{"r":2,"d":22},{"r":0,"d":5},{"r":3,"d":20},{"r":0,"d":15},{"r":4,"d":15},{"r":0,"d":15}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 10
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 13
+          },
+          {
+            "r": 2,
+            "d": 22
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 15
+          },
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 15
+          }
+        ]
       }
     },
     "lws5-bm": {
       "category": "The Icebrood Saga",
       "name": "Bjora Marches",
       "segments": {
-        "0": { "name": "",                              "bg": [50,50,55] },
-        "1": { "name": "Drakkar and Spirits of the Wild","link": "Champion_of_the_Ice_Dragon", "chatlink": "[&BDkMAAA=]", "bg": [66,153,215]  },
-        "2": { "name": "Defend Jora's Keep",            "link": "Storms_of_Winter",            "chatlink": "[&BCcMAAA=]", "bg": [98,177,234]  },
-        "3": { "name": "Shards and Construct",          "link": "Storms_of_Winter",            "chatlink": "[&BCcMAAA=]", "bg": [66,153,215]  },
-        "4": { "name": "Icebrood Champions",            "link": "Storms_of_Winter",            "chatlink": "[&BCcMAAA=]", "bg": [98,177,234]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Drakkar and Spirits of the Wild",
+          "link": "Champion_of_the_Ice_Dragon",
+          "chatlink": "[&BDkMAAA=]",
+          "bg": [
+            66,
+            153,
+            215
+          ]
+        },
+        "2": {
+          "name": "Defend Jora's Keep",
+          "link": "Storms_of_Winter",
+          "chatlink": "[&BCcMAAA=]",
+          "bg": [
+            98,
+            177,
+            234
+          ]
+        },
+        "3": {
+          "name": "Shards and Construct",
+          "link": "Storms_of_Winter",
+          "chatlink": "[&BCcMAAA=]",
+          "bg": [
+            66,
+            153,
+            215
+          ]
+        },
+        "4": {
+          "name": "Icebrood Champions",
+          "link": "Storms_of_Winter",
+          "chatlink": "[&BCcMAAA=]",
+          "bg": [
+            98,
+            177,
+            234
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":3,"d":5},{"r":4,"d":15}],
-        "pattern": [{"r":0,"d":45},{"r":1,"d":35},{"r":0,"d":5},{"r":2,"d":15},{"r":3,"d":5},{"r":4,"d":15}]
+        "partial": [
+          {
+            "r": 3,
+            "d": 5
+          },
+          {
+            "r": 4,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 45
+          },
+          {
+            "r": 1,
+            "d": 35
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 5
+          },
+          {
+            "r": 4,
+            "d": 15
+          }
+        ]
       }
     },
     "hot-vb": {
       "category": "Heart of Thorns",
       "name": "Verdant Brink",
       "segments": {
-        "1": { "name": "Day: Securing Verdant Brink", "link": "Securing_Verdant_Brink",  "chatlink": "[&BAgIAAA=]", "bg": [181,211,82] },
-        "2": { "name": "Night: Night and the Enemy",  "link": "Night_and_the_Enemy",                              "bg": [141,184,58] },
-        "3": { "name": "Night Bosses",                "link": "Night_and_the_Enemy",     "chatlink": "[&BAgIAAA=]", "bg": [101,154,36] }
+        "1": {
+          "name": "Day: Securing Verdant Brink",
+          "link": "Securing_Verdant_Brink",
+          "chatlink": "[&BAgIAAA=]",
+          "bg": [
+            181,
+            211,
+            82
+          ]
+        },
+        "2": {
+          "name": "Night: Night and the Enemy",
+          "link": "Night_and_the_Enemy",
+          "bg": [
+            141,
+            184,
+            58
+          ]
+        },
+        "3": {
+          "name": "Night Bosses",
+          "link": "Night_and_the_Enemy",
+          "chatlink": "[&BAgIAAA=]",
+          "bg": [
+            101,
+            154,
+            36
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":75},{"r":2,"d":25},{"r":3,"d":20}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 10
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 75
+          },
+          {
+            "r": 2,
+            "d": 25
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ]
       }
     },
     "hot-ab": {
       "category": "Heart of Thorns",
       "name": "Auric Basin",
       "segments": {
-        "1": { "name": "Pylons",     "link": "Defending_Tarir",   "chatlink": "[&BN0HAAA=]", "bg": [181,211,82] },
-        "2": { "name": "Challenges", "link": "Battle_in_Tarir",   "chatlink": "[&BGwIAAA=]", "bg": [141,184,58] },
-        "3": { "name": "Octovine",   "link": "Battle_in_Tarir",   "chatlink": "[&BAIIAAA=]", "bg": [101,154,36] },
-        "4": { "name": "Reset",      "link": "A_Moment%27s_Rest",                            "bg": [141,184,58] }
+        "1": {
+          "name": "Pylons",
+          "link": "Defending_Tarir",
+          "chatlink": "[&BN0HAAA=]",
+          "bg": [
+            181,
+            211,
+            82
+          ]
+        },
+        "2": {
+          "name": "Challenges",
+          "link": "Battle_in_Tarir",
+          "chatlink": "[&BGwIAAA=]",
+          "bg": [
+            141,
+            184,
+            58
+          ]
+        },
+        "3": {
+          "name": "Octovine",
+          "link": "Battle_in_Tarir",
+          "chatlink": "[&BAIIAAA=]",
+          "bg": [
+            101,
+            154,
+            36
+          ]
+        },
+        "4": {
+          "name": "Reset",
+          "link": "A_Moment%27s_Rest",
+          "bg": [
+            141,
+            184,
+            58
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":75},{"r":2,"d":15},{"r":3,"d":20},{"r":4,"d":10}]
+        "partial": [
+          {
+            "r": 1,
+            "d": 45
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 4,
+            "d": 10
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 75
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 4,
+            "d": 10
+          }
+        ]
       }
     },
     "hot-td": {
       "category": "Heart of Thorns",
       "name": "Tangled Depths",
       "segments": {
-        "1": { "name": "Help the Outposts", "link": "Advancing_Across_Tangled_Roots",                    "bg": [181,211,82] },
-        "2": { "name": "Prep",              "link": "King_of_the_Jungle",                                "bg": [141,184,58] },
-        "3": { "name": "Chak Gerent",       "link": "King_of_the_Jungle",  "chatlink": "[&BPUHAAA=]",   "bg": [101,154,36] }
+        "1": {
+          "name": "Help the Outposts",
+          "link": "Advancing_Across_Tangled_Roots",
+          "bg": [
+            181,
+            211,
+            82
+          ]
+        },
+        "2": {
+          "name": "Prep",
+          "link": "King_of_the_Jungle",
+          "bg": [
+            141,
+            184,
+            58
+          ]
+        },
+        "3": {
+          "name": "Chak Gerent",
+          "link": "King_of_the_Jungle",
+          "chatlink": "[&BPUHAAA=]",
+          "bg": [
+            101,
+            154,
+            36
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":95},{"r":2,"d":5},{"r":3,"d":20}]
+        "partial": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 95
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ]
       }
     },
     "hot-ds": {
       "category": "Heart of Thorns",
       "name": "Dragon's Stand",
       "segments": {
-        "1": { "name": "Advance on Blighting Towers", "link": "Advancing_on_the_Blighting_Towers", "chatlink": "[&BBAIAAA=]", "bg": [101,154,36] }
+        "1": {
+          "name": "Advance on Blighting Towers",
+          "link": "Advancing_on_the_Blighting_Towers",
+          "chatlink": "[&BBAIAAA=]",
+          "bg": [
+            101,
+            154,
+            36
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":120}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 90
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 120
+          }
+        ]
       }
     },
     "pof-co": {
       "category": "Path of Fire",
       "name": "Crystal Oasis",
       "segments": {
-        "0": { "name": "",                           "bg": [50,50,55] },
-        "1": { "name": "Casino Blitz (Rounds 1–3)", "link": "Casino_Blitz", "chatlink": "[&BLsKAAA=]", "bg": [200,120,168] },
-        "2": { "name": "Pinata / Reset",             "link": "Casino_Blitz", "chatlink": "[&BLsKAAA=]", "bg": [180,96,148]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Casino Blitz (Rounds 1–3)",
+          "link": "Casino_Blitz",
+          "chatlink": "[&BLsKAAA=]",
+          "bg": [
+            200,
+            120,
+            168
+          ]
+        },
+        "2": {
+          "name": "Pinata / Reset",
+          "link": "Casino_Blitz",
+          "chatlink": "[&BLsKAAA=]",
+          "bg": [
+            180,
+            96,
+            148
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":0,"d":95},{"r":1,"d":16},{"r":2,"d":9}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 1,
+            "d": 16
+          },
+          {
+            "r": 2,
+            "d": 9
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 95
+          },
+          {
+            "r": 1,
+            "d": 16
+          },
+          {
+            "r": 2,
+            "d": 9
+          }
+        ]
       }
     },
     "pof-dh": {
       "category": "Path of Fire",
       "name": "Desert Highlands",
       "segments": {
-        "0": { "name": "",               "bg": [50,50,55] },
-        "1": { "name": "Buried Treasure","link": "The_Search_for_Buried_Treasure", "chatlink": "[&BGsKAAA=]", "bg": [200,120,168] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Buried Treasure",
+          "link": "The_Search_for_Buried_Treasure",
+          "chatlink": "[&BGsKAAA=]",
+          "bg": [
+            200,
+            120,
+            168
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":0,"d":100},{"r":1,"d":20}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 60
+          },
+          {
+            "r": 1,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 1,
+            "d": 20
+          }
+        ]
       }
     },
     "pof-er": {
       "category": "Path of Fire",
       "name": "Elon Riverlands",
       "segments": {
-        "0": { "name": "",             "bg": [50,50,55] },
-        "1": { "name": "Augury Rock",  "link": "The_Path_to_Ascension", "chatlink": "[&BFMKAAA=]", "bg": [200,120,168] },
-        "2": { "name": "Doppelganger", "link": "The_Path_to_Ascension", "chatlink": "[&BFMKAAA=]", "bg": [180,96,148]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Augury Rock",
+          "link": "The_Path_to_Ascension",
+          "chatlink": "[&BFMKAAA=]",
+          "bg": [
+            200,
+            120,
+            168
+          ]
+        },
+        "2": {
+          "name": "Doppelganger",
+          "link": "The_Path_to_Ascension",
+          "chatlink": "[&BFMKAAA=]",
+          "bg": [
+            180,
+            96,
+            148
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":0,"d":75},{"r":1,"d":25},{"r":2,"d":20}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 75
+          },
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 2,
+            "d": 20
+          }
+        ]
       }
     },
     "pof-td": {
       "category": "Path of Fire",
       "name": "The Desolation",
       "segments": {
-        "0": { "name": "",               "bg": [50,50,55] },
-        "1": { "name": "Maws of Torment","link": "Maws_of_Torment",  "chatlink": "[&BKMKAAA=]", "bg": [200,120,168] },
-        "2": { "name": "Junundu Rising", "link": "Junundu_Rising",   "chatlink": "[&BMEKAAA=]", "bg": [180,96,148]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Maws of Torment",
+          "link": "Maws_of_Torment",
+          "chatlink": "[&BKMKAAA=]",
+          "bg": [
+            200,
+            120,
+            168
+          ]
+        },
+        "2": {
+          "name": "Junundu Rising",
+          "link": "Junundu_Rising",
+          "chatlink": "[&BMEKAAA=]",
+          "bg": [
+            180,
+            96,
+            148
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":20},{"r":0,"d":10},{"r":2,"d":20},{"r":0,"d":40},{"r":2,"d":20},{"r":0,"d":10}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 40
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          }
+        ]
       }
     },
     "pof-dv": {
       "category": "Path of Fire",
       "name": "Domain of Vabbi",
       "segments": {
-        "0": { "name": "",                "bg": [50,50,55] },
-        "1": { "name": "Serpents' Ire",   "link": "Serpents%27_Ire",  "chatlink": "[&BHQKAAA=]", "bg": [200,120,168] },
-        "2": { "name": "Forged with Fire","link": "Forged_with_Fire", "chatlink": "[&BO0KAAA=]", "bg": [180,96,148]  }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Serpents' Ire",
+          "link": "Serpents%27_Ire",
+          "chatlink": "[&BHQKAAA=]",
+          "bg": [
+            200,
+            120,
+            168
+          ]
+        },
+        "2": {
+          "name": "Forged with Fire",
+          "link": "Forged_with_Fire",
+          "chatlink": "[&BO0KAAA=]",
+          "bg": [
+            180,
+            96,
+            148
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":30},{"r":2,"d":30},{"r":0,"d":30},{"r":2,"d":30}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 30
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          }
+        ]
       }
     },
     "eod-dn": {
@@ -320,76 +1741,299 @@
       "name": "Cantha: Day / Night",
       "link": "Day_and_night",
       "segments": {
-        "1": { "name": "Day",   "bg": [255,255,255] },
-        "2": { "name": "Dusk",  "bg": [188,196,213] },
-        "3": { "name": "Night", "bg": [122,134,171] },
-        "4": { "name": "Dawn",  "bg": [188,196,213] }
+        "1": {
+          "name": "Day",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        "2": {
+          "name": "Dusk",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        },
+        "3": {
+          "name": "Night",
+          "bg": [
+            122,
+            134,
+            171
+          ]
+        },
+        "4": {
+          "name": "Dawn",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":1,"d":55},{"r":2,"d":5},{"r":3,"d":55},{"r":4,"d":5}]
+        "pattern": [
+          {
+            "r": 1,
+            "d": 55
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 55
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ]
       }
     },
     "eod-sp": {
       "category": "End of Dragons",
       "name": "Seitung Province",
       "segments": {
-        "0": { "name": "",                    "bg": [50,50,55] },
-        "1": { "name": "Aetherblade Assault", "link": "Aetherblade_Assault", "chatlink": "[&BGUNAAA=]", "bg": [64,192,210] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Aetherblade Assault",
+          "link": "Aetherblade_Assault",
+          "chatlink": "[&BGUNAAA=]",
+          "bg": [
+            64,
+            192,
+            210
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":30},{"r":0,"d":90}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 90
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 90
+          }
+        ]
       }
     },
     "eod-nkc": {
       "category": "End of Dragons",
       "name": "New Kaineng City",
       "segments": {
-        "0": { "name": "",                 "bg": [50,50,55] },
-        "1": { "name": "Kaineng Blackout", "link": "Kaineng_Blackout", "chatlink": "[&BBkNAAA=]", "bg": [64,192,210] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Kaineng Blackout",
+          "link": "Kaineng_Blackout",
+          "chatlink": "[&BBkNAAA=]",
+          "bg": [
+            64,
+            192,
+            210
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":1,"d":40},{"r":0,"d":80}]
+        "pattern": [
+          {
+            "r": 1,
+            "d": 40
+          },
+          {
+            "r": 0,
+            "d": 80
+          }
+        ]
       }
     },
     "eod-ew": {
       "category": "End of Dragons",
       "name": "The Echovald Wilds",
       "segments": {
-        "0": { "name": "",          "bg": [50,50,55] },
-        "1": { "name": "Gang War",  "link": "The_Gang_War_of_Echovald", "chatlink": "[&BMwMAAA=]", "bg": [64,192,210] },
-        "2": { "name": "Aspenwood", "link": "Siege_the_Stronghold",    "chatlink": "[&BPkMAAA=]", "bg": [96,216,228] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Gang War",
+          "link": "The_Gang_War_of_Echovald",
+          "chatlink": "[&BMwMAAA=]",
+          "bg": [
+            64,
+            192,
+            210
+          ]
+        },
+        "2": {
+          "name": "Aspenwood",
+          "link": "Siege_the_Stronghold",
+          "chatlink": "[&BPkMAAA=]",
+          "bg": [
+            96,
+            216,
+            228
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":0,"d":30},{"r":1,"d":35},{"r":0,"d":35},{"r":2,"d":20}]
+        "pattern": [
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 1,
+            "d": 35
+          },
+          {
+            "r": 0,
+            "d": 35
+          },
+          {
+            "r": 2,
+            "d": 20
+          }
+        ]
       }
     },
     "eod-de": {
       "category": "End of Dragons",
       "name": "Dragon's End",
       "segments": {
-        "1": { "name": "Preparations",                 "chatlink": "[&BKIMAAA=]", "bg": [96,216,228] },
-        "2": { "name": "Jade Maw",                     "link": "Defeat_the_Void-corrupted_Jade_Maw", "chatlink": "[&BKIMAAA=]", "bg": [64,192,210] },
-        "3": { "name": "The Battle for the Jade Sea",  "link": "The_Battle_for_the_Jade_Sea",        "chatlink": "[&BKIMAAA=]", "bg": [40,160,180] }
+        "1": {
+          "name": "Preparations",
+          "chatlink": "[&BKIMAAA=]",
+          "bg": [
+            96,
+            216,
+            228
+          ]
+        },
+        "2": {
+          "name": "Jade Maw",
+          "link": "Defeat_the_Void-corrupted_Jade_Maw",
+          "chatlink": "[&BKIMAAA=]",
+          "bg": [
+            64,
+            192,
+            210
+          ]
+        },
+        "3": {
+          "name": "The Battle for the Jade Sea",
+          "link": "The_Battle_for_the_Jade_Sea",
+          "chatlink": "[&BKIMAAA=]",
+          "bg": [
+            40,
+            160,
+            180
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":1,"d":5},{"r":2,"d":8},{"r":1,"d":32},{"r":2,"d":8},{"r":1,"d":7},{"r":3,"d":60}]
+        "pattern": [
+          {
+            "r": 1,
+            "d": 5
+          },
+          {
+            "r": 2,
+            "d": 8
+          },
+          {
+            "r": 1,
+            "d": 32
+          },
+          {
+            "r": 2,
+            "d": 8
+          },
+          {
+            "r": 1,
+            "d": 7
+          },
+          {
+            "r": 3,
+            "d": 60
+          }
+        ]
       }
     },
     "soto-sa": {
       "category": "Secrets of the Obscure",
       "name": "Skywatch Archipelago",
       "segments": {
-        "0": { "name": "",                            "bg": [50,50,55] },
-        "1": { "name": "Unlocking the Wizard's Tower","link": "Unlocking_the_Wizard%27s_Tower", "chatlink": "[&BL4NAAA=]", "bg": [216,160,60] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Unlocking the Wizard's Tower",
+          "link": "Unlocking_the_Wizard%27s_Tower",
+          "chatlink": "[&BL4NAAA=]",
+          "bg": [
+            216,
+            160,
+            60
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":25},{"r":0,"d":95}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 60
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 95
+          }
+        ]
       }
     },
     "soto-wt": {
@@ -397,50 +2041,193 @@
       "name": "Wizard's Tower",
       "link": "The_Wizard%27s_Tower",
       "segments": {
-        "0": { "name": "",                               "bg": [50,50,55] },
-        "1": { "name": "Target Practice",                "link": "Skyscale_Target_Practice", "chatlink": "[&BB8OAAA=]", "bg": [216,160,60] },
-        "2": { "name": "Fly by Night",                   "link": "Wizard%27s_Tower:_Fly_by_Night", "chatlink": "[&BB8OAAA=]", "bg": [216,160,60] },
-        "3": { "name": "Target Practice + Fly by Night", "link": "Adventure",                      "chatlink": "[&BB8OAAA=]", "bg": [190,132,40] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Target Practice",
+          "link": "Skyscale_Target_Practice",
+          "chatlink": "[&BB8OAAA=]",
+          "bg": [
+            216,
+            160,
+            60
+          ]
+        },
+        "2": {
+          "name": "Fly by Night",
+          "link": "Wizard%27s_Tower:_Fly_by_Night",
+          "chatlink": "[&BB8OAAA=]",
+          "bg": [
+            216,
+            160,
+            60
+          ]
+        },
+        "3": {
+          "name": "Target Practice + Fly by Night",
+          "link": "Adventure",
+          "chatlink": "[&BB8OAAA=]",
+          "bg": [
+            190,
+            132,
+            40
+          ]
+        }
       },
       "sequences": {
-        "partial": [],
-        "pattern": [{"r":1,"d":40},{"r":3,"d":15},{"r":2,"d":25},{"r":0,"d":40}]
+        "partial": [
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 40
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 40
+          },
+          {
+            "r": 3,
+            "d": 15
+          },
+          {
+            "r": 2,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 40
+          }
+        ]
       }
     },
     "soto-am": {
       "category": "Secrets of the Obscure",
       "name": "Amnytas",
       "segments": {
-        "0": { "name": "",                   "bg": [50,50,55] },
-        "1": { "name": "Defense of Amnytas", "link": "The_Defense_of_Amnytas", "chatlink": "[&BDQOAAA=]", "bg": [216,160,60] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Defense of Amnytas",
+          "link": "The_Defense_of_Amnytas",
+          "chatlink": "[&BDQOAAA=]",
+          "bg": [
+            216,
+            160,
+            60
+          ]
+        }
       },
       "sequences": {
         "partial": [],
-        "pattern": [{"r":1,"d":25},{"r":0,"d":95}]
+        "pattern": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 95
+          }
+        ]
       }
     },
     "jw-js": {
       "category": "Janthir Wilds",
       "name": "Janthir Syntri",
       "segments": {
-        "0": { "name": "",                      "bg": [50,50,55] },
-        "1": { "name": "Of Mists and Monsters", "chatlink": "[&BCoPAAA=]", "bg": [146,170,235] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Of Mists and Monsters",
+          "chatlink": "[&BCoPAAA=]",
+          "bg": [
+            146,
+            170,
+            235
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":30}],
-        "pattern": [{"r":1,"d":25},{"r":0,"d":95}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 30
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 95
+          }
+        ]
       }
     },
     "jw-bn": {
       "category": "Janthir Wilds",
       "name": "Bava Nisos",
       "segments": {
-        "0": { "name": "",                  "bg": [50,50,55] },
-        "1": { "name": "A Titanic Voyage",  "chatlink": "[&BGEPAAA=]", "bg": [146,170,235] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "A Titanic Voyage",
+          "chatlink": "[&BGEPAAA=]",
+          "bg": [
+            146,
+            170,
+            235
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":80}],
-        "pattern": [{"r":1,"d":25},{"r":0,"d":95}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 80
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 95
+          }
+        ]
       }
     },
     "voe-dn": {
@@ -448,50 +2235,195 @@
       "name": "Castora: Day / Night",
       "link": "Day_and_night",
       "segments": {
-        "1": { "name": "Day",   "bg": [255,255,255] },
-        "2": { "name": "Dusk",  "bg": [188,196,213] },
-        "3": { "name": "Night", "bg": [122,134,171] },
-        "4": { "name": "Dawn",  "bg": [188,196,213] }
+        "1": {
+          "name": "Day",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        "2": {
+          "name": "Dusk",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        },
+        "3": {
+          "name": "Night",
+          "bg": [
+            122,
+            134,
+            171
+          ]
+        },
+        "4": {
+          "name": "Dawn",
+          "bg": [
+            188,
+            196,
+            213
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":3,"d":35},{"r":4,"d":5}],
-        "pattern": [{"r":1,"d":55},{"r":2,"d":5},{"r":3,"d":55},{"r":4,"d":5}]
+        "partial": [
+          {
+            "r": 3,
+            "d": 35
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 55
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 55
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ]
       }
     },
     "voe-ss": {
       "category": "Visions of Eternity",
       "name": "Shipwreck Strand",
       "segments": {
-        "0": { "name": "",                    "bg": [50,50,55] },
-        "1": { "name": "Hammerhart Rumble!",  "chatlink": "[&BJEPAAA=]", "bg": [242,126,84] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Hammerhart Rumble!",
+          "chatlink": "[&BJEPAAA=]",
+          "bg": [
+            242,
+            126,
+            84
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":40}],
-        "pattern": [{"r":1,"d":20},{"r":0,"d":100}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 40
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 100
+          }
+        ]
       }
     },
     "voe-sw": {
       "category": "Visions of Eternity",
       "name": "Starlit Weald",
       "segments": {
-        "0": { "name": "",                      "bg": [50,50,55] },
-        "1": { "name": "Secrets of the Weald",  "chatlink": "[&BJ4PAAA=]", "bg": [242,126,84] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Secrets of the Weald",
+          "chatlink": "[&BJ4PAAA=]",
+          "bg": [
+            242,
+            126,
+            84
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":1,"d":15},{"r":0,"d":85}],
-        "pattern": [{"r":1,"d":35},{"r":0,"d":85}]
+        "partial": [
+          {
+            "r": 1,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 85
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 35
+          },
+          {
+            "r": 0,
+            "d": 85
+          }
+        ]
       }
     },
     "voe-eg": {
       "category": "Visions of Eternity",
       "name": "Eternity's Garden",
       "segments": {
-        "0": { "name": "",                          "bg": [50,50,55] },
-        "1": { "name": "Shackles of the Ancients",  "chatlink": "[&BPwPAAA=]", "bg": [242,126,84] }
+        "0": {
+          "name": "",
+          "bg": [
+            50,
+            50,
+            55
+          ]
+        },
+        "1": {
+          "name": "Shackles of the Ancients",
+          "chatlink": "[&BPwPAAA=]",
+          "bg": [
+            242,
+            126,
+            84
+          ]
+        }
       },
       "sequences": {
-        "partial": [{"r":0,"d":70}],
-        "pattern": [{"r":1,"d":25},{"r":0,"d":95}]
+        "partial": [
+          {
+            "r": 0,
+            "d": 70
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 0,
+            "d": 95
+          }
+        ]
       }
     }
   }

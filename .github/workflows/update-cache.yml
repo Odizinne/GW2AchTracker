@@ -28,6 +28,9 @@ jobs:
       - name: Fetch active festival data
         run: python scripts/fetch_active_daily.py
 
+      - name: Sync event timer sequences from wiki
+        run: python scripts/fetch_event_timer.py
+
       - name: Commit and deploy if changed
         run: |
           git config user.name  "github-actions[bot]"
