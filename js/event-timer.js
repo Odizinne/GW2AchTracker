@@ -212,11 +212,12 @@ export async function renderEventTimerView(container) {
     })
     .filter(Boolean);
 
-  // Bucket events by category (skip day/night cycles — shown in sidebar)
-  const SKIP_KEYS = new Set(["core-dn", "eod-dn"]);
+  // Bucket events by category
+  const TOD_KEYS = new Set(["core-dn", "eod-dn"]);
+  const showTOD  = settings.showTimeOfDay !== false;
   const byCategory = {};
   for (const [key, ev] of Object.entries(data.events)) {
-    if (SKIP_KEYS.has(key)) continue;
+    if (!showTOD && TOD_KEYS.has(key)) continue;
     if (!byCategory[ev.category]) byCategory[ev.category] = [];
     byCategory[ev.category].push({ key, ...ev });
   }
@@ -438,8 +439,26 @@ export function openETFilterModal() {
   const body       = document.getElementById("et-filter-body");
   body.innerHTML   = "";
 
+  // ── Time of day global toggle ──────────────────────────────────────────────
+  const todRow = document.createElement("div");
+  todRow.className = "et-filter-row";
+  const showTOD = settings.showTimeOfDay !== false;
+  todRow.innerHTML = `
+    <label class="checkbox-label et-filter-check">
+      <input type="checkbox" id="et-tod-check" ${showTOD ? "checked" : ""}>
+      <span>Time of day</span>
+    </label>
+  `;
+  body.appendChild(todRow);
+
+  // ── Group list ─────────────────────────────────────────────────────────────
+  const groupsEl = document.createElement("div");
+  body.appendChild(groupsEl);
+
   function renderList(list) {
-    body.innerHTML = "";
+    groupsEl.innerHTML = "";
+    let dragSrcIdx = null;
+
     list.forEach((g, i) => {
       const def = GROUP_DEFS.find(d => d.id === g.id);
       if (!def) return;
@@ -449,65 +468,102 @@ export function openETFilterModal() {
       row.className = "et-filter-row";
 
       row.innerHTML = `
-        <div class="et-filter-row-left">
-          <label class="checkbox-label et-filter-check">
-            <input type="checkbox" data-id="${g.id}" ${g.visible !== false ? "checked" : ""}>
-            <span class="et-filter-dot" style="background:${color}"></span>
-            <span>${g.id}</span>
-          </label>
-        </div>
-        <div class="et-filter-row-right">
-          <button class="btn small et-filter-up" data-idx="${i}" ${i === 0 ? "disabled" : ""} title="Move up">▲</button>
-          <button class="btn small et-filter-down" data-idx="${i}" ${i === list.length - 1 ? "disabled" : ""} title="Move down">▼</button>
-        </div>
+        <label class="checkbox-label et-filter-check">
+          <input type="checkbox" data-id="${g.id}" ${g.visible !== false ? "checked" : ""}>
+          <span class="et-filter-dot" style="background:${color}"></span>
+          <span>${g.id}</span>
+        </label>
+        <span class="et-filter-drag-handle" title="Drag to reorder">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
+            <rect y="1.5" width="13" height="2" rx="1"/>
+            <rect y="5.5" width="13" height="2" rx="1"/>
+            <rect y="9.5" width="13" height="2" rx="1"/>
+          </svg>
+        </span>
       `;
-      body.appendChild(row);
-    });
 
-    // Wire up reorder buttons
-    body.querySelectorAll(".et-filter-up").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = +btn.dataset.idx;
-        if (idx <= 0) return;
-        [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
+      const handle = row.querySelector(".et-filter-drag-handle");
+      handle.addEventListener("mousedown", () => row.setAttribute("draggable", "true"));
+
+      row.addEventListener("dragstart", e => {
+        dragSrcIdx = i;
+        e.dataTransfer.effectAllowed = "move";
+        const ghost = row.cloneNode(true);
+        ghost.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:1;pointer-events:none;width:" + row.offsetWidth + "px";
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, e.offsetX, e.offsetY);
+        requestAnimationFrame(() => { document.body.removeChild(ghost); row.classList.add("dragging"); });
+      });
+
+      row.addEventListener("dragend", () => {
+        row.setAttribute("draggable", "false");
+        row.classList.remove("dragging");
+        groupsEl.querySelectorAll(".et-filter-row").forEach(r =>
+          r.classList.remove("drag-over-top", "drag-over-bottom")
+        );
+      });
+
+      row.addEventListener("dragover", e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        groupsEl.querySelectorAll(".et-filter-row").forEach(r =>
+          r.classList.remove("drag-over-top", "drag-over-bottom")
+        );
+        const rect = row.getBoundingClientRect();
+        row.classList.add(e.clientY < rect.top + rect.height / 2 ? "drag-over-top" : "drag-over-bottom");
+      });
+
+      row.addEventListener("dragleave", e => {
+        if (!row.contains(e.relatedTarget))
+          row.classList.remove("drag-over-top", "drag-over-bottom");
+      });
+
+      row.addEventListener("drop", e => {
+        e.preventDefault();
+        if (dragSrcIdx === null || dragSrcIdx === i) return;
+        const rect = row.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        const [moved] = list.splice(dragSrcIdx, 1);
+        let target = before ? i : i + 1;
+        if (dragSrcIdx < target) target--;
+        list.splice(target, 0, moved);
         renderList(list);
       });
-    });
-    body.querySelectorAll(".et-filter-down").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = +btn.dataset.idx;
-        if (idx >= list.length - 1) return;
-        [list[idx + 1], list[idx]] = [list[idx], list[idx + 1]];
-        renderList(list);
-      });
+
+      groupsEl.appendChild(row);
     });
   }
 
   renderList(groupList);
 
+  function rerender() {
+    const main = document.getElementById("view-event-timer");
+    if (main) renderEventTimerView(main);
+    const split = document.getElementById("split-panel-body");
+    if (split?.children.length) renderEventTimerView(split);
+  }
+
   document.getElementById("btn-et-filter-done").onclick = () => {
-    const checks = body.querySelectorAll("input[type='checkbox']");
-    checks.forEach(cb => {
+    const todCheck = document.getElementById("et-tod-check");
+    groupsEl.querySelectorAll("input[type='checkbox']").forEach(cb => {
       const g = groupList.find(x => x.id === cb.dataset.id);
       if (g) g.visible = cb.checked;
     });
     const s = loadETSettings();
     s.groups = groupList;
+    s.showTimeOfDay = todCheck.checked;
     saveETSettings(s);
     closeModal("et-filter-overlay");
-
-    // Re-render the timeline
-    const container = document.getElementById("view-event-timer");
-    if (container) renderEventTimerView(container);
+    rerender();
   };
 
   document.getElementById("btn-et-filter-reset").onclick = () => {
     const s = loadETSettings();
     delete s.groups;
+    delete s.showTimeOfDay;
     saveETSettings(s);
     closeModal("et-filter-overlay");
-    const container = document.getElementById("view-event-timer");
-    if (container) renderEventTimerView(container);
+    rerender();
   };
 
   openModal("et-filter-overlay");

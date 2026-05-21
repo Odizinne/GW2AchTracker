@@ -339,24 +339,30 @@
   justify-content: space-between;
   padding: 6px 4px;
   border-bottom: 1px solid var(--border-soft);
+  position: relative;
 }
 
 .et-filter-row:last-child {
   border-bottom: none;
 }
 
-.et-filter-row-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
+.et-filter-row.dragging {
+  opacity: 0.75;
 }
 
-.et-filter-row-right {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+.et-filter-row.drag-over-top::before,
+.et-filter-row.drag-over-bottom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
 }
+
+.et-filter-row.drag-over-top::before  { top: -1px; }
+.et-filter-row.drag-over-bottom::after { bottom: -1px; }
 
 .et-filter-check {
   display: flex;
@@ -365,6 +371,7 @@
   cursor: pointer;
   user-select: none;
   font-size: 13px;
+  flex: 1;
 }
 
 .et-filter-dot {
@@ -375,11 +382,17 @@
   display: inline-block;
 }
 
-.et-filter-up,
-.et-filter-down {
-  font-size: 10px;
-  padding: 1px 5px;
-  line-height: 1.6;
+.et-filter-drag-handle {
+  color: var(--muted);
+  cursor: grab;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.et-filter-drag-handle:active {
+  cursor: grabbing;
 }
 
 /* ── Topbar buttons ───────────────────────────────────────────────────────── */

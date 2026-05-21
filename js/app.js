@@ -1424,8 +1424,7 @@ let splitViewName   = null;
 const btnSplitView    = document.getElementById("btn-split-view");
 const splitPanel      = document.getElementById("split-panel");
 const splitPanelBody  = document.getElementById("split-panel-body");
-const viewScaleSlider = document.getElementById("view-scale-slider");
-const scaleLabel      = document.getElementById("scale-label");
+const viewsContainer  = document.getElementById("views-container");
 
 btnSplitView.addEventListener("click", () => {
   if (splitViewActive) deactivateSplitPanel();
@@ -1433,12 +1432,18 @@ btnSplitView.addEventListener("click", () => {
 });
 
 
+function updateSplitOrientation() {
+  const vertical = splitViewActive && window.innerHeight > window.innerWidth;
+  viewsContainer.classList.toggle("vertical-split", vertical);
+}
+
 function activateSplitPanel() {
   splitViewActive = true;
   splitPanel.classList.remove("hidden");
   btnSplitView.classList.add("active");
-localStorage.setItem("gw2_split_view", splitViewName);
+  localStorage.setItem("gw2_split_view", splitViewName);
   updateSplitConflicts();
+  updateSplitOrientation();
   renderSplitContent();
 }
 
@@ -1451,6 +1456,7 @@ function deactivateSplitPanel() {
   splitPanelBody.innerHTML = "";
   localStorage.removeItem("gw2_split_view");
   updateSplitConflicts();
+  updateSplitOrientation();
 }
 
 function updateSplitConflicts() {
@@ -1524,18 +1530,6 @@ function renderSplitTable(container, rows) {
   container.querySelectorAll(".ach-row-btn").forEach(btn =>
     btn.addEventListener("click", () => openAchFromCache(Number(btn.dataset.id))));
 }
-
-// ── Scale slider ──────────────────────────────────────────────────────────────
-
-updateRangeFill(viewScaleSlider);
-
-viewScaleSlider.addEventListener("input", () => {
-  const pct = parseInt(viewScaleSlider.value);
-  scaleLabel.textContent = pct + "%";
-  document.documentElement.style.setProperty("--view-scale", pct / 100);
-  localStorage.setItem("gw2_view_scale", pct);
-  updateRangeFill(viewScaleSlider);
-});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -1638,18 +1632,13 @@ initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), g
 checkSetup();
 updateCacheInfo();
 
-// ── Restore split view & scale ────────────────────────────────────────────────
-const _savedScale = parseInt(localStorage.getItem("gw2_view_scale"));
-if (_savedScale >= 50 && _savedScale <= 100) {
-  viewScaleSlider.value = _savedScale;
-  scaleLabel.textContent = _savedScale + "%";
-  document.documentElement.style.setProperty("--view-scale", _savedScale / 100);
-  updateRangeFill(viewScaleSlider);
-}
+// ── Restore split view ────────────────────────────────────────────────────────
 if (localStorage.getItem("gw2_split_view") && currentView !== "event-timer") {
   splitViewName = "event-timer";
   activateSplitPanel();
 }
+
+window.addEventListener("resize", updateSplitOrientation);
 if (settings.accounts.length) {
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());
