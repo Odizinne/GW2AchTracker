@@ -497,3 +497,82 @@
 #ach-modal-fav-btn.active  { color: var(--gold); }
 #ach-modal-fav-btn.active svg { fill: currentColor; }
 #ach-modal-hide-btn.active { color: var(--red); }
+
+/* ── ItemSet icon grid ── */
+.ach-itemset-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.ach-itemset-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  opacity: 0.25;
+  filter: saturate(0.1);
+}
+
+[data-theme="light"] .ach-itemset-cell {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.ach-itemset-cell.empty {
+  background: transparent;
+  border-color: transparent;
+  filter: none;
+}
+
+.ach-itemset-cell.bit-done {
+  opacity: 1;
+  filter: none;
+}
+
+.ach-itemset-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── ItemSet tooltip ── */
+.ach-item-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  max-width: 220px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.ach-item-tooltip.hidden { display: none; }
+
+.ach-item-tooltip .tip-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.ach-item-tooltip .tip-name[data-rarity="Junk"]       { color: #AAAAAA; }
+.ach-item-tooltip .tip-name[data-rarity="Basic"]      { color: #FFFFFF; }
+.ach-item-tooltip .tip-name[data-rarity="Fine"]       { color: #62A4DA; }
+.ach-item-tooltip .tip-name[data-rarity="Masterwork"] { color: #1F9306; }
+.ach-item-tooltip .tip-name[data-rarity="Rare"]       { color: #FCD00B; }
+.ach-item-tooltip .tip-name[data-rarity="Exotic"]     { color: #FFA405; }
+.ach-item-tooltip .tip-name[data-rarity="Ascended"]   { color: #FB3E8D; }
+.ach-item-tooltip .tip-name[data-rarity="Legendary"]  { color: #A855F7; }
+
+.ach-item-tooltip .tip-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
