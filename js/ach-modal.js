@@ -91,7 +91,7 @@ function _renderItemSetGrid(bits, entry, ach) {
   const completedBits = new Set(entry.bits || []);
 
   const cells = bits.map((bit, i) => {
-    const done = completedBits.has(i);
+    const done = entry.done || completedBits.has(i);
     let icon   = "";
     let name   = "";
     let desc   = "";
