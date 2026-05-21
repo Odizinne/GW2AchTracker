@@ -517,13 +517,9 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
   opacity: 0.45;
   filter: saturate(0.2);
-}
-
-[data-theme="light"] .ach-itemset-cell {
-  border-color: rgba(0, 0, 0, 0.22);
 }
 
 .ach-itemset-cell.empty {
