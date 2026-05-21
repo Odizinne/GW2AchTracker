@@ -80,6 +80,8 @@ const addAccountForm    = document.getElementById("add-account-form");
 const newAccountError   = document.getElementById("new-account-error");
 const browserTree       = document.getElementById("browser-tree");
 const btnBrowseToggle   = document.getElementById("btn-browse-toggle");
+const sidebar           = document.getElementById("sidebar");
+const btnSidebarCollapse = document.getElementById("btn-sidebar-collapse");
 const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
 const btnShowHidden           = document.getElementById("btn-show-hidden");
@@ -569,8 +571,38 @@ document.querySelectorAll(".nav-item[data-view]").forEach(item => {
   });
 });
 
+// ── Sidebar collapse ──────────────────────────────────────────────────────────
+
+function setSidebarCollapsed(collapsed) {
+  if (collapsed) {
+    if (!browserTree.classList.contains("hidden")) {
+      browserTree.classList.add("hidden");
+      browserTree.classList.remove("tree-anim", "tree-anim-out");
+      btnBrowseToggle.classList.remove("open");
+    }
+    sidebar.classList.add("collapsed");
+  } else {
+    sidebar.classList.remove("collapsed");
+  }
+  try { localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0"); } catch {}
+}
+
+btnSidebarCollapse.addEventListener("click", () => {
+  setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
+});
+
+if (localStorage.getItem("sidebarCollapsed") === "1") setSidebarCollapsed(true);
+requestAnimationFrame(() => sidebar.classList.remove("sb-notransition"));
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 btnBrowseToggle.addEventListener("click", () => {
   if (!settings.accounts.length) return;
+
+  if (sidebar.classList.contains("collapsed")) {
+    setSidebarCollapsed(false);
+  }
+
   const opening = browserTree.classList.contains("hidden");
   if (opening) {
     browserTree.classList.remove("tree-anim-out", "tree-anim", "hidden");

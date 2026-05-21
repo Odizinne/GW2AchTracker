@@ -2,11 +2,33 @@ import { loadCache } from "./cache.js";
 
 let _onSelect = null; // callback(achId, achObj)
 
+function collapse(wrap, input, results) {
+  results.classList.add("hidden");
+  results.innerHTML = "";
+  input.value = "";
+  wrap.classList.remove("expanded");
+}
+
 export function initSearch(onSelect) {
   _onSelect = onSelect;
 
+  const wrap    = document.getElementById("global-search-wrap");
   const input   = document.getElementById("global-search-input");
   const results = document.getElementById("global-search-results");
+
+  // Expand on click when compact
+  wrap.addEventListener("click", () => {
+    if (!wrap.classList.contains("expanded")) {
+      wrap.classList.add("expanded");
+      setTimeout(() => input.focus(), 80);
+    }
+  });
+
+  // Collapse on blur if empty and focus didn't move to a result
+  input.addEventListener("blur", e => {
+    if (wrap.contains(e.relatedTarget)) return;
+    if (!input.value.trim()) collapse(wrap, input, results);
+  });
 
   input.addEventListener("input", () => {
     const q = input.value.trim().toLowerCase();
@@ -36,20 +58,21 @@ export function initSearch(onSelect) {
       btn.addEventListener("click", () => {
         const ach = cache[btn.dataset.id];
         if (ach && _onSelect) _onSelect(ach);
-        input.value = "";
-        results.classList.add("hidden");
+        collapse(wrap, input, results);
       });
     });
   });
 
-  // Close on outside click
+  // Close on outside click, collapse if empty
   document.addEventListener("click", e => {
-    if (!document.getElementById("global-search-wrap").contains(e.target))
+    if (!wrap.contains(e.target)) {
       results.classList.add("hidden");
+      if (!input.value.trim()) wrap.classList.remove("expanded");
+    }
   });
 
-  // Close on Escape
+  // Escape: collapse
   input.addEventListener("keydown", e => {
-    if (e.key === "Escape") { results.classList.add("hidden"); input.value = ""; }
+    if (e.key === "Escape") { input.blur(); }
   });
 }

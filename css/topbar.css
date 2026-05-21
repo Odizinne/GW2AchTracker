@@ -131,10 +131,24 @@
 /* ── Global search ── */
 .global-search-wrap {
   position: relative;
-  width: 260px;
+  width: 36px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s;
+}
+
+.global-search-wrap:not(.expanded):hover {
+  background: var(--bg3);
+}
+
+.global-search-wrap.expanded {
+  width: 260px;
+  overflow: visible;
+  cursor: default;
 }
 
 .search-icon {
@@ -144,6 +158,11 @@
   pointer-events: none;
   flex-shrink: 0;
   z-index: 1;
+  transition: color 0.15s;
+}
+
+.global-search-wrap:not(.expanded):hover .search-icon {
+  color: var(--text);
 }
 
 #global-search-input {
@@ -156,7 +175,15 @@
   font-size: 13px;
   font-family: var(--font);
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  opacity: 0;
+  pointer-events: none;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+
+.global-search-wrap.expanded #global-search-input {
+  opacity: 1;
+  pointer-events: auto;
+  transition: border-color 0.15s, background 0.15s, opacity 0.2s 0.08s;
 }
 
 #global-search-input:focus {

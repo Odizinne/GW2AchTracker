@@ -10,13 +10,24 @@
   margin: 14px 0 14px 16px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Logo ── */
 .sb-logo {
-  padding: 18px 16px 14px;
+  padding: 14px 8px 14px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.sb-logo-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.15s 0.12s;
 }
 
 .sb-logo-title {
@@ -25,6 +36,7 @@
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .sb-logo small {
@@ -32,13 +44,45 @@
   font-size: 11px;
   color: var(--muted);
   margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* ── Collapse button ── */
+.sb-collapse-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.sb-collapse-btn:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.sb-collapse-btn svg {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Tyrian clock ── */
 .sb-clock {
+  flex-shrink: 0;
+  overflow: hidden;
+  max-height: 100px;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sb-clock-inner {
   padding: 7px 16px 8px;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
 }
 
 .sb-clock-header {
@@ -127,9 +171,14 @@
 
 /* ── Account section ── */
 .sb-section {
-  padding: 14px 10px 12px;
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  overflow: hidden;
+  max-height: 80px;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sb-section-inner {
+  padding: 14px 10px 0;
 }
 
 .sb-label {
@@ -139,6 +188,10 @@
   letter-spacing: 0.07em;
   padding: 0 6px;
   margin-bottom: 7px;
+  overflow: hidden;
+  max-height: 24px;
+  white-space: nowrap;
+  transition: opacity 0.15s 0.1s, max-height 0.28s, margin-bottom 0.28s;
 }
 
 .sb-select-wrap { position: relative; }
@@ -230,8 +283,10 @@
 .browse-chevron {
   margin-left: auto;
   flex-shrink: 0;
-  transition: transform 0.18s ease;
+  overflow: hidden;
+  max-width: 20px;
   opacity: 0.35;
+  transition: transform 0.18s ease, opacity 0.15s 0.1s, max-width 0.2s 0.05s, margin-left 0.2s;
 }
 
 #btn-browse-toggle.open .browse-chevron {
@@ -368,6 +423,7 @@
   flex-shrink: 0;
   padding: 10px 14px 12px;
   border-top: 1px solid var(--border);
+  transition: opacity 0.15s;
 }
 
 .sb-reminder-header {
@@ -477,7 +533,14 @@
 .sb-link svg { flex-shrink: 0; opacity: 0.6; }
 .sb-link:hover svg { opacity: 1; }
 
-/* ── Refresh button ── */
+/* ── Refresh row + button ── */
+.sb-refresh-row {
+  flex-shrink: 0;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border);
+  transition: padding 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .sb-btn {
   width: 100%;
   display: flex;
@@ -485,7 +548,6 @@
   justify-content: center;
   gap: 7px;
   padding: 7px 10px;
-  margin-top: 9px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg3);
@@ -494,7 +556,14 @@
   font-family: var(--font);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, gap 0.22s;
+}
+
+.sb-btn > span {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+  transition: opacity 0.15s 0.1s, max-width 0.22s 0.04s;
 }
 
 .sb-btn:hover:not(:disabled) { background: var(--bg4); border-color: var(--muted); }
@@ -517,5 +586,130 @@
 
 .sb-btn.updating svg {
   animation: sb-spin 0.9s linear infinite;
+}
+
+/* ── Suppress transitions on initial load ── */
+#sidebar.sb-notransition,
+#sidebar.sb-notransition * {
+  transition: none !important;
+}
+
+/* ── Sidebar collapsed state ── */
+#sidebar.collapsed {
+  width: 52px;
+}
+
+/* Logo area */
+#sidebar.collapsed .sb-logo {
+  padding: 14px 8px;
+  justify-content: center;
+}
+
+#sidebar.collapsed .sb-logo-text {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+#sidebar.collapsed .sb-collapse-btn svg {
+  transform: rotate(180deg);
+}
+
+/* Account + clock: collapse to zero */
+#sidebar.collapsed .sb-section,
+#sidebar.collapsed .sb-clock {
+  max-height: 0;
+}
+
+/* Refresh button: icon-only */
+#sidebar.collapsed .sb-refresh-row {
+  padding: 6px;
+}
+
+#sidebar.collapsed .sb-btn {
+  gap: 0;
+}
+
+#sidebar.collapsed .sb-btn > span {
+  opacity: 0;
+  max-width: 0;
+  transition: opacity 0.12s, max-width 0.22s;
+}
+
+/* Nav labels */
+#sidebar.collapsed .sb-label {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, max-height 0.28s, margin-bottom 0.28s;
+}
+
+/* Nav items: hide text, center icon */
+.nav-item > span {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+  transition: opacity 0.15s 0.1s, max-width 0.22s 0.04s;
+}
+
+#sidebar.collapsed .nav-item > span {
+  opacity: 0;
+  max-width: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, max-width 0.22s;
+}
+
+#sidebar.collapsed .sb-nav {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+#sidebar.collapsed .nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Browse chevron */
+#sidebar.collapsed .browse-chevron {
+  opacity: 0 !important;
+  max-width: 0;
+  margin-left: 0;
+  transition: opacity 0.12s, max-width 0.22s, margin-left 0.22s;
+}
+
+/* Reminder: fade out */
+#sidebar.collapsed .sb-reminder {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Bottom links: hide text, center icon */
+.sb-link > span {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+  transition: opacity 0.15s 0.1s, max-width 0.22s 0.04s;
+}
+
+#sidebar.collapsed .sb-link > span {
+  opacity: 0;
+  max-width: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, max-width 0.22s;
+}
+
+#sidebar.collapsed .sb-bottom {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+#sidebar.collapsed .sb-link {
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
 }
 
