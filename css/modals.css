@@ -251,7 +251,7 @@
 .legal-body section a { color: var(--accent); }
 
 /* ── Achievement detail modal ── */
-.ach-modal { width: min(580px, 92vw); }
+.ach-modal { width: min(490px, 92vw); }
 
 .ach-modal .modal-header h2 {
   font-size: 15px;
@@ -422,6 +422,12 @@
   font-size: 13px;
   color: var(--text);
 }
+.ach-modal-reward-row .item-reward-icon {
+  width: 28px;
+  height: 28px;
+  vertical-align: -7px;
+  margin-right: 4px;
+}
 
 /* ── Notification volume slider ── */
 .notif-volume-row {
@@ -501,7 +507,7 @@
 /* ── ItemSet icon grid ── */
 .ach-itemset-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, 60px);
   gap: 4px;
 }
 
@@ -511,13 +517,13 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  opacity: 0.25;
-  filter: saturate(0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.45;
+  filter: saturate(0.2);
 }
 
 [data-theme="light"] .ach-itemset-cell {
-  border-color: rgba(0, 0, 0, 0.18);
+  border-color: rgba(0, 0, 0, 0.22);
 }
 
 .ach-itemset-cell.empty {

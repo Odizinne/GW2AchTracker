@@ -153,6 +153,13 @@
   margin-right: 2px;
   display: inline-block;
 }
+.tile-rewards .item-reward-icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  display: inline-block;
+}
+.tile-rewards .item-reward-label { display: none; }
 
 .tile-reward-chip {
   font-size: 11px;

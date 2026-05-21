@@ -53,7 +53,7 @@ export function formatRewardsArray(rewards, itemNameMap, titleNameMap, points) {
       parts.push("COINS:" + [g && `${g}g`, s && `${s}s`, c && `${c}c`].filter(Boolean).join(" "));
     } else if (r.type === "Item") {
       const name = itemNameMap[r.id] || `Item#${r.id}`;
-      parts.push(r.count > 1 ? `${r.count}x ${name}` : name);
+      parts.push(`ITEM:${r.id}:${r.count > 1 ? r.count : 1}:${name}`);
     } else if (r.type === "Mastery") {
       const file = MASTERY_REGION_MAP[r.region] || "Tyria";
       parts.push(`MASTERY:${file}`);

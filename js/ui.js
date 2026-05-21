@@ -48,7 +48,21 @@ export function stripGw2Markup(str) {
   return str.replace(/<[^>]*>/g, "");
 }
 
-export function rewardHtml(rewardStr) {
+const _esc = s => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+
+export function rewardPlainText(str) {
+  return str
+    .replace(/AP:(\d+)/g, "$1 AP")
+    .replace(/MASTERY:[A-Za-z_]+/g, "Mastery")
+    .replace(/COINS:([^·\n]+)/g, (_, c) => c.trim())
+    .replace(/TITLE:([^·\n]+)/g, (_, n) => n.trim())
+    .replace(/ITEM:\d+:(\d+):([^·\n]+)/g, (_, qty, name) =>
+      (+qty > 1 ? `${qty}× ` : "") + name.trim()
+    );
+}
+
+export function rewardHtml(rewardStr, maps = {}) {
+  const { itemIconMap = {}, itemDescMap = {}, itemRarityMap = {} } = maps;
   return rewardStr
     .replace(/AP:(\d+)/g, '<img src="assets/AP.png" class="ap-icon" alt="AP"> $1')
     .replace(/MASTERY:([A-Za-z_]+)/g, (_, file) =>
@@ -63,5 +77,74 @@ export function rewardHtml(rewardStr) {
     .replace(/TITLE:([^·\n]+)/g, (_, name) =>
       `<img src="assets/title.png" class="reward-icon" alt="Title"> ${name.trim()}`
     )
-    .replace(/\[([^\]]+)\]/g, `<img src="assets/title.png" class="reward-icon" alt="Title"> $1`);
+    .replace(/\[([^\]]+)\]/g, `<img src="assets/title.png" class="reward-icon" alt="Title"> $1`)
+    .replace(/ITEM:(\d+):(\d+):([^·\n]+)/g, (_, id, qty, name) => {
+      const icon   = itemIconMap[+id];
+      const desc   = itemDescMap[+id]   || "";
+      const rarity = itemRarityMap[+id] || "";
+      const label  = name.trim();
+      const qtyStr = +qty > 1 ? `${qty}× ` : "";
+      if (icon) {
+        return `<img src="${icon}" class="item-reward-icon"
+          data-tip-name="${_esc(label)}" data-tip-desc="${_esc(desc)}" data-tip-rarity="${rarity}"
+          alt="${_esc(label)}"><span class="item-reward-label"> ${qtyStr}${label}</span>`;
+      }
+      return `${qtyStr}${label}`;
+    });
 }
+
+// ── Shared item-icon tooltip (works across all views) ────────────────────────
+
+let _itemTip = null;
+
+function _getItemTip() {
+  if (!_itemTip) {
+    _itemTip = document.createElement("div");
+    _itemTip.className = "ach-item-tooltip hidden";
+    document.body.appendChild(_itemTip);
+  }
+  return _itemTip;
+}
+
+export function showItemTip(el) {
+  const tip    = _getItemTip();
+  const name   = el.dataset.tipName   || "";
+  const desc   = el.dataset.tipDesc   || "";
+  const rarity = el.dataset.tipRarity || "";
+  if (!name && !desc) return;
+  tip.innerHTML = "";
+  if (name) {
+    const nameEl = document.createElement("div");
+    nameEl.className = "tip-name";
+    if (rarity) nameEl.dataset.rarity = rarity;
+    nameEl.textContent = name;
+    tip.appendChild(nameEl);
+  }
+  if (desc) {
+    const descEl = document.createElement("div");
+    descEl.className = "tip-desc";
+    descEl.textContent = desc;
+    tip.appendChild(descEl);
+  }
+  tip.classList.remove("hidden");
+  const rect = el.getBoundingClientRect();
+  const tw   = tip.offsetWidth;
+  const th   = tip.offsetHeight;
+  let left   = rect.left + (rect.width - tw) / 2;
+  let top    = rect.top - th - 6;
+  if (left < 4) left = 4;
+  if (left + tw > window.innerWidth - 4) left = window.innerWidth - tw - 4;
+  if (top < 4) top = rect.bottom + 6;
+  tip.style.left = `${left}px`;
+  tip.style.top  = `${top}px`;
+}
+
+export function hideItemTip() {
+  if (_itemTip) _itemTip.classList.add("hidden");
+}
+
+document.addEventListener("mouseover", e => {
+  const el = e.target.closest(".item-reward-icon");
+  if (el) { showItemTip(el); return; }
+  if (_itemTip && !_itemTip.classList.contains("hidden")) hideItemTip();
+});

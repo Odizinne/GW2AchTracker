@@ -2,6 +2,7 @@ import { validateApiKey, formatRewards, apiFetch }          from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
          toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
          ensureStaticCache, getStaticVersion,
+         getItemIconMap, getItemDescMap, getItemRarityMap,
          } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
@@ -13,7 +14,7 @@ import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          getCategoryById, ensureDailyData, ensureActiveDailyCache,
          initBrowserDataFromCache } from "./browser.js";
 import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
-         showError, clearError, showView, pctClass, barColor, rewardHtml, stripGw2Markup } from "./ui.js";
+         showError, clearError, showView, pctClass, barColor, rewardHtml, rewardPlainText, stripGw2Markup } from "./ui.js";
 import { openAchievementModal, initAchModal, setModalProgressMap,
          setModalStateCallback, setModalBackCallback } from "./ach-modal.js";
 import { initSearch } from "./search.js";
@@ -445,9 +446,10 @@ function buildTileHtml(rows) {
     const ach  = cache[row.id];
     const desc = stripGw2Markup(ach?.requirement || ach?.description || "");
 
+    const rwMaps = { itemIconMap: getItemIconMap(), itemDescMap: getItemDescMap(), itemRarityMap: getItemRarityMap() };
     const rewardParts = row.rewardStr
       ? row.rewardStr.split(" · ").map(part =>
-          `<span class="tile-reward-chip">${rewardHtml(part)}</span>`
+          `<span class="tile-reward-chip">${rewardHtml(part, rwMaps)}</span>`
         ).join("")
       : "";
 
@@ -744,7 +746,7 @@ function renderFavoritesView() {
       <td class="col-pct">${pctCell}</td>
       <td class="col-prog">${buildProgCell(row)}</td>
       <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
-      <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-reward" title="${rewardPlainText(row.rewardStr)}">${rewardHtml(row.rewardStr, { itemIconMap: getItemIconMap(), itemDescMap: getItemDescMap(), itemRarityMap: getItemRarityMap() })}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");
@@ -792,7 +794,7 @@ function renderNearlyDoneRows(rows) {
       <td class="col-pct">${pctCell}</td>
       <td class="col-prog">${buildProgCell(row)}</td>
       <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
-      <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-reward" title="${rewardPlainText(row.rewardStr)}">${rewardHtml(row.rewardStr, { itemIconMap: getItemIconMap(), itemDescMap: getItemDescMap(), itemRarityMap: getItemRarityMap() })}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");
@@ -1033,7 +1035,7 @@ function renderBrowserRows(rows) {
       <td class="col-pct">${pctCell}</td>
       <td class="col-prog">${buildProgCell(row)}</td>
       <td class="col-name"><button class="ach-row-btn" data-id="${row.id}">${row.name}</button></td>
-      <td class="col-reward" title="${row.rewardStr}">${rewardHtml(row.rewardStr)}</td>
+      <td class="col-reward" title="${rewardPlainText(row.rewardStr)}">${rewardHtml(row.rewardStr, { itemIconMap: getItemIconMap(), itemDescMap: getItemDescMap(), itemRarityMap: getItemRarityMap() })}</td>
       <td class="col-actions">${buildActionButtons(row.id, row.name)}</td>
     </tr>`;
   }).join("");

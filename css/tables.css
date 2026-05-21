@@ -106,6 +106,19 @@ td.col-actions {
 .mastery-icon { width: 24px; height: 24px; vertical-align: -5px; margin-right: 2px; }
 .reward-icon  { width: 18px; height: 18px; vertical-align: -4px; margin-right: 2px; }
 
+.item-reward-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--bg3);
+  object-fit: cover;
+  vertical-align: -5px;
+  margin-right: 2px;
+}
+[data-theme="light"] .item-reward-icon { border-color: rgba(0, 0, 0, 0.2); }
+.col-reward .item-reward-label { display: none; }
+
 /* ── Row name button ── */
 .ach-row-btn {
   background: none;

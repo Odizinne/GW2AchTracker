@@ -264,8 +264,9 @@ export function openAchievementModal(ach, progressEntry, enName = null, cat = nu
     totalPoints,
   );
   if (rewardLines.length) {
+    const rwMaps = { itemIconMap: getItemIconMap(), itemDescMap: getItemDescMap(), itemRarityMap: getItemRarityMap() };
     const linesHtml = rewardLines.map(line =>
-      `<div class="ach-modal-reward-row">${rewardHtml(line)}</div>`
+      `<div class="ach-modal-reward-row">${rewardHtml(line, rwMaps)}</div>`
     ).join("");
     rewardsSection.innerHTML = `
       <div class="ach-modal-section-label">Rewards</div>
