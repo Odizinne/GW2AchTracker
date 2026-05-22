@@ -44,7 +44,7 @@ export async function validateApiKey(key) {
 // Returns one formatted string per reward line (AP on its own line, then each reward).
 export function formatRewardsArray(rewards, itemNameMap, titleNameMap, points) {
   const parts = [];
-  if (points) parts.push(`AP:${points}`);
+  if (points > 0) parts.push(`AP:${points}`);
   for (const r of rewards) {
     if (r.type === "Coins") {
       const g = Math.floor(r.count / 10000);
