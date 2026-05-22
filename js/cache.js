@@ -353,12 +353,18 @@ function _loadSet(key) {
   try { const r = localStorage.getItem(key); return new Set(r ? JSON.parse(r) : []); } catch { return new Set(); }
 }
 
-export let favoritesSet = _loadSet("gw2_favorites");
+let _favKey = "gw2_favorites";
+export let favoritesSet = _loadSet(_favKey);
 export let hiddenSet    = _loadSet("gw2_hidden");
+
+export function reloadFavorites(apiKey) {
+  _favKey = apiKey ? `gw2_favorites_${apiKey.slice(-8)}` : "gw2_favorites";
+  favoritesSet = _loadSet(_favKey);
+}
 
 export function toggleFavorite(id) {
   if (favoritesSet.has(id)) favoritesSet.delete(id); else favoritesSet.add(id);
-  try { localStorage.setItem("gw2_favorites", JSON.stringify([...favoritesSet])); } catch {}
+  try { localStorage.setItem(_favKey, JSON.stringify([...favoritesSet])); } catch {}
 }
 
 export function toggleHidden(id) {

@@ -3,6 +3,7 @@ import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitl
          toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
          ensureStaticCache, getStaticVersion,
          getItemIconMap, getItemDescMap, getItemRarityMap,
+         reloadFavorites,
          } from "./cache.js";
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
@@ -645,17 +646,37 @@ function rebuildAccountSelect() {
 accountSelect.addEventListener("change", () => {
   settings.activeAccount = parseInt(accountSelect.value);
   saveSettings(settings);
-  resetProgress();
-  setProgressMap(null);
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
+  reloadFavorites(activeApiKey());
   activeCat = null;
   browserInitialized = false;
   nearlyDoneFirstRender = true;
   resetBrowserState();
-  if (currentView === "nearly-completed") {
-    doFetch();
-  } else if (currentView === "browser") {
+
+  const cachedProgress = loadProgressCache(activeApiKey());
+  if (cachedProgress) {
+    setProgressMap(cachedProgress);
+    setModalProgressMap(cachedProgress);
+    const cachedRows = computeNearlyDone(cachedProgress, settings);
+    lastNearlyDoneRows = cachedRows;
+    lastResultCount = cachedRows.length;
+    refreshApFrise(cachedProgress);
+    renderNearlyDoneRows(cachedRows);
+    if (currentView === "favorites") renderFavoritesView();
+    if (currentView === "daily") renderDailyViewWrapper();
+    if (currentView === "weekly") renderWeeklyViewWrapper();
+  } else {
+    resetProgress();
+    setProgressMap(null);
+    lastNearlyDoneRows = [];
+    lastResultCount = null;
+    renderNearlyDoneRows([]);
+  }
+
+  if (currentView === "browser") {
     initBrowser(true);
+  } else {
+    doFetch();
   }
 });
 
@@ -1675,6 +1696,7 @@ if (localStorage.getItem("gw2_split_view") && currentView !== "event-timer") {
 window.addEventListener("resize", updateSplitOrientation);
 if (settings.accounts.length) {
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
+  reloadFavorites(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());
   if (cachedProgress) {
     initBrowserDataFromCache();
