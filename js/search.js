@@ -35,11 +35,15 @@ export function initSearch(onSelect) {
     if (q.length < 2) { results.classList.add("hidden"); results.innerHTML = ""; return; }
 
     const cache = loadCache();
+    const words = q.split(/\s+/).filter(Boolean);
     const matches = [];
     for (const [id, ach] of Object.entries(cache)) {
-      if (ach.name && ach.name.toLowerCase().includes(q)) {
-        matches.push(ach);
-        if (matches.length >= 50) break;
+      if (ach.name) {
+        const name = ach.name.toLowerCase();
+        if (words.every(w => name.includes(w))) {
+          matches.push(ach);
+          if (matches.length >= 50) break;
+        }
       }
     }
 
