@@ -38,6 +38,15 @@ def main():
     }
     print(f"  {len(wiki_by_name)} events loaded from wiki")
 
+    if not DATA_FILE.exists():
+        local = {"events": wiki_events}
+        DATA_FILE.write_text(
+            json.dumps(local, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(f"  Created from scratch ({len(wiki_events)} events)")
+        return
+
     local = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     updated = []
     unchanged = []

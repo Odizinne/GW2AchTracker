@@ -157,7 +157,7 @@ export async function fetchProgress(apiKey) {
 }
 
 export function computeNearlyDone(progressMap, settings) {
-  const { thresholdPct, maxResults, useFinalTier } = settings;
+  const { thresholdPct, maxResults, useFinalTier, hideNoReward } = settings;
   const threshold = thresholdPct / 100;
   const cache = loadCache();
   const rows  = [];
@@ -183,6 +183,7 @@ export function computeNearlyDone(progressMap, settings) {
     const ratio = progress / targetTier.count;
     if (ratio < threshold) continue;
     if (ratio >= 1.0) continue;
+    if (hideNoReward && !targetTier.points && !(ach.rewards && ach.rewards.length)) continue;
     rows.push({
       id: ach.id,
       name: ach.name,

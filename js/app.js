@@ -1238,6 +1238,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-fetch-mode").value       = settings.fetchMode ?? "account-all";
   document.getElementById("s-auto-update").value      = settings.autoUpdateInterval ?? 0;
   document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
+  document.getElementById("s-hide-no-reward").checked        = settings.hideNoReward ?? true;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
   document.getElementById("s-default-section").value         = settings.defaultSection ?? "nearly-completed";
@@ -1317,6 +1318,7 @@ function doSaveSettings() {
   settings.autoUpdateInterval = parseInt(document.getElementById("s-auto-update").value) || 0;
   applyAutoUpdate(settings.autoUpdateInterval);
   settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
+  settings.hideNoReward            = document.getElementById("s-hide-no-reward").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
   settings.defaultSection          = document.getElementById("s-default-section").value;

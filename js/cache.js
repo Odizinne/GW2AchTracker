@@ -1,6 +1,15 @@
 // Cache keys are language-scoped so switching language invalidates data correctly.
 let _langSuffix = "";
 
+const _ICON_BASE = "https://render.guildwars2.com/file/";
+
+// Expand compact icon path (HASH/ID) to full render URL.
+// Passes full https:// URLs through unchanged so old localStorage data keeps working.
+function _expandIcon(v) {
+  if (!v || v.startsWith("https://")) return v;
+  return `${_ICON_BASE}${v}.png`;
+}
+
 export function setCacheLang(lang) {
   _langSuffix = lang === "en" ? "" : `_${lang}`;
 }
@@ -58,9 +67,10 @@ export function reloadIconMaps() {
   for (const k of Object.keys(_miniIconMap))   delete _miniIconMap[k];
   for (const k of Object.keys(_skinIconMap))   delete _skinIconMap[k];
   for (const k of Object.keys(_itemRarityMap)) delete _itemRarityMap[k];
-  Object.assign(_itemIconMap,   ii);
-  Object.assign(_miniIconMap,   mi);
-  Object.assign(_skinIconMap,   si);
+  // Expand compact paths (handles both legacy full-URL and new HASH/ID format)
+  for (const [k, v] of Object.entries(ii)) _itemIconMap[k]  = _expandIcon(v);
+  for (const [k, v] of Object.entries(mi)) _miniIconMap[k]  = _expandIcon(v);
+  for (const [k, v] of Object.entries(si)) _skinIconMap[k]  = _expandIcon(v);
   Object.assign(_itemRarityMap, ri);
 }
 
@@ -172,7 +182,7 @@ export async function ensureStaticCache(lang, onStatus) {
 
     let updated = false;
 
-    // Icon files are language-neutral — check independently of lang cache version.
+    // ── Icons (language-neutral) ────────────────────────────────────────────
     const serverIconsVersion = versions["icons"];
     const localIconsVersion  = localStorage.getItem("gw2_static_icons_version");
     if (serverIconsVersion && localIconsVersion !== serverIconsVersion) {
@@ -183,9 +193,13 @@ export async function ensureStaticCache(lang, onStatus) {
         fetch("./data/items/rarities.json"),
       ]);
       if (ir.ok && mr.ok && sr.ok && rr.ok) {
-        const [itemIcons, miniIcons, skinIcons, itemRarities] = await Promise.all([
+        const [rawItem, rawMini, rawSkin, itemRarities] = await Promise.all([
           ir.json(), mr.json(), sr.json(), rr.json(),
         ]);
+        // Expand compact HASH/ID paths to full render URLs before storing
+        const itemIcons = Object.fromEntries(Object.entries(rawItem).map(([k, v]) => [k, _expandIcon(v)]));
+        const miniIcons = Object.fromEntries(Object.entries(rawMini).map(([k, v]) => [k, _expandIcon(v)]));
+        const skinIcons = Object.fromEntries(Object.entries(rawSkin).map(([k, v]) => [k, _expandIcon(v)]));
         for (const k of Object.keys(_itemIconMap))   delete _itemIconMap[k];
         for (const k of Object.keys(_miniIconMap))   delete _miniIconMap[k];
         for (const k of Object.keys(_skinIconMap))   delete _skinIconMap[k];
@@ -203,6 +217,7 @@ export async function ensureStaticCache(lang, onStatus) {
       }
     }
 
+    // ── Main cache (base + language strings) ────────────────────────────────
     const serverVersion = versions[lang];
     if (!serverVersion) return updated;
 
@@ -211,14 +226,20 @@ export async function ensureStaticCache(lang, onStatus) {
 
     onStatus?.("statusDownloadingCache");
 
-    const cr = await fetch(`./data/cache-${lang}.json`);
-    if (!cr.ok) return updated;
+    // Fetch base (language-neutral structure) and lang strings in parallel.
+    // Stream the lang file to report download progress; base is parsed directly.
+    const [brResponse, crResponse] = await Promise.all([
+      fetch("./data/cache-base.json"),
+      fetch(`./data/cache-${lang}.json`),
+    ]);
+    if (!brResponse.ok || !crResponse.ok) return updated;
 
-    // Stream response to report download progress via the loading bar.
-    // content-length is the compressed size; received tracks decompressed bytes,
-    // so we clamp to avoid going past 100% when gzip ratio exceeds 1.
-    const contentLength = parseInt(cr.headers.get("content-length") || "0", 10);
-    const reader  = cr.body.getReader();
+    const basePromise = brResponse.json();
+
+    // Stream lang response for progress reporting.
+    // content-length is the compressed size; clamp received to avoid going past 100%.
+    const contentLength = parseInt(crResponse.headers.get("content-length") || "0", 10);
+    const reader  = crResponse.body.getReader();
     const chunks  = [];
     let received  = 0;
     while (true) {
@@ -230,15 +251,31 @@ export async function ensureStaticCache(lang, onStatus) {
         onStatus?.("statusDownloadingCache", {}, Math.min(received, contentLength), contentLength);
       }
     }
-
     const allBytes = new Uint8Array(received);
     let offset = 0;
     for (const chunk of chunks) { allBytes.set(chunk, offset); offset += chunk.length; }
-    const data = JSON.parse(new TextDecoder().decode(allBytes));
+    const langData = JSON.parse(new TextDecoder().decode(allBytes));
+    const baseData = await basePromise;
 
-    saveCache(data.achievements);
-    saveGroupsCache(data.groups);
-    saveCategoriesCache(data.categories);
+    // Merge language-neutral base with language-specific strings
+    const mergedAch = {};
+    for (const [id, base] of Object.entries(baseData.achievements)) {
+      mergedAch[id] = { ...base, ...(langData.ach_strings?.[id] || {}) };
+    }
+    saveCache(mergedAch);
+
+    const mergedGroups = baseData.groups.map(g => ({
+      ...g, ...(langData.group_strings?.[String(g.id)] || {}),
+    }));
+    saveGroupsCache(mergedGroups);
+
+    const mergedCats = {};
+    for (const [id, base] of Object.entries(baseData.categories)) {
+      const cat = { ...base, ...(langData.cat_strings?.[id] || {}) };
+      if (cat.icon) cat.icon = _expandIcon(cat.icon);
+      mergedCats[id] = cat;
+    }
+    saveCategoriesCache(mergedCats);
 
     for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
     for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
@@ -246,12 +283,12 @@ export async function ensureStaticCache(lang, onStatus) {
     for (const k of Object.keys(_itemDescMap))  delete _itemDescMap[k];
     for (const k of Object.keys(_skinDescMap))  delete _skinDescMap[k];
     for (const k of Object.keys(_miniNameMap))  delete _miniNameMap[k];
-    Object.assign(_itemNameMap,  data.items);
-    Object.assign(_titleNameMap, data.titles);
-    Object.assign(_skinNameMap,  data.skins);
-    Object.assign(_itemDescMap,  data.item_descs || {});
-    Object.assign(_skinDescMap,  data.skin_descs || {});
-    Object.assign(_miniNameMap,  data.mini_names || {});
+    Object.assign(_itemNameMap,  langData.items);
+    Object.assign(_titleNameMap, langData.titles);
+    Object.assign(_skinNameMap,  langData.skins);
+    Object.assign(_itemDescMap,  langData.item_descs || {});
+    Object.assign(_skinDescMap,  langData.skin_descs || {});
+    Object.assign(_miniNameMap,  langData.mini_names || {});
     saveItemNamesCache();
     saveTitleNamesCache();
     saveSkinNamesCache();

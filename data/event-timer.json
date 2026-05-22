@@ -1,11 +1,31 @@
 {
   "events": {
+    "t": {
+      "category": "",
+      "name": "",
+      "segments": {
+        "1": {
+          "name": "",
+          "bg": "transparent"
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 15
+          }
+        ]
+      }
+    },
     "core-dn": {
       "category": "Core Tyria",
-      "name": "Day / Night",
+      "name": "Day and night",
       "segments": {
         "1": {
           "name": "Day",
+          "link": "Day and night",
           "bg": [
             255,
             255,
@@ -14,14 +34,23 @@
         },
         "2": {
           "name": "Dusk",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              122,
+              134,
+              171
+            ]
           ]
         },
         "3": {
           "name": "Night",
+          "link": "Day and night",
           "bg": [
             122,
             134,
@@ -30,10 +59,18 @@
         },
         "4": {
           "name": "Dawn",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              122,
+              134,
+              171
+            ],
+            [
+              255,
+              255,
+              255
+            ]
           ]
         }
       },
@@ -70,12 +107,12 @@
     },
     "core-wb": {
       "category": "Core Tyria",
-      "name": "World Bosses",
-      "link": "World_boss",
+      "name": "World bosses",
+      "link": "World boss",
       "segments": {
         "1": {
           "name": "Admiral Taidha Covington",
-          "link": "Kill_Admiral_Taidha_Covington",
+          "link": "Kill Admiral Taidha Covington",
           "chatlink": "[&BKgBAAA=]",
           "bg": [
             215,
@@ -85,7 +122,7 @@
         },
         "2": {
           "name": "Svanir Shaman Chief",
-          "link": "Svanir_Shaman_Chief",
+          "link": "Kill the Svanir shaman chief to break his control over the ice elemental",
           "chatlink": "[&BMIDAAA=]",
           "bg": [
             236,
@@ -95,7 +132,7 @@
         },
         "3": {
           "name": "Megadestroyer",
-          "link": "Megadestroyer",
+          "link": "Kill the megadestroyer before it blows everyone up",
           "chatlink": "[&BM0CAAA=]",
           "bg": [
             215,
@@ -105,7 +142,7 @@
         },
         "4": {
           "name": "Fire Elemental",
-          "link": "Fire_Elemental",
+          "link": "Destroy the fire elemental created from chaotic energy fusing with the C.L.E.A.N. 5000's energy core",
           "chatlink": "[&BEcAAAA=]",
           "bg": [
             236,
@@ -115,7 +152,7 @@
         },
         "5": {
           "name": "The Shatterer",
-          "link": "The_Shatterer",
+          "link": "Slay the Shatterer",
           "chatlink": "[&BE4DAAA=]",
           "bg": [
             215,
@@ -125,7 +162,7 @@
         },
         "6": {
           "name": "Great Jungle Wurm",
-          "link": "Great_Jungle_Wurm",
+          "link": "Defeat the great jungle wurm",
           "chatlink": "[&BEEFAAA=]",
           "bg": [
             236,
@@ -135,7 +172,7 @@
         },
         "7": {
           "name": "Modniir Ulgoth",
-          "link": "Modniir_Ulgoth",
+          "link": "Defeat Ulgoth the Modniir and his minions",
           "chatlink": "[&BLAAAAA=]",
           "bg": [
             215,
@@ -145,7 +182,7 @@
         },
         "8": {
           "name": "Shadow Behemoth",
-          "link": "Shadow_Behemoth",
+          "link": "Defeat the shadow behemoth",
           "chatlink": "[&BPcAAAA=]",
           "bg": [
             236,
@@ -155,7 +192,7 @@
         },
         "9": {
           "name": "Claw of Jormag",
-          "link": "Claw_of_Jormag",
+          "link": "Defeat the Claw of Jormag",
           "chatlink": "[&BHoCAAA=]",
           "bg": [
             215,
@@ -165,7 +202,7 @@
         },
         "10": {
           "name": "Golem Mark II",
-          "link": "Golem_Mark_II",
+          "link": "Defeat the Inquest's golem Mark II",
           "chatlink": "[&BNQCAAA=]",
           "bg": [
             215,
@@ -278,20 +315,20 @@
     },
     "core-hwb": {
       "category": "Core Tyria",
-      "name": "Hard World Bosses",
-      "link": "World_boss",
+      "name": "Hard world bosses",
+      "link": "World boss",
       "segments": {
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            249,
+            155,
+            155
           ]
         },
         "1": {
           "name": "Triple Trouble",
-          "link": "Triple_Trouble",
+          "link": "Triple Trouble",
           "chatlink": "[&BKoBAAA=]",
           "bg": [
             215,
@@ -301,7 +338,7 @@
         },
         "2": {
           "name": "Karka Queen",
-          "link": "Karka_Queen",
+          "link": "Defeat the Karka Queen threatening the settlements",
           "chatlink": "[&BNUGAAA=]",
           "bg": [
             215,
@@ -311,7 +348,7 @@
         },
         "3": {
           "name": "Tequatl the Sunless",
-          "link": "Tequatl_the_Sunless",
+          "link": "Defeat Tequatl the Sunless",
           "chatlink": "[&BNABAAA=]",
           "bg": [
             215,
@@ -485,19 +522,19 @@
     "core-la": {
       "category": "Core Tyria",
       "name": "Ley-Line Anomaly",
-      "link": "Legendary_Ley-Line_Anomaly",
+      "link": "Legendary Ley-Line Anomaly",
       "segments": {
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            249,
+            155,
+            155
           ]
         },
         "1": {
           "name": "Timberline Falls",
-          "link": "Legendary_Ley-Line_Anomaly",
+          "link": "Defeat the Ley-Line Anomaly to disperse its destructive energy before it overloads",
           "chatlink": "[&BEwCAAA=]",
           "bg": [
             215,
@@ -507,7 +544,7 @@
         },
         "2": {
           "name": "Iron Marches",
-          "link": "Legendary_Ley-Line_Anomaly",
+          "link": "Defeat the Ley-Line Anomaly to disperse its destructive energy before it overloads",
           "chatlink": "[&BOcBAAA=]",
           "bg": [
             215,
@@ -517,7 +554,7 @@
         },
         "3": {
           "name": "Gendarran Fields",
-          "link": "Legendary_Ley-Line_Anomaly",
+          "link": "Defeat the Ley-Line Anomaly to disperse its destructive energy before it overloads",
           "chatlink": "[&BOQAAAA=]",
           "bg": [
             215,
@@ -584,18 +621,19 @@
     "core-in": {
       "category": "Core Tyria",
       "name": "Invasions",
+      "link": "Dynamic event",
       "segments": {
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            249,
+            155,
+            155
           ]
         },
         "1": {
           "name": "Awakened Invasion",
-          "link": "Awakened",
+          "link": "Defeat the invading Awakened",
           "bg": [
             236,
             128,
@@ -603,8 +641,9 @@
           ]
         },
         "2": {
-          "name": "Defeat Scarlet's Minions",
-          "link": "Defeat_the_invading_minions_of_Scarlet_Briar",
+          "name": "Defeat Scarlet's minions",
+          "link": "Defeat the invading minions of Scarlet Briar",
+          "chatlink": "[&BOQAAAA=]",
           "bg": [
             215,
             100,
@@ -650,19 +689,19 @@
     "core-fi": {
       "category": "Core Tyria",
       "name": "Fractal Incursions",
-      "link": "Fractal_of_the_Mists",
+      "link": "Defeat the enemy spawned by the fractal incursion",
       "segments": {
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            249,
+            155,
+            155
           ]
         },
         "1": {
           "name": "Diessa Plateau",
-          "link": "Fractal_of_the_Mists",
+          "link": "Defeat the enemy spawned by the fractal incursion",
           "chatlink": "[&BN0AAAA=]",
           "bg": [
             215,
@@ -672,7 +711,7 @@
         },
         "2": {
           "name": "Brisban Wildlands",
-          "link": "Fractal_of_the_Mists",
+          "link": "Defeat the enemy spawned by the fractal incursion",
           "chatlink": "[&BHUAAAA=]",
           "bg": [
             215,
@@ -682,8 +721,8 @@
         },
         "3": {
           "name": "Snowden Drifts",
-          "link": "Fractal_of_the_Mists",
-          "chatlink": "[&BLQAAAA=]",
+          "link": "Defeat the enemy spawned by the fractal incursion",
+          "chatlink": " [&BLQAAAA=]",
           "bg": [
             215,
             100,
@@ -692,7 +731,7 @@
         },
         "4": {
           "name": "Kessex Hills",
-          "link": "Fractal_of_the_Mists",
+          "link": "Defeat the enemy spawned by the fractal incursion",
           "chatlink": "[&BBIAAAA=]",
           "bg": [
             215,
@@ -739,13 +778,194 @@
         ]
       }
     },
+    "core-ateu": {
+      "category": "Core Tyria",
+      "name": "EU PvP Tournaments",
+      "link": "Automated Tournaments",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            249,
+            155,
+            155
+          ]
+        },
+        "1": {
+          "name": "Automated Tournament: Balthazar's Brawl",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Automated Tournament: Grenth's Game",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Automated Tournament: Melandru's Matchup",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "4": {
+          "name": "Automated Tournament: Lyssa's Legions",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 0,
+            "d": 720
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 2,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 3,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 4,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 840
+          }
+        ]
+      }
+    },
+    "core-atna": {
+      "category": "Core Tyria",
+      "name": "NA PvP Tournaments",
+      "link": "Automated Tournaments",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            249,
+            155,
+            155
+          ]
+        },
+        "1": {
+          "name": "Automated Tournament: Balthazar's Brawl",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Automated Tournament: Grenth's Game",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Automated Tournament: Melandru's Matchup",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "4": {
+          "name": "Automated Tournament: Lyssa's Legions",
+          "link": "Automated Tournaments#Daily_tournaments",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 2,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 120
+          },
+          {
+            "r": 3,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 300
+          },
+          {
+            "r": 4,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 660
+          },
+          {
+            "r": 1,
+            "d": 60
+          },
+          {
+            "r": 0,
+            "d": 120
+          }
+        ]
+      }
+    },
     "lws2-dt": {
       "category": "Living World Season 2",
       "name": "Dry Top",
       "segments": {
         "1": {
           "name": "Crash Site",
-          "link": "Crash_Site_(meta_event)",
+          "link": "Crash Site (meta event)",
           "bg": [
             251,
             227,
@@ -753,7 +973,7 @@
           ]
         },
         "2": {
-          "name": "Sandstorm!",
+          "name": "Sandstorm",
           "link": "Sandstorm!",
           "chatlink": "[&BIAHAAA=]",
           "bg": [
@@ -777,13 +997,259 @@
         ]
       }
     },
+    "hot-vb": {
+      "category": "Heart of Thorns",
+      "name": "Verdant Brink",
+      "segments": {
+        "1": {
+          "name": "Day: Securing Verdant Brink",
+          "link": "Securing Verdant Brink",
+          "bg": [
+            231,
+            251,
+            132
+          ]
+        },
+        "2": {
+          "name": "Night: Night and the Enemy",
+          "link": "Night and the Enemy",
+          "bg": [
+            211,
+            234,
+            98
+          ]
+        },
+        "3": {
+          "name": "Night Bosses",
+          "link": "Night and the Enemy",
+          "chatlink": "[&BAgIAAA=]",
+          "bg": [
+            190,
+            215,
+            66
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 2,
+            "d": 10
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 75
+          },
+          {
+            "r": 2,
+            "d": 25
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ]
+      }
+    },
+    "hot-ab": {
+      "category": "Heart of Thorns",
+      "name": "Auric Basin",
+      "segments": {
+        "1": {
+          "name": "Pylons",
+          "link": "Defending Tarir",
+          "chatlink": "[&BN0HAAA=]",
+          "bg": [
+            231,
+            251,
+            132
+          ]
+        },
+        "2": {
+          "name": "Challenges",
+          "link": "Battle in Tarir",
+          "chatlink": "[&BGwIAAA=]",
+          "bg": [
+            211,
+            234,
+            98
+          ]
+        },
+        "3": {
+          "name": "Octovine",
+          "link": "Battle in Tarir",
+          "chatlink": "[&BAIIAAA=]",
+          "bg": [
+            190,
+            215,
+            66
+          ]
+        },
+        "4": {
+          "name": "Reset",
+          "link": "A Moment's Rest",
+          "bg": [
+            211,
+            234,
+            98
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 1,
+            "d": 45
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 4,
+            "d": 10
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 75
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 4,
+            "d": 10
+          }
+        ]
+      }
+    },
+    "hot-td": {
+      "category": "Heart of Thorns",
+      "name": "Tangled Depths",
+      "segments": {
+        "1": {
+          "name": "Help the Outposts",
+          "link": "Advancing Across Tangled Roots",
+          "bg": [
+            231,
+            251,
+            132
+          ]
+        },
+        "2": {
+          "name": "Prep",
+          "link": "King of the Jungle",
+          "bg": [
+            211,
+            234,
+            98
+          ]
+        },
+        "3": {
+          "name": "Chak Gerent",
+          "link": "King of the Jungle",
+          "chatlink": "[&BPUHAAA=]",
+          "bg": [
+            190,
+            215,
+            66
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 95
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 20
+          }
+        ]
+      }
+    },
+    "hot-ds": {
+      "category": "Heart of Thorns",
+      "name": "Dragon's Stand",
+      "segments": {
+        "1": {
+          "name": "Start advancing on the Blighting Towers",
+          "link": "Advancing on the Blighting Towers",
+          "chatlink": "[&BBAIAAA=]",
+          "bg": [
+            190,
+            215,
+            66
+          ]
+        },
+        "2": {
+          "name": "(continued)",
+          "link": "Advancing on the Blighting Towers",
+          "bg": [
+            190,
+            215,
+            66
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 2,
+            "d": 90
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 120
+          }
+        ]
+      }
+    },
     "lws3-ld": {
       "category": "Living World Season 3",
       "name": "Lake Doric",
       "segments": {
         "1": {
           "name": "Saidra's Haven",
-          "link": "White_Mantle_Control:_Saidra%27s_Haven",
+          "link": "White Mantle Control: Saidra's Haven",
           "chatlink": "[&BK0JAAA=]",
           "bg": [
             121,
@@ -793,7 +1259,7 @@
         },
         "2": {
           "name": "New Loamhurst",
-          "link": "White_Mantle_Control:_New_Loamhurst",
+          "link": "White Mantle Control: New Loamhurst",
           "chatlink": "[&BLQJAAA=]",
           "bg": [
             94,
@@ -803,7 +1269,7 @@
         },
         "3": {
           "name": "Noran's Homestead",
-          "link": "White_Mantle_Control:_Noran%27s_Homestead",
+          "link": "White Mantle Control: Noran's Homestead",
           "chatlink": "[&BK8JAAA=]",
           "bg": [
             159,
@@ -835,6 +1301,304 @@
         ]
       }
     },
+    "pof-co": {
+      "category": "Path of Fire",
+      "name": "Crystal Oasis",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            224,
+            164,
+            197
+          ]
+        },
+        "1": {
+          "name": "Rounds 1 to 3",
+          "link": "Casino Blitz",
+          "chatlink": "[&BLsKAAA=]",
+          "bg": [
+            212,
+            138,
+            179
+          ]
+        },
+        "2": {
+          "name": "Pinata/Reset",
+          "link": "Casino Blitz",
+          "chatlink": "[&BLsKAAA=]",
+          "bg": [
+            205,
+            121,
+            170
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 1,
+            "d": 16
+          },
+          {
+            "r": 2,
+            "d": 9
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 95
+          },
+          {
+            "r": 1,
+            "d": 16
+          },
+          {
+            "r": 2,
+            "d": 9
+          }
+        ]
+      }
+    },
+    "pof-dh": {
+      "category": "Path of Fire",
+      "name": "Desert Highlands",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            224,
+            164,
+            197
+          ]
+        },
+        "1": {
+          "name": "Buried Treasure",
+          "link": "The Search for Buried Treasure",
+          "chatlink": "[&BGsKAAA=]",
+          "bg": [
+            212,
+            138,
+            179
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 0,
+            "d": 60
+          },
+          {
+            "r": 1,
+            "d": 20
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 100
+          },
+          {
+            "r": 1,
+            "d": 20
+          }
+        ]
+      }
+    },
+    "pof-er": {
+      "category": "Path of Fire",
+      "name": "Elon Riverlands",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            224,
+            164,
+            197
+          ]
+        },
+        "1": {
+          "name": "The Path to Ascension: Augury Rock",
+          "link": "The Path to Ascension",
+          "chatlink": "[&BFMKAAA=]",
+          "bg": [
+            212,
+            138,
+            179
+          ]
+        },
+        "2": {
+          "name": "Doppelganger",
+          "link": "The Path to Ascension",
+          "chatlink": "[&BFMKAAA=]",
+          "bg": [
+            205,
+            121,
+            170
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 2,
+            "d": 15
+          }
+        ],
+        "pattern": [
+          {
+            "r": 0,
+            "d": 75
+          },
+          {
+            "r": 1,
+            "d": 25
+          },
+          {
+            "r": 2,
+            "d": 20
+          }
+        ]
+      }
+    },
+    "pof-td": {
+      "category": "Path of Fire",
+      "name": "The Desolation",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            224,
+            164,
+            197
+          ]
+        },
+        "1": {
+          "name": "Maws of Torment",
+          "chatlink": "[&BKMKAAA=]",
+          "bg": [
+            212,
+            138,
+            179
+          ]
+        },
+        "2": {
+          "name": "Junundu Rising",
+          "chatlink": "[&BMEKAAA=]",
+          "bg": [
+            205,
+            121,
+            170
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 40
+          },
+          {
+            "r": 2,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          }
+        ]
+      }
+    },
+    "pof-dv": {
+      "category": "Path of Fire",
+      "name": "Domain of Vabbi",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            224,
+            164,
+            197
+          ]
+        },
+        "1": {
+          "name": "Serpents' Ire",
+          "chatlink": "[&BHQKAAA=]",
+          "bg": [
+            212,
+            138,
+            179
+          ]
+        },
+        "2": {
+          "name": "Forged with Fire",
+          "chatlink": "[&BO0KAAA=]",
+          "bg": [
+            205,
+            121,
+            170
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 2,
+            "d": 30
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 30
+          },
+          {
+            "r": 2,
+            "d": 30
+          }
+        ]
+      }
+    },
     "lws4-di": {
       "category": "Living World Season 4",
       "name": "Domain of Istan",
@@ -842,14 +1606,14 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            198,
+            176,
+            212
           ]
         },
         "1": {
           "name": "Palawadan",
-          "link": "Palawadan,_Jewel_of_Istan_(meta_event)",
+          "link": "Palawadan, Jewel of Istan (meta event)",
           "chatlink": "[&BAkLAAA=]",
           "bg": [
             170,
@@ -884,14 +1648,14 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            198,
+            176,
+            212
           ]
         },
         "1": {
           "name": "Escorts",
-          "link": "Dangerous_Prey",
+          "link": "Dangerous Prey",
           "chatlink": "[&BIMLAAA=]",
           "bg": [
             170,
@@ -901,7 +1665,7 @@
         },
         "2": {
           "name": "Death-Branded Shatterer",
-          "link": "Destroy_the_Death-Branded_Shatterer",
+          "link": "Destroy the Death-Branded Shatterer",
           "chatlink": "[&BJMLAAA=]",
           "bg": [
             160,
@@ -948,14 +1712,14 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            198,
+            176,
+            212
           ]
         },
         "1": {
           "name": "Thunderhead Keep",
-          "link": "Thunderhead_Keep_(meta_event)",
+          "link": "Thunderhead Keep (meta event)",
           "chatlink": "[&BLsLAAA=]",
           "bg": [
             170,
@@ -1015,14 +1779,14 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            145,
+            207,
+            251
           ]
         },
         "1": {
           "name": "Effigy",
-          "link": "Ceremony_of_the_Sacred_Flame",
+          "link": "Ceremony of the Sacred Flame",
           "chatlink": "[&BA4MAAA=]",
           "bg": [
             98,
@@ -1032,7 +1796,7 @@
         },
         "2": {
           "name": "Doomlore Shrine",
-          "link": "The_Haunting_of_Doomlore_Shrine",
+          "link": "The Haunting of Doomlore Shrine",
           "chatlink": "[&BA4MAAA=]",
           "bg": [
             66,
@@ -1042,7 +1806,7 @@
         },
         "3": {
           "name": "Ooze Pits",
-          "link": "The_Ooze_Pit_Trials",
+          "link": "The Ooze Pit Trials",
           "chatlink": "[&BPgLAAA=]",
           "bg": [
             98,
@@ -1052,7 +1816,7 @@
         },
         "4": {
           "name": "Metal Concert",
-          "link": "A_Concert_for_the_Ages",
+          "link": "A Concert for the Ages",
           "chatlink": "[&BPgLAAA=]",
           "bg": [
             66,
@@ -1111,14 +1875,14 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            145,
+            207,
+            251
           ]
         },
         "1": {
           "name": "Drakkar and Spirits of the Wild",
-          "link": "Champion_of_the_Ice_Dragon",
+          "link": "Champion of the Ice Dragon",
           "chatlink": "[&BDkMAAA=]",
           "bg": [
             66,
@@ -1128,7 +1892,7 @@
         },
         "2": {
           "name": "Defend Jora's Keep",
-          "link": "Storms_of_Winter",
+          "link": "Storms of Winter",
           "chatlink": "[&BCcMAAA=]",
           "bg": [
             98,
@@ -1138,7 +1902,7 @@
         },
         "3": {
           "name": "Shards and Construct",
-          "link": "Storms_of_Winter",
+          "link": "Storms of Winter",
           "chatlink": "[&BCcMAAA=]",
           "bg": [
             66,
@@ -1148,7 +1912,7 @@
         },
         "4": {
           "name": "Icebrood Champions",
-          "link": "Storms_of_Winter",
+          "link": "Storms of Winter",
           "chatlink": "[&BCcMAAA=]",
           "bg": [
             98,
@@ -1196,553 +1960,14 @@
         ]
       }
     },
-    "hot-vb": {
-      "category": "Heart of Thorns",
-      "name": "Verdant Brink",
-      "segments": {
-        "1": {
-          "name": "Day: Securing Verdant Brink",
-          "link": "Securing_Verdant_Brink",
-          "chatlink": "[&BAgIAAA=]",
-          "bg": [
-            181,
-            211,
-            82
-          ]
-        },
-        "2": {
-          "name": "Night: Night and the Enemy",
-          "link": "Night_and_the_Enemy",
-          "bg": [
-            141,
-            184,
-            58
-          ]
-        },
-        "3": {
-          "name": "Night Bosses",
-          "link": "Night_and_the_Enemy",
-          "chatlink": "[&BAgIAAA=]",
-          "bg": [
-            101,
-            154,
-            36
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 2,
-            "d": 10
-          },
-          {
-            "r": 3,
-            "d": 20
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 75
-          },
-          {
-            "r": 2,
-            "d": 25
-          },
-          {
-            "r": 3,
-            "d": 20
-          }
-        ]
-      }
-    },
-    "hot-ab": {
-      "category": "Heart of Thorns",
-      "name": "Auric Basin",
-      "segments": {
-        "1": {
-          "name": "Pylons",
-          "link": "Defending_Tarir",
-          "chatlink": "[&BN0HAAA=]",
-          "bg": [
-            181,
-            211,
-            82
-          ]
-        },
-        "2": {
-          "name": "Challenges",
-          "link": "Battle_in_Tarir",
-          "chatlink": "[&BGwIAAA=]",
-          "bg": [
-            141,
-            184,
-            58
-          ]
-        },
-        "3": {
-          "name": "Octovine",
-          "link": "Battle_in_Tarir",
-          "chatlink": "[&BAIIAAA=]",
-          "bg": [
-            101,
-            154,
-            36
-          ]
-        },
-        "4": {
-          "name": "Reset",
-          "link": "A_Moment%27s_Rest",
-          "bg": [
-            141,
-            184,
-            58
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 1,
-            "d": 45
-          },
-          {
-            "r": 2,
-            "d": 15
-          },
-          {
-            "r": 3,
-            "d": 20
-          },
-          {
-            "r": 4,
-            "d": 10
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 75
-          },
-          {
-            "r": 2,
-            "d": 15
-          },
-          {
-            "r": 3,
-            "d": 20
-          },
-          {
-            "r": 4,
-            "d": 10
-          }
-        ]
-      }
-    },
-    "hot-td": {
-      "category": "Heart of Thorns",
-      "name": "Tangled Depths",
-      "segments": {
-        "1": {
-          "name": "Help the Outposts",
-          "link": "Advancing_Across_Tangled_Roots",
-          "bg": [
-            181,
-            211,
-            82
-          ]
-        },
-        "2": {
-          "name": "Prep",
-          "link": "King_of_the_Jungle",
-          "bg": [
-            141,
-            184,
-            58
-          ]
-        },
-        "3": {
-          "name": "Chak Gerent",
-          "link": "King_of_the_Jungle",
-          "chatlink": "[&BPUHAAA=]",
-          "bg": [
-            101,
-            154,
-            36
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 1,
-            "d": 25
-          },
-          {
-            "r": 2,
-            "d": 5
-          },
-          {
-            "r": 3,
-            "d": 20
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 95
-          },
-          {
-            "r": 2,
-            "d": 5
-          },
-          {
-            "r": 3,
-            "d": 20
-          }
-        ]
-      }
-    },
-    "hot-ds": {
-      "category": "Heart of Thorns",
-      "name": "Dragon's Stand",
-      "segments": {
-        "1": {
-          "name": "Advance on Blighting Towers",
-          "link": "Advancing_on_the_Blighting_Towers",
-          "chatlink": "[&BBAIAAA=]",
-          "bg": [
-            101,
-            154,
-            36
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 2,
-            "d": 90
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 120
-          }
-        ]
-      }
-    },
-    "pof-co": {
-      "category": "Path of Fire",
-      "name": "Crystal Oasis",
-      "segments": {
-        "0": {
-          "name": "",
-          "bg": [
-            50,
-            50,
-            55
-          ]
-        },
-        "1": {
-          "name": "Casino Blitz (Rounds 1–3)",
-          "link": "Casino_Blitz",
-          "chatlink": "[&BLsKAAA=]",
-          "bg": [
-            200,
-            120,
-            168
-          ]
-        },
-        "2": {
-          "name": "Pinata / Reset",
-          "link": "Casino_Blitz",
-          "chatlink": "[&BLsKAAA=]",
-          "bg": [
-            180,
-            96,
-            148
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 0,
-            "d": 5
-          },
-          {
-            "r": 1,
-            "d": 16
-          },
-          {
-            "r": 2,
-            "d": 9
-          }
-        ],
-        "pattern": [
-          {
-            "r": 0,
-            "d": 95
-          },
-          {
-            "r": 1,
-            "d": 16
-          },
-          {
-            "r": 2,
-            "d": 9
-          }
-        ]
-      }
-    },
-    "pof-dh": {
-      "category": "Path of Fire",
-      "name": "Desert Highlands",
-      "segments": {
-        "0": {
-          "name": "",
-          "bg": [
-            50,
-            50,
-            55
-          ]
-        },
-        "1": {
-          "name": "Buried Treasure",
-          "link": "The_Search_for_Buried_Treasure",
-          "chatlink": "[&BGsKAAA=]",
-          "bg": [
-            200,
-            120,
-            168
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 0,
-            "d": 60
-          },
-          {
-            "r": 1,
-            "d": 20
-          }
-        ],
-        "pattern": [
-          {
-            "r": 0,
-            "d": 100
-          },
-          {
-            "r": 1,
-            "d": 20
-          }
-        ]
-      }
-    },
-    "pof-er": {
-      "category": "Path of Fire",
-      "name": "Elon Riverlands",
-      "segments": {
-        "0": {
-          "name": "",
-          "bg": [
-            50,
-            50,
-            55
-          ]
-        },
-        "1": {
-          "name": "Augury Rock",
-          "link": "The_Path_to_Ascension",
-          "chatlink": "[&BFMKAAA=]",
-          "bg": [
-            200,
-            120,
-            168
-          ]
-        },
-        "2": {
-          "name": "Doppelganger",
-          "link": "The_Path_to_Ascension",
-          "chatlink": "[&BFMKAAA=]",
-          "bg": [
-            180,
-            96,
-            148
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 2,
-            "d": 15
-          }
-        ],
-        "pattern": [
-          {
-            "r": 0,
-            "d": 75
-          },
-          {
-            "r": 1,
-            "d": 25
-          },
-          {
-            "r": 2,
-            "d": 20
-          }
-        ]
-      }
-    },
-    "pof-td": {
-      "category": "Path of Fire",
-      "name": "The Desolation",
-      "segments": {
-        "0": {
-          "name": "",
-          "bg": [
-            50,
-            50,
-            55
-          ]
-        },
-        "1": {
-          "name": "Maws of Torment",
-          "link": "Maws_of_Torment",
-          "chatlink": "[&BKMKAAA=]",
-          "bg": [
-            200,
-            120,
-            168
-          ]
-        },
-        "2": {
-          "name": "Junundu Rising",
-          "link": "Junundu_Rising",
-          "chatlink": "[&BMEKAAA=]",
-          "bg": [
-            180,
-            96,
-            148
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 0,
-            "d": 30
-          },
-          {
-            "r": 2,
-            "d": 20
-          },
-          {
-            "r": 0,
-            "d": 10
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 20
-          },
-          {
-            "r": 0,
-            "d": 10
-          },
-          {
-            "r": 2,
-            "d": 20
-          },
-          {
-            "r": 0,
-            "d": 40
-          },
-          {
-            "r": 2,
-            "d": 20
-          },
-          {
-            "r": 0,
-            "d": 10
-          }
-        ]
-      }
-    },
-    "pof-dv": {
-      "category": "Path of Fire",
-      "name": "Domain of Vabbi",
-      "segments": {
-        "0": {
-          "name": "",
-          "bg": [
-            50,
-            50,
-            55
-          ]
-        },
-        "1": {
-          "name": "Serpents' Ire",
-          "link": "Serpents%27_Ire",
-          "chatlink": "[&BHQKAAA=]",
-          "bg": [
-            200,
-            120,
-            168
-          ]
-        },
-        "2": {
-          "name": "Forged with Fire",
-          "link": "Forged_with_Fire",
-          "chatlink": "[&BO0KAAA=]",
-          "bg": [
-            180,
-            96,
-            148
-          ]
-        }
-      },
-      "sequences": {
-        "partial": [
-          {
-            "r": 2,
-            "d": 30
-          }
-        ],
-        "pattern": [
-          {
-            "r": 1,
-            "d": 30
-          },
-          {
-            "r": 2,
-            "d": 30
-          },
-          {
-            "r": 0,
-            "d": 30
-          },
-          {
-            "r": 2,
-            "d": 30
-          }
-        ]
-      }
-    },
     "eod-dn": {
       "category": "End of Dragons",
-      "name": "Cantha: Day / Night",
-      "link": "Day_and_night",
+      "name": "Cantha: Day and night",
+      "link": "Day and night",
       "segments": {
         "1": {
           "name": "Day",
+          "link": "Day and night",
           "bg": [
             255,
             255,
@@ -1751,14 +1976,23 @@
         },
         "2": {
           "name": "Dusk",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              122,
+              134,
+              171
+            ]
           ]
         },
         "3": {
           "name": "Night",
+          "link": "Day and night",
           "bg": [
             122,
             134,
@@ -1767,15 +2001,32 @@
         },
         "4": {
           "name": "Dawn",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              122,
+              134,
+              171
+            ],
+            [
+              255,
+              255,
+              255
+            ]
           ]
         }
       },
       "sequences": {
-        "partial": [],
+        "partial": [
+          {
+            "r": 3,
+            "d": 35
+          },
+          {
+            "r": 4,
+            "d": 5
+          }
+        ],
         "pattern": [
           {
             "r": 1,
@@ -1803,19 +2054,18 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            159,
+            242,
+            251
           ]
         },
         "1": {
           "name": "Aetherblade Assault",
-          "link": "Aetherblade_Assault",
           "chatlink": "[&BGUNAAA=]",
           "bg": [
-            64,
-            192,
-            210
+            66,
+            200,
+            215
           ]
         }
       },
@@ -1845,19 +2095,18 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            159,
+            242,
+            251
           ]
         },
         "1": {
           "name": "Kaineng Blackout",
-          "link": "Kaineng_Blackout",
           "chatlink": "[&BBkNAAA=]",
           "bg": [
-            64,
-            192,
-            210
+            66,
+            200,
+            215
           ]
         }
       },
@@ -1882,29 +2131,29 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            159,
+            242,
+            251
           ]
         },
         "1": {
           "name": "Gang War",
-          "link": "The_Gang_War_of_Echovald",
+          "link": "The Gang War of Echovald",
           "chatlink": "[&BMwMAAA=]",
           "bg": [
-            64,
-            192,
-            210
+            66,
+            200,
+            215
           ]
         },
         "2": {
           "name": "Aspenwood",
-          "link": "Siege_the_Stronghold",
+          "link": "Use the siege turtles to destroy the shield generators as you fight through the fort",
           "chatlink": "[&BPkMAAA=]",
           "bg": [
             96,
-            216,
-            228
+            220,
+            235
           ]
         }
       },
@@ -1938,29 +2187,28 @@
           "name": "Preparations",
           "chatlink": "[&BKIMAAA=]",
           "bg": [
-            96,
-            216,
-            228
+            138,
+            234,
+            244
           ]
         },
         "2": {
           "name": "Jade Maw",
-          "link": "Defeat_the_Void-corrupted_Jade_Maw",
+          "link": "Defeat the Void-corrupted Jade Maw",
           "chatlink": "[&BKIMAAA=]",
           "bg": [
-            64,
-            192,
-            210
+            66,
+            200,
+            215
           ]
         },
         "3": {
           "name": "The Battle for the Jade Sea",
-          "link": "The_Battle_for_the_Jade_Sea",
           "chatlink": "[&BKIMAAA=]",
           "bg": [
-            40,
-            160,
-            180
+            66,
+            200,
+            215
           ]
         }
       },
@@ -2001,19 +2249,19 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            246,
+            194,
+            100
           ]
         },
         "1": {
           "name": "Unlocking the Wizard's Tower",
-          "link": "Unlocking_the_Wizard%27s_Tower",
+          "link": "Unlocking the Wizard's Tower",
           "chatlink": "[&BL4NAAA=]",
           "bg": [
-            216,
-            160,
-            60
+            226,
+            171,
+            73
           ]
         }
       },
@@ -2039,44 +2287,44 @@
     "soto-wt": {
       "category": "Secrets of the Obscure",
       "name": "Wizard's Tower",
-      "link": "The_Wizard%27s_Tower",
+      "link": "The Wizard's Tower",
       "segments": {
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            246,
+            194,
+            100
           ]
         },
         "1": {
           "name": "Target Practice",
-          "link": "Skyscale_Target_Practice",
+          "link": "Skyscale Target Practice in the Wizard's Tower",
           "chatlink": "[&BB8OAAA=]",
           "bg": [
-            216,
-            160,
-            60
+            226,
+            171,
+            73
           ]
         },
         "2": {
           "name": "Fly by Night",
-          "link": "Wizard%27s_Tower:_Fly_by_Night",
+          "link": "Wizard's Tower: Fly by Night",
           "chatlink": "[&BB8OAAA=]",
           "bg": [
-            216,
-            160,
-            60
+            226,
+            171,
+            73
           ]
         },
         "3": {
-          "name": "Target Practice + Fly by Night",
-          "link": "Adventure",
+          "name": "Target Practice & Fly by Night",
+          "link": "Adventure#Secrets of the Obscure",
           "chatlink": "[&BB8OAAA=]",
           "bg": [
-            190,
-            132,
-            40
+            200,
+            136,
+            54
           ]
         }
       },
@@ -2118,19 +2366,19 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            246,
+            194,
+            100
           ]
         },
         "1": {
           "name": "Defense of Amnytas",
-          "link": "The_Defense_of_Amnytas",
+          "link": "The Defense of Amnytas",
           "chatlink": "[&BDQOAAA=]",
           "bg": [
-            216,
-            160,
-            60
+            226,
+            171,
+            73
           ]
         }
       },
@@ -2155,9 +2403,9 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            171,
+            191,
+            244
           ]
         },
         "1": {
@@ -2196,9 +2444,9 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            171,
+            191,
+            244
           ]
         },
         "1": {
@@ -2232,11 +2480,12 @@
     },
     "voe-dn": {
       "category": "Visions of Eternity",
-      "name": "Castora: Day / Night",
-      "link": "Day_and_night",
+      "name": "Castora: Day and night",
+      "link": "Day and night",
       "segments": {
         "1": {
           "name": "Day",
+          "link": "Day and night",
           "bg": [
             255,
             255,
@@ -2245,14 +2494,23 @@
         },
         "2": {
           "name": "Dusk",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              122,
+              134,
+              171
+            ]
           ]
         },
         "3": {
           "name": "Night",
+          "link": "Day and night",
           "bg": [
             122,
             134,
@@ -2261,10 +2519,18 @@
         },
         "4": {
           "name": "Dawn",
+          "link": "Day and night",
           "bg": [
-            188,
-            196,
-            213
+            [
+              122,
+              134,
+              171
+            ],
+            [
+              255,
+              255,
+              255
+            ]
           ]
         }
       },
@@ -2306,9 +2572,9 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            250,
+            160,
+            125
           ]
         },
         "1": {
@@ -2347,9 +2613,9 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            250,
+            160,
+            125
           ]
         },
         "1": {
@@ -2392,9 +2658,9 @@
         "0": {
           "name": "",
           "bg": [
-            50,
-            50,
-            55
+            250,
+            160,
+            125
           ]
         },
         "1": {
@@ -2422,6 +2688,407 @@
           {
             "r": 0,
             "d": 95
+          }
+        ]
+      }
+    },
+    "public-eotn": {
+      "category": "Public Instances",
+      "name": "Eye of the North",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            249,
+            155,
+            155
+          ]
+        },
+        "1": {
+          "name": "Twisted Marionette",
+          "link": "The Twisted Marionette",
+          "chatlink": "[&BAkMAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Battle For Lion's Arch",
+          "link": "The Battle For Lion's Arch",
+          "chatlink": "[&BAkMAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Dragonstorm",
+          "link": "Dragonstorm",
+          "chatlink": "[&BAkMAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "4": {
+          "name": "Tower of Nightmares",
+          "link": "The Tower of Nightmares (meta event)",
+          "chatlink": "[&BAkMAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 2,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 15
+          },
+          {
+            "r": 3,
+            "d": 20
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 4,
+            "d": 15
+          },
+          {
+            "r": 0,
+            "d": 15
+          }
+        ]
+      }
+    },
+    "public-con": {
+      "category": "Public Instances",
+      "name": "Convergence",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            249,
+            155,
+            155
+          ]
+        },
+        "1": {
+          "name": "Mount Balrior",
+          "link": "Convergence: Mount Balrior",
+          "chatlink": "[&BK4OAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "2": {
+          "name": "Outer Nayos",
+          "link": "Convergence: Outer Nayos",
+          "chatlink": "[&BB8OAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 80
+          },
+          {
+            "r": 2,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 80
+          }
+        ]
+      }
+    },
+    "festival-lc": {
+      "category": "Special Events",
+      "name": "Labyrinthine Cliffs",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            94,
+            225,
+            240
+          ]
+        },
+        "1": {
+          "name": "Skiff Race",
+          "link": "Labyrinthine Skiffs: A race is starting soon!",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "2": {
+          "name": "Water Balloons",
+          "link": "Launch kite baskets full of water balloons",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "3": {
+          "name": "Treasure Hunt",
+          "link": "Participate in the treasure hunt!",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "4": {
+          "name": "Skimmer Race",
+          "link": "Skimmer Slalom: Reach the finish line!",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "5": {
+          "name": "Fishing",
+          "link": "Fishing Tournament Sign-Up",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "6": {
+          "name": "Dolyak Race",
+          "link": "Flying Dolyak: Reach the finish line!",
+          "chatlink": "[&BBwHAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 2,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 3,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 15
+          },
+          {
+            "r": 4,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 5,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 5
+          },
+          {
+            "r": 6,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 5
+          }
+        ]
+      }
+    },
+    "festival-db": {
+      "category": "Special Events",
+      "name": "Dragon Bash",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            94,
+            225,
+            240
+          ]
+        },
+        "1": {
+          "name": "Wayfarer Foothills",
+          "link": "Dragon Bash Hologram Stampede!",
+          "chatlink": "[&BH0BAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "2": {
+          "name": "Dredgehaunt Cliffs",
+          "link": "Dragon Bash Hologram Stampede!",
+          "chatlink": "[&BGMCAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "3": {
+          "name": "Lornar's Pass",
+          "link": "Dragon Bash Hologram Stampede!",
+          "chatlink": "[&BJkBAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        },
+        "4": {
+          "name": "Snowden Drifts",
+          "link": "Dragon Bash Hologram Stampede!",
+          "chatlink": "[&BL4AAAA=]",
+          "bg": [
+            66,
+            200,
+            215
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 5
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 2,
+            "d": 5
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 3,
+            "d": 5
+          },
+          {
+            "r": 0,
+            "d": 10
+          },
+          {
+            "r": 4,
+            "d": 5
+          },
+          {
+            "r": 0,
+            "d": 10
+          }
+        ]
+      }
+    },
+    "festival-ha": {
+      "category": "Special Events",
+      "name": "Halloween",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            251,
+            185,
+            58
+          ]
+        },
+        "1": {
+          "name": "Mad King Says",
+          "link": "Your Mad King says...",
+          "chatlink": "[&BBAEAAA=]",
+          "bg": [
+            232,
+            163,
+            31
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 10
+          },
+          {
+            "r": 0,
+            "d": 110
           }
         ]
       }
