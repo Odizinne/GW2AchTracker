@@ -128,14 +128,15 @@ function renderFractalTable(catId, cat, rows, onOpenAch, collapsed) {
     list.className = "fractal-compact-list";
     bodyInner.appendChild(list);
 
-    // T1 daily only (no number), then all recs with number
+    // All recs (with number), T4 daily not already covered by a rec (with number)
+    const t4RecNames = new Set(byTier[4].filter(e => e.isRec).map(e => _normName(e.displayName)));
     const compactEntries = [
-      ...byTier[1].filter(e => !e.isRec),
       ...[1, 2, 3, 4].flatMap(t => byTier[t].filter(e => e.isRec)),
+      ...byTier[4].filter(e => !e.isRec && e.num !== null && !t4RecNames.has(_normName(e.displayName))),
     ];
     for (const entry of compactEntries) {
       if (!entry.row.done) remaining++;
-      list.appendChild(_makeFractalBtn(entry, entry.isRec, cat, onOpenAch));
+      list.appendChild(_makeFractalBtn(entry, true, cat, onOpenAch));
     }
   } else {
     const grid = document.createElement("div");
