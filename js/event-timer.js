@@ -24,6 +24,7 @@ const GROUP_DEFS = [
   { id: "Secrets of the Obscure",  color: [216,160,60]  },
   { id: "Janthir Wilds",           color: [100,185,145] },
   { id: "Visions of Eternity",     color: [175,110,220] },
+  { id: "Public Instances",        color: [180,180,180] },
 ];
 
 // ── Settings ──────────────────────────────────────────────────────────────────
