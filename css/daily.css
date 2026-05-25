@@ -402,6 +402,7 @@
   flex-direction: column;
   overflow-y: auto;
   padding: 16px;
+  gap: 12px;
 }
 
 .weekly-wrap {
@@ -489,4 +490,44 @@
   font-size: 12px;
   flex: 1;
   color: var(--text);
+}
+
+/* ── Weekly raids grid ── */
+.weekly-raids-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.weekly-raids-grid .weekly-tier-col {
+  border-right: 1px solid var(--border);
+}
+
+.weekly-raids-grid .weekly-tier-col:nth-child(4n),
+.weekly-raids-grid .weekly-tier-col:last-child {
+  border-right: none;
+}
+
+.weekly-raids-grid .weekly-tier-col:nth-child(-n+4) {
+  border-bottom: 1px solid var(--border);
+}
+
+.weekly-raid-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.weekly-raid-row:last-child { border-bottom: none; }
+
+.weekly-raid-name {
+  font-size: 12px;
+  flex: 1;
+  color: var(--text);
+}
+
+.weekly-raid-checkpoint .weekly-raid-name {
+  color: var(--muted);
+  font-style: italic;
 }

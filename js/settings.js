@@ -14,7 +14,6 @@ const DEFAULT_SETTINGS = {
   viewMode: "list",
   lang: "en",
   fetchLang: "en",
-  defaultSection: "nearly-completed",
   notificationVolume: 0.5,
 };
 

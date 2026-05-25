@@ -8,7 +8,8 @@ import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitl
 import { loadSettings, saveSettings }                      from "./settings.js";
 import { PALETTES, applyPalette }                          from "./palettes.js";
 import { ensureDefinitionCache, ensureRewardNames, fetchProgress, computeNearlyDone,
-         resolveRewardNames, resetProgress, getProgressMap, loadProgressCache } from "./nearly-done.js";
+         resolveRewardNames, resetProgress, getProgressMap, loadProgressCache,
+         fetchRaids, resetRaidCompletions } from "./nearly-done.js";
 import { ensureBrowserData, getCategoryRows, renderBrowserTree, setProgressMap,
          resetBrowserState, resetBrowserCache, recomputeCatDoneStates,
          showBrowserSkeleton, getCategoryForAchievement, prepareTreeForCategory,
@@ -292,6 +293,7 @@ function buildProgCell(row) {
 function resetAllCachedState() {
   clearCache();
   resetProgress();
+  resetRaidCompletions();
   setProgressMap(null);
   setModalProgressMap(null);
   resetBrowserCache();
@@ -692,10 +694,7 @@ function checkSetup() {
     showView("setup");
     browserTree.classList.add("hidden");
   } else {
-    let startView = settings.defaultSection ?? "nearly-completed";
-    if (startView === "last-visited") {
-      startView = localStorage.getItem("gw2_last_section") || "nearly-completed";
-    }
+    const startView = localStorage.getItem("gw2_last_section") || "nearly-completed";
     navigateTo(startView);
   }
 }
@@ -903,6 +902,7 @@ async function doFetch() {
   const [progressResult, accountResult] = await Promise.allSettled([
     fetchProgress(key),
     apiFetch("/account", {}, key),
+    fetchRaids(key),
   ]);
   if (progressResult.status === "rejected") {
     console.warn("Progress fetch failed:", progressResult.reason);
@@ -1262,7 +1262,6 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-hide-no-reward").checked        = settings.hideNoReward ?? true;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
-  document.getElementById("s-default-section").value         = settings.defaultSection ?? "nearly-completed";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
   buildLangOptions(document.getElementById("s-lang"), currentLang());
   buildLangOptions(document.getElementById("s-fetch-lang"), currentFetchLang());
@@ -1342,7 +1341,6 @@ function doSaveSettings() {
   settings.hideNoReward            = document.getElementById("s-hide-no-reward").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
-  settings.defaultSection          = document.getElementById("s-default-section").value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
   settings.lang                    = document.getElementById("s-lang").value;
   settings.fetchLang               = document.getElementById("s-fetch-lang").value;

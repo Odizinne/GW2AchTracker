@@ -156,6 +156,21 @@ export async function fetchProgress(apiKey) {
   return lastProgressMap;
 }
 
+let lastRaidCompletions = null;
+
+export function getRaidCompletions() { return lastRaidCompletions; }
+export function resetRaidCompletions() { lastRaidCompletions = null; }
+
+export async function fetchRaids(apiKey) {
+  try {
+    const data = await apiFetch("/account/raids", {}, apiKey);
+    lastRaidCompletions = new Set(data);
+  } catch {
+    lastRaidCompletions = new Set();
+  }
+  return lastRaidCompletions;
+}
+
 export function computeNearlyDone(progressMap, settings) {
   const { thresholdPct, maxResults, useFinalTier, hideNoReward } = settings;
   const threshold = thresholdPct / 100;
