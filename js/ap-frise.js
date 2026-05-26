@@ -151,13 +151,16 @@ export function computeAccountAp(progressMap, achCache) {
     const prog  = entry.current  || 0;
     const done  = entry.done     || false;
     const reps  = entry.repeated || 0;
+    let achAp = 0;
     if (isRep) {
       const lapPts = ach.tiers.reduce((s, t) => s + (t.points || 0), 0);
-      total += lapPts * reps;
-      for (const t of ach.tiers) if (prog >= t.count) total += t.points || 0;
+      achAp += lapPts * reps;
+      for (const t of ach.tiers) if (prog >= t.count) achAp += t.points || 0;
     } else {
-      for (const t of ach.tiers) if (done || prog >= t.count) total += t.points || 0;
+      for (const t of ach.tiers) if (done || prog >= t.count) achAp += t.points || 0;
     }
+    if (ach.point_cap != null && ach.point_cap > 0) achAp = Math.min(achAp, ach.point_cap);
+    total += achAp;
   }
   return total;
 }
