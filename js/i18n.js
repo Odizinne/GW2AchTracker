@@ -97,6 +97,8 @@ const STRINGS = {
     optAutoUpdateOff:   "Off",
     labelHideCompleted:          "Hide completed achievements",
     labelHideNoReward:           "Hide achievements without rewards",
+    labelHideWvW:                "Hide WvW achievements",
+    labelHidePvP:                "Hide PvP achievements",
     labelClearCompletedFavorites: "Clear completed from favorites",
     labelAccentColor:            "Accent color",
     labelLightMode:              "Light mode",

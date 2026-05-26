@@ -3,7 +3,7 @@ import {
   loadCache, saveCache,
   getItemNameMap, getTitleNameMap, getSkinNameMap,
   saveItemNamesCache, saveTitleNamesCache, saveSkinNamesCache,
-  loadCategoriesCache, isStaticCacheLoaded,
+  loadCategoriesCache, loadGroupsCache, isStaticCacheLoaded,
 } from "./cache.js";
 
 let lastProgressMap = null;
@@ -171,11 +171,30 @@ export async function fetchRaids(apiKey) {
   return lastRaidCompletions;
 }
 
+const _WVW_GROUP_ID = "9B66605F-6589-4CBD-8E19-5368C9F33338";
+const _PVP_GROUP_ID = "BE8B9954-5B55-4FCB-9022-B871AD00EAAB";
+
+function _buildGroupAchSet(groupId) {
+  const groups = loadGroupsCache() || [];
+  const cats   = loadCategoriesCache() || {};
+  const group  = groups.find(g => g.id === groupId);
+  if (!group) return null;
+  const ids = new Set();
+  for (const catId of (group.categories || [])) {
+    const cat = cats[catId];
+    if (cat?.achievements) for (const id of cat.achievements) ids.add(id);
+  }
+  return ids;
+}
+
 export function computeNearlyDone(progressMap, settings) {
   const { thresholdPct, maxResults, useFinalTier, hideNoReward } = settings;
   const threshold = thresholdPct / 100;
   const cache = loadCache();
   const rows  = [];
+
+  const wvwIds = settings.hideWvW ? _buildGroupAchSet(_WVW_GROUP_ID) : null;
+  const pvpIds = settings.hidePvP ? _buildGroupAchSet(_PVP_GROUP_ID) : null;
 
   for (const [idStr, entry] of Object.entries(progressMap)) {
     const ach = cache[Number(idStr)];
@@ -185,6 +204,8 @@ export function computeNearlyDone(progressMap, settings) {
     // but infinite/repeatable ones should always be trackable.
     if (!isRepeatable && (ach.flags || []).includes("IgnoreNearlyComplete")) continue;
     if (entry.done && !isRepeatable) continue;
+    if (wvwIds?.has(ach.id)) continue;
+    if (pvpIds?.has(ach.id)) continue;
 
     const tiers = ach.tiers || [];
     if (!tiers.length) continue;

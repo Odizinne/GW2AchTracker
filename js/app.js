@@ -1260,6 +1260,8 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-auto-update").value      = settings.autoUpdateInterval ?? 0;
   document.getElementById("s-hide-completed").checked        = settings.hideCompleted;
   document.getElementById("s-hide-no-reward").checked        = settings.hideNoReward ?? true;
+  document.getElementById("s-hide-wvw").checked              = settings.hideWvW ?? false;
+  document.getElementById("s-hide-pvp").checked              = settings.hidePvP ?? false;
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
@@ -1330,6 +1332,8 @@ function doSaveSettings() {
   const prevUseFinalTier = settings.useFinalTier;
   const prevThresholdPct = settings.thresholdPct;
   const prevMaxResults   = settings.maxResults;
+  const prevHideWvW      = settings.hideWvW;
+  const prevHidePvP      = settings.hidePvP;
 
   settings.maxResults    = Math.max(1, parseInt(document.getElementById("s-maxresults").value) || 40);
   settings.thresholdPct  = Math.min(100, Math.max(1, parseInt(document.getElementById("s-threshold").value) || 80));
@@ -1339,6 +1343,8 @@ function doSaveSettings() {
   applyAutoUpdate(settings.autoUpdateInterval);
   settings.hideCompleted           = document.getElementById("s-hide-completed").checked;
   settings.hideNoReward            = document.getElementById("s-hide-no-reward").checked;
+  settings.hideWvW                 = document.getElementById("s-hide-wvw").checked;
+  settings.hidePvP                 = document.getElementById("s-hide-pvp").checked;
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
@@ -1373,7 +1379,9 @@ function doSaveSettings() {
     if (currentView === "nearly-completed") {
       const nearlySettingsChanged = settings.useFinalTier !== prevUseFinalTier
         || settings.thresholdPct !== prevThresholdPct
-        || settings.maxResults   !== prevMaxResults;
+        || settings.maxResults   !== prevMaxResults
+        || settings.hideWvW      !== prevHideWvW
+        || settings.hidePvP      !== prevHidePvP;
       if (nearlySettingsChanged) {
         lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
         const key = activeApiKey();

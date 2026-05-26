@@ -6,6 +6,8 @@ const DEFAULT_SETTINGS = {
   useFinalTier: false,
   hideCompleted: false,
   hideNoReward: true,
+  hideWvW: false,
+  hidePvP: false,
   clearCompletedFavorites: false,
   accentPalette: "orange",
   fetchMode: "account-all",
