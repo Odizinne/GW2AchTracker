@@ -220,6 +220,14 @@ export function computeNearlyDone(progressMap, settings) {
     if (ratio < threshold) continue;
     if (ratio >= 1.0) continue;
     if (hideNoReward && !targetTier.points && !(ach.rewards && ach.rewards.length)) continue;
+    // If ignoring no-AP achievements, hide repeatables that have reached their point cap
+    if (hideNoReward && isRepeatable && ach.point_cap != null && ach.point_cap > 0) {
+      const lapPts = tiers.reduce((s, t) => s + (t.points || 0), 0);
+      const reps = entry.repeated || 0;
+      let earnedAp = lapPts * reps;
+      for (const t of tiers) if (rawProgress >= t.count) earnedAp += t.points || 0;
+      if (earnedAp >= ach.point_cap) continue;
+    }
     rows.push({
       id: ach.id,
       name: ach.name,
