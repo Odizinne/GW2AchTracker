@@ -424,6 +424,7 @@ export function prepareTreeForCategory(catId) {
 export function resetBrowserState() {
   expandedGroups.clear();
   activeCatId = null;
+  for (const key in catDoneMap) delete catDoneMap[key];
 }
 
 export function resetBrowserCache() {
