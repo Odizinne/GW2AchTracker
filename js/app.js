@@ -568,7 +568,11 @@ function navigateTo(name) {
 
 document.querySelectorAll(".nav-item[data-view]").forEach(item => {
   item.addEventListener("click", () => {
-    if (item.dataset.view === splitViewName) return;
+    if (item.dataset.view === splitViewName) {
+      deactivateSplitPanel();
+      navigateTo(item.dataset.view);
+      return;
+    }
     if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "weekly") return;
     navigateTo(item.dataset.view);
   });
@@ -1522,7 +1526,7 @@ function deactivateSplitPanel() {
 
 function updateSplitConflicts() {
   document.querySelectorAll(".nav-item[data-view]").forEach(item => {
-    item.disabled = item.dataset.view === splitViewName;
+    item.disabled = item.dataset.view === splitViewName && item.dataset.view !== "event-timer";
   });
 }
 
