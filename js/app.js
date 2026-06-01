@@ -868,6 +868,7 @@ async function doFetch() {
   const key  = activeApiKey();
   const lang = currentFetchLang();
   if (!key) return;
+  applyAutoUpdate(settings.autoUpdateInterval ?? 0);
   setFetching(true);
   if (currentView === "nearly-completed") setStatus("statusLoading");
 
