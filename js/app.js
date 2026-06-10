@@ -22,7 +22,6 @@ import { openAchievementModal, initAchModal, setModalProgressMap,
 import { initSearch } from "./search.js";
 import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
 import { renderDailyView, openDailyFilterModal } from "./daily.js";
-import { renderWeeklyView, weeklyResetCountdown } from "./weekly.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
 import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll, openEventModalForReminder } from "./event-timer.js";
@@ -88,7 +87,6 @@ const browserBody       = document.getElementById("browser-body");
 const viewTitle         = document.getElementById("view-title");
 const btnShowHidden           = document.getElementById("btn-show-hidden");
 const btnShowCompletedDaily   = document.getElementById("btn-show-completed-daily");
-const btnShowCompletedWeekly  = document.getElementById("btn-show-completed-weekly");
 const btnDailyFilter          = document.getElementById("btn-daily-filter");
 const btnEtFilter             = document.getElementById("btn-et-filter");
 const btnEtAutoScroll         = document.getElementById("btn-et-autoscroll");
@@ -519,24 +517,19 @@ function navigateTo(name) {
     clearInterval(_dailyResetInterval);
     _dailyResetInterval = null;
   }
-  if (name !== "weekly" && _weeklyResetInterval) {
-    clearInterval(_weeklyResetInterval);
-    _weeklyResetInterval = null;
-  }
   if (name !== "event-timer") stopETTimer();
   currentView = name;
   localStorage.setItem("gw2_last_section", name);
   showView(name);
   btnShowHidden.classList.toggle("hidden", name !== "nearly-completed");
   btnShowCompletedDaily.classList.toggle("hidden", name !== "daily");
-  btnShowCompletedWeekly.classList.add("hidden");
   _updateFriseVisibility(name);
   btnDailyFilter.classList.toggle("hidden", name !== "daily");
   btnEtFilter.classList.toggle("hidden", name !== "event-timer");
   btnEtAutoScroll.classList.toggle("hidden", name !== "event-timer");
   btnSplitView.disabled = name === "event-timer";
   sortControls.classList.toggle("hidden", name !== "browser");
-  const hideViewToggle = name === "daily" || name === "weekly" || name === "event-timer";
+  const hideViewToggle = name === "daily" || name === "event-timer";
   btnViewList.classList.toggle("hidden", hideViewToggle);
   btnViewTile.classList.toggle("hidden", hideViewToggle);
   if (name === "nearly-completed") {
@@ -554,9 +547,6 @@ function navigateTo(name) {
   } else if (name === "daily") {
     viewTitle.textContent = t("titleDaily");
     renderDailyViewWrapper();
-  } else if (name === "weekly") {
-    viewTitle.textContent = t("titleWeekly");
-    renderWeeklyViewWrapper();
   } else if (name === "event-timer") {
     viewTitle.textContent = t("titleEventTimer");
     viewSubtitle.textContent = "";
@@ -573,7 +563,7 @@ document.querySelectorAll(".nav-item[data-view]").forEach(item => {
       navigateTo(item.dataset.view);
       return;
     }
-    if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "weekly") return;
+    if (!settings.accounts.length && item.dataset.view !== "event-timer") return;
     navigateTo(item.dataset.view);
   });
 });
@@ -670,7 +660,6 @@ accountSelect.addEventListener("change", () => {
     renderNearlyDoneRows(cachedRows);
     if (currentView === "favorites") renderFavoritesView();
     if (currentView === "daily") renderDailyViewWrapper();
-    if (currentView === "weekly") renderWeeklyViewWrapper();
   } else {
     resetProgress();
     setProgressMap(null);
@@ -961,7 +950,6 @@ async function doFetch() {
   if (currentView === "favorites") renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
   if (currentView === "daily")  renderDailyViewWrapper();
-  if (currentView === "weekly") renderWeeklyViewWrapper();
 
   updateCacheInfo();
   setFetching(false);
@@ -1151,24 +1139,6 @@ btnShowCompletedDaily.addEventListener("click", () => {
 btnDailyFilter.addEventListener("click", () => {
   openDailyFilterModal(renderDailyViewWrapper);
 });
-
-// ── Weekly view ───────────────────────────────────────────────────────────────
-
-let _weeklyResetInterval = null;
-
-function renderWeeklyViewWrapper() {
-  const container = document.getElementById("view-weekly");
-  const pm = getProgressMap();
-  renderWeeklyView(container, pm, (id, cat) => openAchFromCache(id, cat));
-
-  const tick = () => {
-    if (currentView !== "weekly") { clearInterval(_weeklyResetInterval); _weeklyResetInterval = null; return; }
-    viewSubtitle.textContent = `Reset in ${weeklyResetCountdown()}`;
-  };
-  tick();
-  if (_weeklyResetInterval) clearInterval(_weeklyResetInterval);
-  _weeklyResetInterval = setInterval(tick, 1000);
-}
 
 
 // ── Settings modal ────────────────────────────────────────────────────────────
@@ -1682,7 +1652,6 @@ setModalStateCallback((_achId, type) => {
   if (currentView === "favorites")        renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
   if (currentView === "daily")            renderDailyViewWrapper();
-  if (currentView === "weekly")           renderWeeklyViewWrapper();
 });
 setModalBackCallback(targetCat => {
   activeCat = targetCat;
@@ -1720,7 +1689,6 @@ if (settings.accounts.length) {
     refreshApFrise(cachedProgress);
     if (currentView === "favorites") renderFavoritesView();
     if (currentView === "daily")     renderDailyViewWrapper();
-    if (currentView === "weekly")    renderWeeklyViewWrapper();
   }
   applyAutoUpdate(settings.autoUpdateInterval ?? 0);
   doFetch();
