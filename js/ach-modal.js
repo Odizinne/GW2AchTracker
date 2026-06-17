@@ -6,7 +6,11 @@ import {
   favoritesSet, hiddenSet, toggleFavorite, toggleHidden,
 } from "./cache.js";
 import { closeModal, stripGw2Markup, rewardHtml } from "./ui.js";
-import { resolveWikiUrl, getLang, t } from "./i18n.js";
+function wikiUrl(name) {
+  const slug = name.replace(/ /g, "_");
+  return "https://wiki.guildwars2.com/wiki/" +
+    encodeURIComponent(slug).replace(/%28/g, "(").replace(/%29/g, ")").replace(/%3A/g, ":").replace(/%2F/g, "/");
+}
 
 let _progressMap   = null;
 let _currentAchId  = null;
@@ -155,11 +159,7 @@ export function openAchievementModal(ach, progressEntry, enName = null, cat = nu
 
   // Wiki button — resolve async, open when ready
   const wikiBtn = document.getElementById("ach-modal-wiki-btn");
-  wikiBtn.onclick = async () => {
-    const lang = getLang();
-    const url  = await resolveWikiUrl(_currentEnName, ach.name, lang);
-    window.open(url, "_blank", "noopener");
-  };
+  wikiBtn.onclick = () => window.open(wikiUrl(_currentEnName), "_blank", "noopener");
 
   const descEl = document.getElementById("ach-modal-desc");
   const reqEl  = document.getElementById("ach-modal-req");
@@ -197,7 +197,7 @@ export function openAchievementModal(ach, progressEntry, enName = null, cat = nu
         <div class="prog-bar-bg">
           <div class="prog-bar-fill" style="width:${pct ?? 0}%;background:${done ? "var(--green)" : "var(--accent)"}"></div>
         </div>
-        <span class="ach-modal-bar-label">${done ? t("progCompleted") : `${progress} / ${required}${pct !== null ? ` (${pct}%)` : ""}`}</span>
+        <span class="ach-modal-bar-label">${done ? "Completed" : `${progress} / ${required}${pct !== null ? ` (${pct}%)` : ""}`}</span>
       </div>` : "";
 
     progressSection.innerHTML = `

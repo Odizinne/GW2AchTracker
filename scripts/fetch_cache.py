@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetches GW2 public data for all 4 supported languages and writes to data/.
+Fetches GW2 public data in English and writes to data/.
 Run daily via GitHub Actions or locally:  python scripts/fetch_cache.py
 Serve locally for testing:               python -m http.server 8000
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 BASE        = "https://api.guildwars2.com/v2"
 ICON_PREFIX = "https://render.guildwars2.com/file/"
 ICON_SUFFIX = ".png"
-LANGS       = ["en", "fr", "de", "es"]
+LANGS       = ["en"]
 DATA_DIR    = Path(__file__).parent.parent / "data"
 BATCH       = 200
 

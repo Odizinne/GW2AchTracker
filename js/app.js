@@ -1,6 +1,6 @@
 import { validateApiKey, formatRewards, apiFetch }          from "./api.js";
 import { clearCache, loadCache, favoritesSet, hiddenSet, getItemNameMap, getTitleNameMap,
-         toggleFavorite, toggleHidden, setCacheLang, reloadNameMaps,
+         toggleFavorite, toggleHidden,
          ensureStaticCache, getStaticVersion,
          getItemIconMap, getItemDescMap, getItemRarityMap,
          reloadFavorites,
@@ -20,7 +20,6 @@ import { SVG_EYE, SVG_EYE_OFF, SVG_TRASH, openModal, closeModal,
 import { openAchievementModal, initAchModal, setModalProgressMap,
          setModalStateCallback, setModalBackCallback } from "./ach-modal.js";
 import { initSearch } from "./search.js";
-import { setLang, getLang, t, applyI18n, achCountStr, resolveWikiUrl, LANGS } from "./i18n.js";
 import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
@@ -35,11 +34,6 @@ startClock(document.getElementById("tyrian-clock"));
 
 let settings           = loadSettings();
 applyTheme(settings.theme);
-// Bootstrap language
-setCacheLang(settings.fetchLang ?? "en");
-reloadNameMaps();
-setLang(settings.lang ?? "en");
-applyI18n();
 
 let currentView        = "favorites";
 let browserInitialized = false;
@@ -54,16 +48,10 @@ let viewMode = settings.viewMode ?? "list";
 let sortMode = "default"; // "default" | "alpha" | "progress"
 let sortDir  = 1;         // 1 = asc, -1 = desc
 
-// EN-name cache: id -> English name, populated during fetch so wiki links work
-const enNameCache = {};
-
 function activeApiKey() {
   const acc = settings.accounts[settings.activeAccount];
   return acc ? acc.apiKey : "";
 }
-
-function currentLang()      { return settings.lang      ?? "en"; }
-function currentFetchLang() { return settings.fetchLang ?? "en"; }
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 
@@ -102,33 +90,17 @@ btnViewList.classList.toggle("active", viewMode === "list");
 btnViewTile.classList.toggle("active", viewMode === "tile");
 updateSortUI();
 
-// ── i18n helpers ──────────────────────────────────────────────────────────────
-
-function buildLangOptions(selectEl, currentLangVal) {
-  selectEl.innerHTML = "";
-  for (const [code, label] of Object.entries(LANGS)) {
-    const opt = document.createElement("option");
-    opt.value = code;
-    opt.textContent = label;
-    opt.selected = code === currentLangVal;
-    selectEl.appendChild(opt);
-  }
-}
-
 // ── Status helpers ────────────────────────────────────────────────────────────
 
-function setLoadingProgress() {}
-
-function setStatus(key, vars = {}, fetched, total) {
+function setStatus(msg) {
   if (currentView === "nearly-completed" || currentView === "favorites") {
-    viewSubtitle.textContent = t(key, vars);
+    viewSubtitle.textContent = msg;
   }
-  setLoadingProgress(fetched, total);
 }
 
-function setBrowserStatus(key, vars = {}) {
+function setBrowserStatus(msg) {
   if (currentView === "browser") {
-    viewSubtitle.textContent = key ? t(key, vars) : "";
+    viewSubtitle.textContent = msg ?? "";
   }
 }
 
@@ -137,7 +109,7 @@ function setFetching(active) {
   accountSelect.disabled = active;
   btnRefresh.classList.toggle("updating", active);
   const span = btnRefresh.querySelector("span");
-  if (span) span.textContent = active ? t("btnUpdating") : t("btnUpdate");
+  if (span) span.textContent = active ? "Update in progress…" : "Update";
 }
 
 function setBrowserFetching(_active) {}
@@ -151,13 +123,19 @@ function formatDateTime(iso) {
 function updateCacheInfo() {
   const version    = getStaticVersion();
   const lastSynced = localStorage.getItem("gw2_last_synced");
-  const versionLine = version
-    ? t("cacheVersion",    { v: version })
-    : t("cacheNone");
-  const syncLine   = lastSynced
-    ? t("cacheLastSynced", { t: formatDateTime(lastSynced) })
-    : t("cacheNeverSynced");
+  const versionLine = version ? `Definitions: ${version}` : "No offline cache";
+  const syncLine    = lastSynced ? `Last sync: ${formatDateTime(lastSynced)}` : "Never synced";
   cacheInfo.innerHTML = `${versionLine}<br>${syncLine}`;
+}
+
+function achCountStr(n) {
+  return n === 1 ? "1 achievement" : `${n} achievements`;
+}
+
+function wikiUrl(name) {
+  const slug = name.replace(/ /g, "_");
+  return "https://wiki.guildwars2.com/wiki/" +
+    encodeURIComponent(slug).replace(/%28/g, "(").replace(/%29/g, ")").replace(/%3A/g, ":").replace(/%2F/g, "/");
 }
 
 function updateSubtitle(count) {
@@ -227,32 +205,12 @@ function refreshApFrise(progressMap) {
   _updateFriseVisibility();
 }
 
-// ── EN name tracking (needed for non-EN wiki URLs) ────────────────────────────
-
-async function populateEnNameCache(ids) {
-  if (currentFetchLang() === "en") return; // not needed
-  const missing = ids.filter(id => !(id in enNameCache));
-  if (missing.length) {
-    // fetch EN names in background, batched
-    try {
-      const { fetchInBatches } = await import("./api.js");
-      const items = await fetchInBatches("/achievements", missing, null, 150, { lang: "en" });
-      for (const a of items) enNameCache[a.id] = a.name;
-    } catch { /* best effort */ }
-  }
-}
-
-function getEnName(id, localName) {
-  if (currentFetchLang() === "en") return localName;
-  return enNameCache[id] || localName;
-}
-
-// ── Open achievement (with EN name for wiki) ──────────────────────────────────
+// ── Open achievement ──────────────────────────────────────────────────────────
 
 function openAchFromCache(id, cat = null) {
   const cache = loadCache();
   const ach = cache[id];
-  if (ach) openAchievementModal(ach, null, getEnName(id, ach.name), cat ?? getCategoryForAchievement(id));
+  if (ach) openAchievementModal(ach, null, ach.name, cat ?? getCategoryForAchievement(id));
 }
 
 function applyTheme(theme) {
@@ -268,7 +226,7 @@ function buildProgCell(row) {
 
   if (row.done) {
     return `<div class="prog-wrap">
-      <span>${t("progCompleted")}</span>
+      <span>Completed</span>
       <div class="prog-bar-bg invisible"></div>
     </div>`;
   }
@@ -308,8 +266,8 @@ function resetAllCachedState() {
   resetBrowserState();
   browserTree.innerHTML = "";
   document.querySelectorAll(".tile-grid").forEach(g => g.remove());
-  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyNearly")}</td></tr>`;
-  favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyFavorites")}</td></tr>`;
+  resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Press Update to load your achievements.</td></tr>`;
+  favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
   document.getElementById("view-nearly-completed").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-favorites").querySelector(".table-wrap").style.display = "";
   document.getElementById("view-browser").querySelector(".table-wrap").style.display = "";
@@ -329,7 +287,7 @@ function buildActionButtons(id, achName) {
   return `
     <button class="row-action-btn row-fav-btn ${isFav ? "active" : ""}" data-id="${id}" title="Favorite">${SVG_STAR}</button>
     <button class="row-action-btn row-hide-btn ${isHid ? "active" : ""}" data-id="${id}" title="Hide">${SVG_HIDE}</button>
-    <button class="row-action-btn row-wiki-btn" data-id="${id}" data-name="${achName.replace(/"/g, '&quot;')}" title="${t("btnWiki")}">${SVG_WIKI}</button>`;
+    <button class="row-action-btn row-wiki-btn" data-id="${id}" data-name="${achName.replace(/"/g, '&quot;')}" title="Wiki">${SVG_WIKI}</button>`;
 }
 
 function attachActionListeners(tbody, onStateChange) {
@@ -352,13 +310,9 @@ function attachActionListeners(tbody, onStateChange) {
     });
   });
   tbody.querySelectorAll(".row-wiki-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
+    btn.addEventListener("click", e => {
       e.stopPropagation();
-      const id       = Number(btn.dataset.id);
-      const localName = btn.dataset.name;
-      const enName   = getEnName(id, localName);
-      const url      = await resolveWikiUrl(enName, localName, currentLang());
-      window.open(url, "_blank", "noopener");
+      window.open(wikiUrl(btn.dataset.name), "_blank", "noopener");
     });
   });
 }
@@ -489,7 +443,7 @@ function renderTileView(viewEl, rows, opts = {}) {
     grid.className = "tile-grid";
     viewEl.appendChild(grid);
   }
-  grid.innerHTML = buildTileHtml(visible) || `<div class="tile-empty">${t("emptyNearlyFilter")}</div>`;
+  grid.innerHTML = buildTileHtml(visible) || `<div class="tile-empty">No achievements matched the current filters.</div>`;
   attachTileListeners(grid, cat);
   return visible.length;
 }
@@ -533,22 +487,22 @@ function navigateTo(name) {
   btnViewList.classList.toggle("hidden", hideViewToggle);
   btnViewTile.classList.toggle("hidden", hideViewToggle);
   if (name === "nearly-completed") {
-    viewTitle.textContent = t("titleNearly");
+    viewTitle.textContent = "Nearly completed";
     updateSubtitle(lastResultCount);
   } else if (name === "browser") {
-    viewTitle.textContent = t("titleBrowse");
+    viewTitle.textContent = "Browse achievements";
     viewSubtitle.textContent = "";
     browserTree.classList.remove("hidden");
     btnBrowseToggle.classList.add("open");
     initBrowser();
   } else if (name === "favorites") {
-    viewTitle.textContent = t("titleFavorites");
+    viewTitle.textContent = "Favorites";
     renderFavoritesView();
   } else if (name === "daily") {
-    viewTitle.textContent = t("titleDaily");
+    viewTitle.textContent = "Daily achievements";
     renderDailyViewWrapper();
   } else if (name === "event-timer") {
-    viewTitle.textContent = t("titleEventTimer");
+    viewTitle.textContent = "Event Timer";
     viewSubtitle.textContent = "";
     enableETAutoScroll();
     renderEventTimerView(document.getElementById("view-event-timer"));
@@ -679,9 +633,6 @@ accountSelect.addEventListener("change", () => {
 
 function checkSetup() {
   rebuildAccountSelect();
-  // Populate setup language select
-  const setupLangSelect = document.getElementById("setup-lang-select");
-  if (setupLangSelect) buildLangOptions(setupLangSelect, currentLang());
 
   if (!settings.accounts.length) {
     showView("setup");
@@ -692,27 +643,15 @@ function checkSetup() {
   }
 }
 
-// Setup language change (before account is saved)
-document.getElementById("setup-lang-select")?.addEventListener("change", e => {
-  const lang = e.target.value;
-  settings.lang = lang;
-  settings.fetchLang = lang;
-  saveSettings(settings);
-  setCacheLang(lang);
-  reloadNameMaps();
-  setLang(lang);
-  applyI18n();
-});
-
 document.getElementById("btn-setup-save").addEventListener("click", async () => {
   const name = document.getElementById("setup-name").value.trim();
   const key  = document.getElementById("setup-key").value.trim();
-  if (!name) { showError(setupError, t("setupErrName")); return; }
-  if (!key)  { showError(setupError, t("setupErrKey")); return; }
+  if (!name) { showError(setupError, "Please enter a name for this account."); return; }
+  if (!key)  { showError(setupError, "Please enter an API key."); return; }
   clearError(setupError);
   const btn = document.getElementById("btn-setup-save");
   btn.disabled = true;
-  btn.textContent = t("validating");
+  btn.textContent = "Validating…";
   try {
     await validateApiKey(key);
     settings.accounts.push({ name, apiKey: key });
@@ -722,10 +661,10 @@ document.getElementById("btn-setup-save").addEventListener("click", async () => 
     navigateTo("nearly-completed");
     doFetch();
   } catch {
-    showError(setupError, t("setupErrInvalid"));
+    showError(setupError, "Invalid API key. Make sure account and progression permissions are enabled.");
   } finally {
     btn.disabled = false;
-    btn.textContent = t("setupSave");
+    btn.textContent = "Save & continue";
   }
 });
 
@@ -741,7 +680,7 @@ function renderFavoritesView() {
 
   if (!ids.length) {
     renderListView(viewEl);
-    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyFavorites")}</td></tr>`;
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">No favorites yet — open an achievement and click ★ to pin it here.</td></tr>`;
     viewSubtitle.textContent = "";
     return;
   }
@@ -765,7 +704,7 @@ function renderFavoritesView() {
 
   if (!rows.length) {
     renderListView(viewEl);
-    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyFavNoData")}</td></tr>`;
+    favoritesBody.innerHTML = `<tr class="empty-row"><td colspan="5">Achievement data not loaded — press Update first.</td></tr>`;
     return;
   }
 
@@ -812,7 +751,7 @@ function renderNearlyDoneRows(rows) {
 
   if (!visible.length) {
     renderListView(viewEl);
-    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyNearlyFilter")}</td></tr>`;
+    resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements matched the current filters.</td></tr>`;
     if (currentView === "nearly-completed") updateSubtitle(0);
     return;
   }
@@ -854,42 +793,26 @@ function renderNearlyDoneRows(rows) {
 }
 
 async function doFetch() {
-  const key  = activeApiKey();
-  const lang = currentFetchLang();
+  const key = activeApiKey();
   if (!key) return;
   applyAutoUpdate(settings.autoUpdateInterval ?? 0);
   setFetching(true);
-  if (currentView === "nearly-completed") setStatus("statusLoading");
+  if (currentView === "nearly-completed") setStatus("Loading…");
 
   let definitionsFailed = false;
   try {
-    const staticUpdated = await ensureStaticCache(lang, (...args) => setStatus(...args));
+    const staticUpdated = await ensureStaticCache(setStatus);
     if (staticUpdated) resetBrowserCache();
     await Promise.all([
       ensureActiveDailyCache(),
-      ensureDefinitionCache(
-        (...args) => setStatus(...args),
-        key,
-        settings.fetchMode ?? "account-all",
-        lang,
-      ),
-      ensureBrowserData((...args) => setStatus(...args), lang),
+      ensureDefinitionCache(setStatus, key, settings.fetchMode ?? "account-all"),
+      ensureBrowserData(setStatus),
     ]);
-    await ensureDailyData((...args) => setStatus(...args), lang);
-    await ensureRewardNames((...args) => setStatus(...args), lang);
+    await ensureDailyData(setStatus);
+    await ensureRewardNames(setStatus);
   } catch (e) {
     console.warn("Definition/browser data update failed, continuing with cache:", e);
     definitionsFailed = true;
-  }
-
-  // Populate EN name cache for non-EN fetch languages (needed for wiki URLs)
-  if (currentFetchLang() !== "en") {
-    const allIds = Object.keys(loadCache()).map(Number);
-    try {
-      const { fetchInBatches } = await import("./api.js");
-      const enItems = await fetchInBatches("/achievements", allIds, null, 150, { lang: "en" });
-      for (const a of enItems) enNameCache[a.id] = a.name;
-    } catch { /* best effort */ }
   }
 
   let progressFailed = false;
@@ -911,7 +834,7 @@ async function doFetch() {
 
   if (progressFailed) {
     if (currentView === "nearly-completed") {
-      resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("statusErrProgress")}</td></tr>`;
+      resultsBody.innerHTML = `<tr class="empty-row"><td colspan="5">Could not fetch progress — check your API key and connection, then try again.</td></tr>`;
     }
     setFetching(false);
     updateCacheInfo();
@@ -923,7 +846,7 @@ async function doFetch() {
   lastResultCount = rows.length;
 
   try {
-    await resolveRewardNames(rows, key, lang);
+    await resolveRewardNames(rows, key);
   } catch (e) {
     console.warn("Reward name resolution failed:", e);
   }
@@ -967,7 +890,7 @@ async function initBrowser(forceRefresh = false) {
   setBrowserStatus("statusLoading");
 
   try {
-    await ensureBrowserData((key, vars) => setBrowserStatus(key, vars), currentLang());
+    await ensureBrowserData(setBrowserStatus);
 
     if (!getProgressMap()) {
       const key = activeApiKey();
@@ -998,12 +921,12 @@ async function initBrowser(forceRefresh = false) {
     if (activeCat) {
       selectCategory(activeCat);
     } else {
-      viewTitle.textContent    = t("titleBrowse");
-      viewSubtitle.textContent = t("subtitleBrowseHint");
-      browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyBrowser")}</td></tr>`;
+      viewTitle.textContent    = "Browse achievements";
+      viewSubtitle.textContent = "Select a category from the sidebar";
+      browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">Select a category from the sidebar to browse.</td></tr>`;
     }
   } catch (e) {
-    setBrowserStatus("statusLoading"); // fallback
+    setBrowserStatus("Loading…"); // fallback
     console.error(e);
   } finally {
     setBrowserFetching(false);
@@ -1032,7 +955,7 @@ function selectCategory(cat) {
   if (!rows.length) {
     renderListView(viewEl);
     showBrowserSkeleton(browserBody);
-    viewSubtitle.textContent = t("statusLoading");
+    viewSubtitle.textContent = "Loading…";
     return;
   }
 
@@ -1065,7 +988,7 @@ function renderBrowserRows(rows) {
     : sorted;
 
   if (!visible.length) {
-    browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">${t("emptyBrowserCat")}</td></tr>`;
+    browserBody.innerHTML = `<tr class="empty-row"><td colspan="5">No achievements in this category.</td></tr>`;
     return 0;
   }
 
@@ -1115,7 +1038,7 @@ function renderDailyViewWrapper() {
   const container = document.getElementById("view-daily");
   const pm = getProgressMap();
   if (!pm) {
-    container.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`;
+    container.innerHTML = `<div class="daily-empty">No daily achievements found — press Update to load.</div>`;
     viewSubtitle.textContent = "";
     return;
   }
@@ -1146,7 +1069,7 @@ btnDailyFilter.addEventListener("click", () => {
 function renderAccountsList() {
   accountsList.innerHTML = "";
   if (!settings.accounts.length) {
-    accountsList.innerHTML = `<p style="font-size:12px;color:var(--muted);padding:4px 0">${t("noAccounts")}</p>`;
+    accountsList.innerHTML = `<p style="font-size:12px;color:var(--muted);padding:4px 0">No accounts added yet.</p>`;
     return;
   }
   settings.accounts.forEach((acc, i) => {
@@ -1240,8 +1163,6 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
-  buildLangOptions(document.getElementById("s-lang"), currentLang());
-  buildLangOptions(document.getElementById("s-fetch-lang"), currentFetchLang());
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -1276,11 +1197,11 @@ document.getElementById("btn-add-account-cancel").addEventListener("click", () =
 document.getElementById("btn-add-account-save").addEventListener("click", async () => {
   const name = document.getElementById("new-account-name").value.trim();
   const key  = document.getElementById("new-account-key").value.trim();
-  if (!name) { showError(newAccountError, t("errName")); return; }
-  if (!key)  { showError(newAccountError, t("errKey")); return; }
+  if (!name) { showError(newAccountError, "Please enter a name."); return; }
+  if (!key)  { showError(newAccountError, "Please enter an API key."); return; }
   clearError(newAccountError);
   const btn = document.getElementById("btn-add-account-save");
-  btn.disabled = true; btn.textContent = t("validating");
+  btn.disabled = true; btn.textContent = "Validating…";
   try {
     await validateApiKey(key);
     settings.accounts.push({ name, apiKey: key });
@@ -1291,9 +1212,9 @@ document.getElementById("btn-add-account-save").addEventListener("click", async 
     document.getElementById("new-account-name").value = "";
     document.getElementById("new-account-key").value  = "";
   } catch {
-    showError(newAccountError, t("errInvalid"));
+    showError(newAccountError, "Invalid API key. Make sure account and progression permissions are enabled.");
   } finally {
-    btn.disabled = false; btn.textContent = t("btnSaveAccount");
+    btn.disabled = false; btn.textContent = "Save account";
   }
 });
 
@@ -1302,8 +1223,6 @@ document.getElementById("btn-settings-cancel").addEventListener("click", () => c
 
 function doSaveSettings() {
   const prevFetchMode    = settings.fetchMode  ?? "account-all";
-  const prevLang         = settings.lang       ?? "en";
-  const prevFetchLang    = settings.fetchLang  ?? "en";
   const prevUseFinalTier = settings.useFinalTier;
   const prevThresholdPct = settings.thresholdPct;
   const prevMaxResults   = settings.maxResults;
@@ -1323,32 +1242,17 @@ function doSaveSettings() {
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
-  settings.lang                    = document.getElementById("s-lang").value;
-  settings.fetchLang               = document.getElementById("s-fetch-lang").value;
   settings.notificationVolume      = parseFloat(document.getElementById("s-notif-volume").value) || 0.7;
   setVolume(settings.notificationVolume);
   applyTheme(settings.theme);
   saveSettings(settings);
 
-  const fetchModeChanged  = settings.fetchMode  !== prevFetchMode;
-  const uiLangChanged     = settings.lang       !== prevLang;
-  const fetchLangChanged  = settings.fetchLang  !== prevFetchLang;
+  const fetchModeChanged = settings.fetchMode !== prevFetchMode;
 
-  if (uiLangChanged) {
-    setLang(settings.lang);
-    applyI18n();
-    if (currentView === "nearly-completed") viewTitle.textContent = t("titleNearly");
-    else if (currentView === "favorites")   viewTitle.textContent = t("titleFavorites");
-    else if (currentView === "browser")     viewTitle.textContent = t("titleBrowse");
-    else if (currentView === "daily")       viewTitle.textContent = t("titleDaily");
-  }
-
-  if (fetchLangChanged || fetchModeChanged) {
-    setCacheLang(settings.fetchLang);
-    reloadNameMaps();
+  if (fetchModeChanged) {
     resetAllCachedState();
     doFetch();
-  } else if (!uiLangChanged) {
+  } else {
     recomputeCatDoneStates(settings.hideCompleted, settings.fetchMode);
     if (currentView === "browser" && activeCat) selectCategory(activeCat);
     if (currentView === "nearly-completed") {
@@ -1360,7 +1264,7 @@ function doSaveSettings() {
       if (nearlySettingsChanged) {
         lastNearlyDoneRows = computeNearlyDone(getProgressMap(), settings);
         const key = activeApiKey();
-        resolveRewardNames(lastNearlyDoneRows, key, currentFetchLang())
+        resolveRewardNames(lastNearlyDoneRows, key)
           .catch(e => console.warn("Reward name resolution failed:", e))
           .finally(() => renderNearlyDoneRows(lastNearlyDoneRows));
       } else {
@@ -1543,9 +1447,9 @@ function renderSplitTable(container, rows) {
       <table>
         <thead>
           <tr>
-            <th class="col-pct">${t("thPct")}</th>
-            <th class="col-prog">${t("thProgress")}</th>
-            <th class="col-name">${t("thAchievement")}</th>
+            <th class="col-pct">%</th>
+            <th class="col-prog">Progress</th>
+            <th class="col-name">Achievement</th>
           </tr>
         </thead>
         <tbody>${visible.map(row => {
@@ -1663,7 +1567,7 @@ setModalBackCallback(targetCat => {
     selectCategory(targetCat);
   }
 });
-initSearch(ach => openAchievementModal(ach, null, getEnName(ach.id, ach.name), getCategoryForAchievement(ach.id)));
+initSearch(ach => openAchievementModal(ach, null, ach.name, getCategoryForAchievement(ach.id)));
 checkSetup();
 updateCacheInfo();
 

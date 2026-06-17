@@ -45,10 +45,10 @@ export function initBrowserDataFromCache() {
   if (schedule) activeFestivalCatIds = new Set(schedule.festival_cat_ids || []);
 }
 
-export async function ensureBrowserData(onStatus, lang = "en") {
+export async function ensureBrowserData(onStatus) {
   if (groups && categories) {
     // Even if already loaded, always refresh daily category contents
-    await _refreshDailyCategoryIds(lang);
+    await _refreshDailyCategoryIds();
     return;
   }
 
@@ -59,10 +59,10 @@ export async function ensureBrowserData(onStatus, lang = "en") {
     groups     = cg;
     categories = cc;
   } else {
-    onStatus("statusFetchingCats");
+    onStatus("Fetching achievement categories…");
     const [rawGroups, rawCats] = await Promise.all([
-      apiFetch("/achievements/groups",     { ids: "all", lang }),
-      apiFetch("/achievements/categories", { ids: "all", lang }),
+      apiFetch("/achievements/groups",     { ids: "all" }),
+      apiFetch("/achievements/categories", { ids: "all" }),
     ]);
 
     categories = {};
@@ -80,15 +80,15 @@ export async function ensureBrowserData(onStatus, lang = "en") {
     groups.flatMap(g => g.categories || []).filter(id => !categories[id])
   )];
   if (missingIds.length) {
-    const extra = await fetchInBatches("/achievements/categories", missingIds, null, 150, { lang });
+    const extra = await fetchInBatches("/achievements/categories", missingIds, null, 150);
     for (const c of extra) categories[c.id] = c;
     saveCategoriesCache(categories);
   }
 
-  await _refreshDailyCategoryIds(lang);
+  await _refreshDailyCategoryIds();
 }
 
-async function _refreshDailyCategoryIds(lang) {
+async function _refreshDailyCategoryIds() {
   if (!groups || !categories) return;
 
   // Collect IDs of all daily categories — their achievement lists rotate every day
@@ -105,7 +105,7 @@ async function _refreshDailyCategoryIds(lang) {
   if (!dailyCatIds.length) return;
 
   try {
-    const fresh = await apiFetch("/achievements/categories", { ids: dailyCatIds.join(","), lang });
+    const fresh = await apiFetch("/achievements/categories", { ids: dailyCatIds.join(",") });
     for (const c of fresh) categories[c.id] = c;
     saveCategoriesCache(categories);
   } catch { /* best effort, keep stale */ }
@@ -372,7 +372,7 @@ export async function ensureActiveDailyCache() {
   }
 }
 
-export async function ensureDailyData(onStatus, lang = "en") {
+export async function ensureDailyData(onStatus) {
   if (!groups || !categories) return;
 
   const cache   = loadCache();
@@ -396,8 +396,8 @@ export async function ensureDailyData(onStatus, lang = "en") {
   const unique = [...new Set(toFetch)];
   if (!unique.length) return;
 
-  onStatus?.("statusFetchingDefs", { n: unique.length });
-  const fresh = await fetchInBatches("/achievements", unique, null, 150, { lang });
+  onStatus?.(`Fetching ${unique.length} achievement definitions…`);
+  const fresh = await fetchInBatches("/achievements", unique, null, 150);
   for (const ach of fresh) cache[ach.id] = ach;
   saveCache(cache);
 }

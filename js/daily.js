@@ -1,7 +1,6 @@
 import { loadCache, loadDailyFilter, saveDailyFilter, loadDailyCollapsed, toggleDailyCollapsed } from "./cache.js";
 import { getCategories, getGroups, isFestivalGroup, getActiveFestivalCatIds } from "./browser.js";
 import { openModal, closeModal, barColor, stripGw2Markup } from "./ui.js";
-import { t } from "./i18n.js";
 import { FRACTAL_SCALES, scaleTier } from "./fractal-scales.js";
 
 
@@ -329,7 +328,7 @@ export function openDailyFilterModal(onClose) {
     sep.className = "daily-filter-sep";
     body.appendChild(sep);
 
-    const { label, cb } = _makeFilterItem(null, t("dailyFilterFestival"), !hideFestival);
+    const { label, cb } = _makeFilterItem(null, "Festival", !hideFestival);
     cb.id = "daily-filter-festival-cb";
     body.appendChild(label);
   }
@@ -378,7 +377,7 @@ export function renderDailyView(container, progressMap, showCompleted, onOpenAch
   let remaining = 0;
 
   if (!columns.length) {
-    if (!visibleCols) container.innerHTML = `<div class="daily-empty">${t("emptyDaily")}</div>`;
+    if (!visibleCols) container.innerHTML = `<div class="daily-empty">No daily achievements found — press Update to load.</div>`;
     return { visibleCols, remaining };
   }
 

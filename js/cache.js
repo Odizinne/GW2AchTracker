@@ -1,6 +1,3 @@
-// Cache keys are language-scoped so switching language invalidates data correctly.
-let _langSuffix = "";
-
 const _ICON_BASE = "https://render.guildwars2.com/file/";
 
 // Expand compact icon path (HASH/ID) to full render URL.
@@ -10,13 +7,7 @@ function _expandIcon(v) {
   return `${_ICON_BASE}${v}.png`;
 }
 
-export function setCacheLang(lang) {
-  _langSuffix = lang === "en" ? "" : `_${lang}`;
-}
-
-function _key(base) { return base + _langSuffix; }
-
-// Item/title/skin names — language-scoped
+// Item/title/skin names
 let _itemNameMap  = {};
 let _titleNameMap = {};
 let _skinNameMap  = {};
@@ -36,20 +27,18 @@ let _itemRarityMap  = {};
 let _memCache   = null;
 let _groups     = null;
 let _categories = null;
-let _loadedLang = null;
 
 // One-time migration: evict old large keys that are no longer written
 (function _migrateLargeKeys() {
   if (localStorage.getItem("gw2_ls_migrated_v1")) return;
-  const langScoped = [
+  const legacyKeys = [
     "gw2_ach_cache", "gw2_groups_cache", "gw2_categories_cache",
     "gw2_item_names", "gw2_title_names", "gw2_skin_names",
     "gw2_item_descs", "gw2_skin_descs", "gw2_mini_names",
+    "gw2_item_icons", "gw2_mini_icons", "gw2_skin_icons", "gw2_item_rarities",
   ];
-  const neutral = ["gw2_item_icons", "gw2_mini_icons", "gw2_skin_icons", "gw2_item_rarities"];
-  const langs = ["", "_fr", "_de", "_es"];
-  for (const key of langScoped) for (const sfx of langs) localStorage.removeItem(`${key}${sfx}`);
-  for (const key of neutral) localStorage.removeItem(key);
+  const langSuffixes = ["", "_fr", "_de", "_es"];
+  for (const key of legacyKeys) for (const sfx of langSuffixes) localStorage.removeItem(`${key}${sfx}`);
   localStorage.setItem("gw2_ls_migrated_v1", "1");
 })();
 
@@ -98,7 +87,6 @@ export function clearCache() {
   _memCache   = null;
   _groups     = null;
   _categories = null;
-  _loadedLang = null;
   for (const k of Object.keys(_itemNameMap))  delete _itemNameMap[k];
   for (const k of Object.keys(_titleNameMap)) delete _titleNameMap[k];
   for (const k of Object.keys(_skinNameMap))  delete _skinNameMap[k];
@@ -109,9 +97,7 @@ export function clearCache() {
   for (const k of Object.keys(_miniIconMap))   delete _miniIconMap[k];
   for (const k of Object.keys(_skinIconMap))   delete _skinIconMap[k];
   for (const k of Object.keys(_itemRarityMap)) delete _itemRarityMap[k];
-  // Clear version strings so next load re-fetches fresh data
-  const langs = ["", "_fr", "_de", "_es"];
-  for (const sfx of langs) localStorage.removeItem(`gw2_static_version${sfx}`);
+  localStorage.removeItem("gw2_static_version");
   localStorage.removeItem("gw2_static_icons_version");
   localStorage.removeItem("gw2_daily_schedule");
 }
@@ -121,10 +107,11 @@ export function isStaticCacheLoaded() {
 }
 
 export function getStaticVersion() {
-  return localStorage.getItem(_key("gw2_static_version"));
+  return localStorage.getItem("gw2_static_version");
 }
 
-export async function ensureStaticCache(lang, onStatus) {
+export async function ensureStaticCache(onStatus) {
+  const lang = "en";
   try {
     const vr = await fetch("./data/version.json", { cache: "no-store" });
     if (!vr.ok) return false;
@@ -168,13 +155,13 @@ export async function ensureStaticCache(lang, onStatus) {
     const serverVersion = versions[lang];
     if (!serverVersion) return updated;
 
-    const localVersion   = localStorage.getItem(_key("gw2_static_version"));
+    const localVersion   = localStorage.getItem("gw2_static_version");
     const versionChanged = localVersion !== serverVersion;
-    const notInMemory    = _memCache === null || _loadedLang !== lang;
+    const notInMemory    = _memCache === null;
 
     if (!versionChanged && !notInMemory) return updated;
 
-    if (versionChanged) onStatus?.("statusDownloadingCache");
+    if (versionChanged) onStatus?.("Downloading definitions cache…");
 
     // Fetch base (language-neutral structure) and lang strings in parallel.
     // Stream the lang file to report download progress; base is parsed directly.
@@ -198,7 +185,7 @@ export async function ensureStaticCache(lang, onStatus) {
       chunks.push(value);
       received += value.length;
       if (contentLength > 0) {
-        onStatus?.("statusDownloadingCache", {}, Math.min(received, contentLength), contentLength);
+        onStatus?.("Downloading definitions cache…");
       }
     }
     const allBytes = new Uint8Array(received);
@@ -240,10 +227,8 @@ export async function ensureStaticCache(lang, onStatus) {
     Object.assign(_skinDescMap,  langData.skin_descs || {});
     Object.assign(_miniNameMap,  langData.mini_names || {});
 
-    _loadedLang = lang;
-
     if (versionChanged) {
-      localStorage.setItem(_key("gw2_static_version"), serverVersion);
+      localStorage.setItem("gw2_static_version", serverVersion);
       updated = true;
     }
     return updated;
