@@ -189,7 +189,6 @@ function buildDailyColumns(progressMap) {
     if (isFestival && !activeFestivalCatIds.has(Number(catId))) continue;
     if (isFestival && hideFestival) continue;
     if (!isFestival && hiddenCatIds.has(Number(catId))) continue;
-
     for (const id of cat.achievements) {
       const ach = cache[id];
       if (!ach) continue;

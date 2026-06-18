@@ -13,6 +13,7 @@ const MASTERY_REGION_MAP = {
 
 export async function apiFetch(endpoint, params = {}, apiKey = "") {
   const url = new URL(BASE + endpoint);
+  if (!("lang" in params)) url.searchParams.set("lang", "en");
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   if (apiKey) url.searchParams.set("access_token", apiKey);
   const res = await fetch(url);
