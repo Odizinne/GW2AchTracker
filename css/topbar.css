@@ -3,10 +3,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 19px;
   overflow: hidden;
   min-width: 0;
-  padding: 14px 16px;
+  padding: 19px 21px;
 }
 
 /* ── Topbar ── */
@@ -26,7 +26,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 20px;
+  padding: 15px 25px;
 }
 
 #main-topbar-left {
