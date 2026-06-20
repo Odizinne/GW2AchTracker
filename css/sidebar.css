@@ -426,6 +426,34 @@
   transition: opacity 0.15s;
 }
 
+.sb-reminder-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.sb-reminder-meta-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.sb-reminder-view-all {
+  font-size: 10px;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font);
+  line-height: 1;
+}
+
+.sb-reminder-view-all:hover { text-decoration: underline; }
+
 .sb-reminder-header {
   display: flex;
   align-items: center;

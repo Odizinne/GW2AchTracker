@@ -63,4 +63,24 @@ body {
   font-size: 14px;
 }
 
+[data-wallpaper="1"] body {
+  background: var(--bg) url("https://d3qqidoz8mm2hm.cloudfront.net/wp-content/uploads/wallpapers/88063gw2-ex5-jw-qr3-wallpaper-1920x1080.jpg") center center / cover no-repeat fixed;
+}
+
+[data-theme="light"][data-wallpaper="1"] body {
+  background: var(--bg) url("https://d3qqidoz8mm2hm.cloudfront.net/wp-content/uploads/wallpapers/ae70fvoe-annouce-wallpaper-1920x1080.jpg") center center / cover no-repeat fixed;
+}
+
+[data-wallpaper="1"] #sidebar,
+[data-wallpaper="1"] .view,
+[data-wallpaper="1"] #main-topbar {
+  background: color-mix(in srgb, var(--bg2) 85%, transparent);
+}
+
+[data-theme="light"][data-wallpaper="1"] #sidebar,
+[data-theme="light"][data-wallpaper="1"] .view,
+[data-theme="light"][data-wallpaper="1"] #main-topbar {
+  background: color-mix(in srgb, var(--bg2) 90%, transparent);
+}
+
 #app { display: flex; height: 100vh; overflow: hidden; }

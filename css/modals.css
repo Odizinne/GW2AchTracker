@@ -483,6 +483,99 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── All reminders modal ── */
+.all-reminders-modal {
+  max-width: 380px;
+}
+
+.all-reminders-body {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.all-reminders-empty {
+  padding: 1.2rem 1.4rem;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.reminder-list-item {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reminder-list-item:last-child { border-bottom: none; }
+
+.reminder-list-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.reminder-list-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.reminder-list-item-name:hover { color: var(--accent); }
+
+.reminder-list-item-cancel {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.1s, background 0.1s;
+}
+
+.reminder-list-item-cancel:hover { color: var(--text); background: var(--bg3); }
+
+.reminder-list-item-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminder-list-item-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: var(--bg4);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.reminder-list-item-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 1s linear;
+}
+
+.reminder-list-item-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
 /* ── Modal action buttons ── */
 .modal-action-btn {
   background: transparent;

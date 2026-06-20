@@ -24,7 +24,7 @@ import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
 import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll, openEventModalForReminder } from "./event-timer.js";
-import { initNotifications, setVolume, playNotificationSound, removeReminder } from "./notifications.js";
+import { initNotifications, setVolume, playNotificationSound, removeReminder, getReminders } from "./notifications.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -34,6 +34,7 @@ startClock(document.getElementById("tyrian-clock"));
 
 let settings           = loadSettings();
 applyTheme(settings.theme);
+applyWallpaper(settings.useWallpaper ?? true);
 
 let currentView        = "favorites";
 let browserInitialized = false;
@@ -216,6 +217,11 @@ function openAchFromCache(id, cat = null) {
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   applyPalette(settings.accentPalette ?? "orange", theme);
+}
+
+function applyWallpaper(enabled) {
+  if (enabled) document.documentElement.setAttribute("data-wallpaper", "1");
+  else document.documentElement.removeAttribute("data-wallpaper");
 }
 
 // ── Progress cell helper ──────────────────────────────────────────────────────
@@ -1163,6 +1169,7 @@ btnSettings.addEventListener("click", () => {
   document.getElementById("s-clear-fav-completed").checked   = settings.clearCompletedFavorites ?? false;
   paletteSelect.value = settings.accentPalette ?? "orange";
   document.getElementById("s-light-mode").checked            = settings.theme === "light";
+  document.getElementById("s-wallpaper").checked             = settings.useWallpaper ?? true;
   addAccountForm.classList.add("hidden");
   clearError(newAccountError);
   document.getElementById("new-account-name").value = "";
@@ -1242,9 +1249,11 @@ function doSaveSettings() {
   settings.clearCompletedFavorites = document.getElementById("s-clear-fav-completed").checked;
   settings.accentPalette           = paletteSelect.value;
   settings.theme                   = document.getElementById("s-light-mode").checked ? "light" : "dark";
+  settings.useWallpaper            = document.getElementById("s-wallpaper").checked;
   settings.notificationVolume      = parseFloat(document.getElementById("s-notif-volume").value) || 0.7;
   setVolume(settings.notificationVolume);
   applyTheme(settings.theme);
+  applyWallpaper(settings.useWallpaper);
   saveSettings(settings);
 
   const fetchModeChanged = settings.fetchMode !== prevFetchMode;
@@ -1510,12 +1519,70 @@ document.getElementById("et-soon-copy").addEventListener("click", e => {
 });
 
 let _sidebarReminder = null;
+let _allRemindersOpen = false;
+
+function formatCountdown(ms) {
+  if (ms <= 0) return "0s";
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2, "0")}m`;
+  if (m > 0) return `${m}m ${String(sec).padStart(2, "0")}s`;
+  return `${sec}s`;
+}
+
+function renderAllRemindersList(reminders) {
+  const list = document.getElementById("all-reminders-list");
+  if (!reminders.length) {
+    list.innerHTML = '<p class="all-reminders-empty">No upcoming reminders.</p>';
+    return;
+  }
+  const now = Date.now();
+  const sorted = [...reminders].sort((a, b) => (a.fireAt ?? 0) - (b.fireAt ?? 0));
+  list.innerHTML = sorted.map(r => {
+    const pct = (r.createdAt && r.fireAt && r.fireAt > r.createdAt)
+      ? Math.max(0, Math.min(100, (r.fireAt - now) / (r.fireAt - r.createdAt) * 100))
+      : 100;
+    return `<div class="reminder-list-item" data-reminder-id="${r.id}">
+      <div class="reminder-list-item-header">
+        <button class="reminder-list-item-name" data-reminder-id="${r.id}">${r.eventName}</button>
+        <button class="reminder-list-item-cancel" data-reminder-id="${r.id}" aria-label="Cancel reminder">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="reminder-list-item-progress">
+        <div class="reminder-list-item-bar-bg">
+          <div class="reminder-list-item-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="reminder-list-item-time" data-fire-at="${r.fireAt ?? 0}">${formatCountdown((r.fireAt ?? 0) - now)}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll(".reminder-list-item-name").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.reminderId;
+      const rem = reminders.find(r => r.id === id);
+      if (rem) { closeModal("all-reminders-overlay"); openEventModalForReminder(rem); }
+    });
+  });
+
+  list.querySelectorAll(".reminder-list-item-cancel").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.reminderId;
+      if (id) removeReminder(id);
+      renderAllRemindersList(getReminders());
+    });
+  });
+}
 
 function updateSidebarReminder(reminders) {
   const section = document.getElementById("sb-reminder");
   if (!reminders.length) {
     _sidebarReminder = null;
     section.classList.add("hidden");
+    if (_allRemindersOpen) renderAllRemindersList([]);
     return;
   }
 
@@ -1527,7 +1594,7 @@ function updateSidebarReminder(reminders) {
   _sidebarReminder = r;
   section.classList.remove("hidden");
   document.getElementById("sb-reminder-name").textContent = r.eventName;
-  document.getElementById("sb-reminder-time").textContent = r.localFireTimeStr ?? "";
+  document.getElementById("sb-reminder-time").textContent = formatCountdown((r.fireAt ?? 0) - now);
   document.getElementById("btn-sb-reminder-cancel").dataset.reminderId = r.id ?? "";
 
   const bar = document.getElementById("sb-reminder-bar");
@@ -1536,6 +1603,24 @@ function updateSidebarReminder(reminders) {
     bar.style.width = pct + "%";
   } else {
     bar.style.width = "100%";
+  }
+
+  if (_allRemindersOpen) {
+    const list = document.getElementById("all-reminders-list");
+    list.querySelectorAll(".reminder-list-item-time").forEach(span => {
+      const fireAt = parseInt(span.dataset.fireAt, 10);
+      span.textContent = formatCountdown(fireAt - now);
+    });
+    list.querySelectorAll(".reminder-list-item").forEach(item => {
+      const id = item.dataset.reminderId;
+      const rem = reminders.find(r2 => r2.id === id);
+      if (!rem) return;
+      const fill = item.querySelector(".reminder-list-item-bar-fill");
+      if (rem.createdAt && rem.fireAt && rem.fireAt > rem.createdAt) {
+        const pct = Math.max(0, Math.min(100, (rem.fireAt - now) / (rem.fireAt - rem.createdAt) * 100));
+        fill.style.width = pct + "%";
+      }
+    });
   }
 }
 
@@ -1548,6 +1633,21 @@ document.getElementById("btn-sb-reminder-cancel").addEventListener("click", () =
 
 document.getElementById("sb-reminder-name").addEventListener("click", () => {
   if (_sidebarReminder) openEventModalForReminder(_sidebarReminder);
+});
+
+document.getElementById("btn-sb-reminder-view-all").addEventListener("click", () => {
+  _allRemindersOpen = true;
+  renderAllRemindersList(getReminders());
+  openModal("all-reminders-overlay");
+});
+
+document.getElementById("btn-all-reminders-close").addEventListener("click", () => {
+  _allRemindersOpen = false;
+  closeModal("all-reminders-overlay");
+});
+
+document.getElementById("all-reminders-overlay").addEventListener("click", e => {
+  if (e.target.id === "all-reminders-overlay") { _allRemindersOpen = false; closeModal("all-reminders-overlay"); }
 });
 
 initNotifications(settings.notificationVolume ?? 0.5, openEventSoonModal, updateSidebarReminder);

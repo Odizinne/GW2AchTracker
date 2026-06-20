@@ -99,6 +99,10 @@
       </div>
 
       <div class="sb-reminder hidden" id="sb-reminder">
+        <div class="sb-reminder-meta">
+          <span class="sb-reminder-meta-label">Next event</span>
+          <button class="sb-reminder-view-all" id="btn-sb-reminder-view-all">View all</button>
+        </div>
         <div class="sb-reminder-header">
           <button class="sb-reminder-name" id="sb-reminder-name"></button>
           <button class="sb-reminder-cancel" id="btn-sb-reminder-cancel" aria-label="Cancel reminder">
@@ -505,6 +509,10 @@
               <input type="checkbox" id="s-light-mode" />
               <span>Light mode</span>
             </label>
+            <label class="field-label checkbox-label" style="margin-top:4px">
+              <input type="checkbox" id="s-wallpaper" />
+              <span>Use wallpapers</span>
+            </label>
           </section>
         </div>
 
@@ -668,6 +676,19 @@
           <span>Copy Location</span>
         </button>
         <button class="btn" id="btn-et-soon-close-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- All reminders modal -->
+  <div class="modal-overlay" id="all-reminders-overlay">
+    <div class="modal all-reminders-modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2>Upcoming reminders</h2>
+      </div>
+      <div class="all-reminders-body" id="all-reminders-list"></div>
+      <div class="modal-footer">
+        <button id="btn-all-reminders-close" class="btn primary">Close</button>
       </div>
     </div>
   </div>

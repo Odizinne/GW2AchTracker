@@ -21,7 +21,8 @@ export function removeReminder(id) {
 
 export function addReminder(data) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
-  save([{ ...data, id }]); // one at a time: replaces any existing reminder
+  const rest = load().filter(r => r.eventKey !== data.eventKey);
+  save([...rest, { ...data, id }]);
 }
 
 export function setVolume(vol) {

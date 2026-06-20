@@ -243,6 +243,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  background: var(--bg2);
 }
 
 .view.active-view { display: flex; }

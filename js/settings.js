@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS = {
   fetchMode: "account-all",
   autoUpdateInterval: 0,
   theme: "dark",
+  useWallpaper: true,
   viewMode: "list",
   notificationVolume: 0.5,
 };
