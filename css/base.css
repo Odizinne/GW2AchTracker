@@ -74,13 +74,17 @@ body {
 [data-wallpaper="1"] #sidebar,
 [data-wallpaper="1"] .view,
 [data-wallpaper="1"] #main-topbar {
-  background: color-mix(in srgb, var(--bg2) 85%, transparent);
+  background: color-mix(in srgb, var(--bg2) 75%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 [data-theme="light"][data-wallpaper="1"] #sidebar,
 [data-theme="light"][data-wallpaper="1"] .view,
 [data-theme="light"][data-wallpaper="1"] #main-topbar {
-  background: color-mix(in srgb, var(--bg2) 90%, transparent);
+  background: color-mix(in srgb, var(--bg2) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 #app { display: flex; height: 100vh; overflow: hidden; }
