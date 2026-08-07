@@ -635,6 +635,8 @@ accountSelect.addEventListener("change", () => {
     renderNearlyDoneRows([]);
   }
 
+  if (currentView === "raid-planner") renderRaidPlannerView(document.getElementById("view-raid-planner"));
+
   if (currentView === "browser") {
     initBrowser(true);
   } else {
@@ -886,6 +888,7 @@ async function doFetch() {
   if (currentView === "favorites") renderFavoritesView();
   if (currentView === "browser" && activeCat) selectCategory(activeCat);
   if (currentView === "daily")  renderDailyViewWrapper();
+  if (currentView === "raid-planner") renderRaidPlannerView(document.getElementById("view-raid-planner"));
 
   updateCacheInfo();
   setFetching(false);

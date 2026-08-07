@@ -1,4 +1,5 @@
 import { openModal, closeModal } from "./ui.js";
+import { getProgressMap, getRaidCompletions } from "./nearly-done.js";
 
 // ── Raid wing daily rotation data ────────────────────────────────────────────
 // The GW2 raid wing schedule follows a fixed 12-day repeating cycle, anchored
@@ -45,6 +46,57 @@ const colorHex = {
 const allIds = [1, 2, 3, 4, 5, 6, 7, 8, "EOD", "IBS"];
 const DEFAULT_WINGS = Object.fromEntries(allIds.map(id => [id, true]));
 
+// ── Weekly-clear detection ───────────────────────────────────────────────────
+// Core wings: GW2's /account/raids endpoint lists completed encounter ids since
+// weekly reset, and updates within seconds of a kill — far more reliable than
+// achievement progress (which can lag well behind). A wing counts as cleared
+// once every boss the planner itself tracks for that wing is in the response.
+// Strike missions aren't covered by /account/raids at all, so EoD/IBS group
+// clears are still derived from achievement 9125 ("Weekly Raid Encounters"),
+// which has one progress bit per strike, in a fixed order.
+const bossEncounterId = {
+  "Vale Guardian": "vale_guardian", "Gorseval the Multifarious": "gorseval", "Sabetha the Saboteur": "sabetha",
+  "Slothasor": "slothasor", "Matthias Gabrel": "matthias",
+  "Xera": "xera", "Keep Construct": "keep_construct",
+  "Cairn the Indomitable": "cairn", "Mursaat Overseer": "mursaat_overseer", "Samarog": "samarog", "Deimos": "deimos",
+  "Soulless Horror": "soulless_horror", "Dhuum": "voice_in_the_void",
+  "Conjured Amalgamate": "conjured_amalgamate", "Twin Largos": "twin_largos", "Qadim": "qadim",
+  "Cardinal Sabir": "sabir", "Cardinal Adina": "adina", "Qadim the Peerless": "qadim_the_peerless",
+  "Decima": "decima", "Ura": "ura", "Greer": "greer",
+};
+
+const STRIKE_BITS_ACH_ID = 9125;
+const strikeBitNames = [
+  "Shiverpeaks Pass", "Fraenir of Jormag", "Voice of the Fallen and Claw of the Fallen",
+  "Whisper of Jormag", "Boneskinner", "Cold War", "Aetherblade Hideout",
+  "Xunlai Jade Junkyard", "Kaineng Overlook", "Harvest Temple", "Cosmic Observatory",
+  "Temple of Febe", "Old Lion's Court", "Guardian's Glade",
+];
+
+function computeFullyClearedWings() {
+  const cleared = new Set();
+
+  const completions = getRaidCompletions();
+  if (completions) {
+    for (let wing = 1; wing <= 8; wing++) {
+      const bosses = Object.entries(baseWingOf).filter(([, w]) => w === wing).map(([b]) => b);
+      if (bosses.every(b => completions.has(bossEncounterId[b]))) cleared.add(wing);
+    }
+  }
+
+  const progress = getProgressMap();
+  const strikeEntry = progress?.[STRIKE_BITS_ACH_ID];
+  if (strikeEntry) {
+    const doneNames = strikeEntry.done
+      ? new Set(strikeBitNames)
+      : new Set((strikeEntry.bits || []).map(i => strikeBitNames[i]));
+    if (ibsMembers.every(b => doneNames.has(b))) cleared.add("IBS");
+    if (eodMembers.every(b => doneNames.has(b))) cleared.add("EOD");
+  }
+
+  return cleared;
+}
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 function loadRPSettings() {
@@ -58,6 +110,10 @@ function saveRPSettings(s) {
 function getSelectedWings() {
   const saved = loadRPSettings().wings;
   return saved ? { ...DEFAULT_WINGS, ...saved } : { ...DEFAULT_WINGS };
+}
+
+function getHideCleared() {
+  return !!loadRPSettings().hideCleared;
 }
 
 // ── Schedule computation ─────────────────────────────────────────────────────
@@ -86,10 +142,10 @@ function buildEffectiveWingOf(selectedWings) {
   return w;
 }
 
-function computeSchedule(weekDates, selectedWings) {
+function computeSchedule(weekDates, selectedWings, clearedWings) {
   const dayInfo = weekDates.map(d => dailiesForDate(d));
   const wingOf = buildEffectiveWingOf(selectedWings);
-  const activeWings = allIds.filter(id => selectedWings[id]);
+  const activeWings = allIds.filter(id => selectedWings[id] && !clearedWings.has(id));
 
   const occ = {};
   activeWings.forEach(id => { occ[id] = dayInfo.map(di => di.bosses.filter(b => wingOf[b] === id)); });
@@ -159,6 +215,7 @@ export function renderRaidPlannerView(container) {
         <button id="rp-next" class="btn small" aria-label="Next week">Next &rarr;</button>
       </div>
       <div id="rp-days" class="rp-days"></div>
+      <div id="rp-cleared" class="rp-carry"></div>
       <div id="rp-carry" class="rp-carry"></div>
     </div>
   `;
@@ -180,7 +237,12 @@ export function renderRaidPlannerView(container) {
       monday.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " – " +
       weekDates[6].toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-    const { dayInfo, dayAssignments, pending } = computeSchedule(weekDates, selectedWings);
+    const isCurrentWeek = weekOffset === 0;
+    const clearedWings = (isCurrentWeek && getHideCleared())
+      ? computeFullyClearedWings()
+      : new Set();
+
+    const { dayInfo, dayAssignments, pending } = computeSchedule(weekDates, selectedWings, clearedWings);
 
     const daysEl = container.querySelector("#rp-days");
     daysEl.innerHTML = "";
@@ -243,6 +305,11 @@ export function renderRaidPlannerView(container) {
       daysEl.appendChild(row);
     });
 
+    const clearedSelected = allIds.filter(id => selectedWings[id] && clearedWings.has(id));
+    container.querySelector("#rp-cleared").textContent = clearedSelected.length
+      ? "Already cleared this week: " + clearedSelected.map(id => wingNames[id]).join(", ")
+      : "";
+
     container.querySelector("#rp-carry").textContent = pending.length
       ? "No day this week for: " + pending.map(id => wingNames[id]).join(", ")
       : "";
@@ -262,6 +329,16 @@ export function openRaidPlannerFilterModal(onApply) {
   const body = document.getElementById("rp-filter-body");
   body.innerHTML = "";
 
+  const hideClearedRow = document.createElement("div");
+  hideClearedRow.className = "et-filter-row rp-hide-cleared-row";
+  hideClearedRow.innerHTML = `
+    <label class="checkbox-label et-filter-check">
+      <input type="checkbox" id="rp-hide-cleared-check" ${getHideCleared() ? "checked" : ""}>
+      <span>Hide wings already cleared this week</span>
+    </label>
+  `;
+  body.appendChild(hideClearedRow);
+
   allIds.forEach(id => {
     const c = colorHex[id];
     const row = document.createElement("div");
@@ -278,11 +355,12 @@ export function openRaidPlannerFilterModal(onApply) {
 
   const doApply = () => {
     const wings = {};
-    body.querySelectorAll("input[type='checkbox']").forEach(cb => {
+    body.querySelectorAll("input[type='checkbox'][data-id]").forEach(cb => {
       wings[cb.dataset.id] = cb.checked;
     });
     const s = loadRPSettings();
     s.wings = wings;
+    s.hideCleared = document.getElementById("rp-hide-cleared-check").checked;
     saveRPSettings(s);
     closeModal("rp-filter-overlay");
     onApply?.();
@@ -293,6 +371,7 @@ export function openRaidPlannerFilterModal(onApply) {
   document.getElementById("btn-rp-filter-reset").onclick = () => {
     const s = loadRPSettings();
     delete s.wings;
+    delete s.hideCleared;
     saveRPSettings(s);
     closeModal("rp-filter-overlay");
     onApply?.();
