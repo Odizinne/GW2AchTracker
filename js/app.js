@@ -24,6 +24,7 @@ import { renderDailyView, openDailyFilterModal } from "./daily.js";
 import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
 import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll, openEventModalForReminder } from "./event-timer.js";
+import { renderRaidPlannerView, openRaidPlannerFilterModal, initRaidPlanner } from "./raid-planner.js";
 import { initNotifications, setVolume, playNotificationSound, removeReminder, getReminders } from "./notifications.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -79,6 +80,7 @@ const btnShowCompletedDaily   = document.getElementById("btn-show-completed-dail
 const btnDailyFilter          = document.getElementById("btn-daily-filter");
 const btnEtFilter             = document.getElementById("btn-et-filter");
 const btnEtAutoScroll         = document.getElementById("btn-et-autoscroll");
+const btnRpFilter             = document.getElementById("btn-rp-filter");
 const favoritesBody     = document.getElementById("favorites-body");
 const btnViewList       = document.getElementById("btn-view-list");
 const btnViewTile       = document.getElementById("btn-view-tile");
@@ -487,9 +489,10 @@ function navigateTo(name) {
   btnDailyFilter.classList.toggle("hidden", name !== "daily");
   btnEtFilter.classList.toggle("hidden", name !== "event-timer");
   btnEtAutoScroll.classList.toggle("hidden", name !== "event-timer");
+  btnRpFilter.classList.toggle("hidden", name !== "raid-planner");
   btnSplitView.disabled = name === "event-timer";
   sortControls.classList.toggle("hidden", name !== "browser");
-  const hideViewToggle = name === "daily" || name === "event-timer";
+  const hideViewToggle = name === "daily" || name === "event-timer" || name === "raid-planner";
   btnViewList.classList.toggle("hidden", hideViewToggle);
   btnViewTile.classList.toggle("hidden", hideViewToggle);
   if (name === "nearly-completed") {
@@ -512,6 +515,10 @@ function navigateTo(name) {
     viewSubtitle.textContent = "";
     enableETAutoScroll();
     renderEventTimerView(document.getElementById("view-event-timer"));
+  } else if (name === "raid-planner") {
+    viewTitle.textContent = "Raid Planner";
+    viewSubtitle.textContent = "";
+    renderRaidPlannerView(document.getElementById("view-raid-planner"));
   }
   updateSplitConflicts();
 }
@@ -523,7 +530,7 @@ document.querySelectorAll(".nav-item[data-view]").forEach(item => {
       navigateTo(item.dataset.view);
       return;
     }
-    if (!settings.accounts.length && item.dataset.view !== "event-timer") return;
+    if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "raid-planner") return;
     navigateTo(item.dataset.view);
   });
 });
@@ -1365,6 +1372,12 @@ btnShowHidden.addEventListener("click", () => {
 
 btnEtFilter.addEventListener("click", () => openETFilterModal());
 
+// ── Raid Planner filter button ────────────────────────────────────────────────
+
+btnRpFilter.addEventListener("click", () => {
+  openRaidPlannerFilterModal(() => renderRaidPlannerView(document.getElementById("view-raid-planner")));
+});
+
 // ── Split view ────────────────────────────────────────────────────────────────
 
 let splitViewActive = false;
@@ -1484,6 +1497,7 @@ function renderSplitTable(container, rows) {
 
 initAchModal();
 initEventTimer();
+initRaidPlanner();
 
 // ── Event soon modal ──────────────────────────────────────────────────────────
 
