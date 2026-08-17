@@ -119,6 +119,152 @@
 
 .rp-hide-cleared-row { margin-bottom: 8px; padding-bottom: 14px; }
 
+/* ── Weekly clears pane (sibling of #views-primary, alongside the raid planner) ── */
+
+#view-raid-clears {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+#view-raid-clears.hidden { display: none; }
+
+.rp-clears-pane-header {
+  flex-shrink: 0;
+  padding: 14px 16px 0;
+  text-align: center;
+}
+
+.rp-clears-pane-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rp-clears-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+}
+
+/* Two plain flex columns rather than a grid — a grid ties row height across
+   both columns, so expanding a card in one column would leave a matching gap
+   in the other. These stack independently. */
+.rp-clears-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rp-clear-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rp-clear-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 9px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rp-clear-card-header::after {
+  content: '▾';
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.rp-clear-card-collapsed .rp-clear-card-header { border-bottom-color: transparent; }
+.rp-clear-card-collapsed .rp-clear-card-header::after { transform: rotate(-90deg); }
+
+.rp-clear-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: break-word;
+  /* Wing colors are tuned as solid fills with white text (day chips, header
+     checkboxes) — too dark to read as plain text on a dark background, so
+     lighten them here. Light theme keeps them closer to the true badge color. */
+  color: color-mix(in srgb, var(--rp-wing-color) 55%, white 45%);
+}
+
+[data-theme="light"] .rp-clear-card-title {
+  color: color-mix(in srgb, var(--rp-wing-color) 85%, black 15%);
+}
+
+.rp-clear-card-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.rp-clear-card-body-inner {
+  overflow: hidden;
+  min-height: 0;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.rp-clear-card-collapsed .rp-clear-card-body { grid-template-rows: 0fr; }
+.rp-clear-card-collapsed .rp-clear-card-body-inner { opacity: 0; }
+
+.rp-clear-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 9px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.rp-clear-row:last-child { border-bottom: none; }
+
+.rp-clear-row-done {
+  opacity: 0.45;
+  background: var(--bg1);
+}
+
+.rp-clear-row .daily-item-cb { margin-top: 1px; }
+
+/* Checkboxes (header "all done" + per-row) pick up the wing's badge color when checked. */
+.rp-clear-card .daily-item-cb:checked {
+  background: var(--rp-wing-color);
+  border-color: var(--rp-wing-color);
+}
+
+.rp-clear-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
 /* ── Topbar customize button ── */
 
 #btn-rp-filter {

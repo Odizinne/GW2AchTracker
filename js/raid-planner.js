@@ -49,20 +49,62 @@ const DEFAULT_WINGS = Object.fromEntries(allIds.map(id => [id, true]));
 // ── Weekly-clear detection ───────────────────────────────────────────────────
 // Core wings: GW2's /account/raids endpoint lists completed encounter ids since
 // weekly reset, and updates within seconds of a kill — far more reliable than
-// achievement progress (which can lag well behind). A wing counts as cleared
-// once every boss the planner itself tracks for that wing is in the response.
+// achievement progress (which can lag well behind). A wing's chest isn't just
+// its loot bosses though — the official /v2/raids definitions include extra
+// non-boss checkpoint/escort events per wing (e.g. Spirit Woods in Spirit Vale,
+// Bandit Trio in Salvation Pass) that also gate the weekly clear, so the full
+// per-wing checklist below is the complete /v2/raids event list, not baseWingOf
+// (which only tracks loot-bearing bosses, for the daily rotation above).
 // Strike missions aren't covered by /account/raids at all, so EoD/IBS group
 // clears are still derived from achievement 9125 ("Weekly Raid Encounters"),
 // which has one progress bit per strike, in a fixed order.
-const bossEncounterId = {
-  "Vale Guardian": "vale_guardian", "Gorseval the Multifarious": "gorseval", "Sabetha the Saboteur": "sabetha",
-  "Slothasor": "slothasor", "Matthias Gabrel": "matthias",
-  "Xera": "xera", "Keep Construct": "keep_construct",
-  "Cairn the Indomitable": "cairn", "Mursaat Overseer": "mursaat_overseer", "Samarog": "samarog", "Deimos": "deimos",
-  "Soulless Horror": "soulless_horror", "Dhuum": "voice_in_the_void",
-  "Conjured Amalgamate": "conjured_amalgamate", "Twin Largos": "twin_largos", "Qadim": "qadim",
-  "Cardinal Sabir": "sabir", "Cardinal Adina": "adina", "Qadim the Peerless": "qadim_the_peerless",
-  "Decima": "decima", "Ura": "ura", "Greer": "greer",
+const wingEncounters = {
+  1: [
+    { name: "Vale Guardian", id: "vale_guardian" },
+    { name: "Spirit Woods", id: "spirit_woods" },
+    { name: "Gorseval the Multifarious", id: "gorseval" },
+    { name: "Sabetha the Saboteur", id: "sabetha" },
+  ],
+  2: [
+    { name: "Slothasor", id: "slothasor" },
+    { name: "Bandit Trio", id: "bandit_trio" },
+    { name: "Matthias Gabrel", id: "matthias" },
+  ],
+  3: [
+    { name: "Escort", id: "escort" },
+    { name: "Keep Construct", id: "keep_construct" },
+    { name: "Twisted Castle", id: "twisted_castle" },
+    { name: "Xera", id: "xera" },
+  ],
+  4: [
+    { name: "Cairn the Indomitable", id: "cairn" },
+    { name: "Mursaat Overseer", id: "mursaat_overseer" },
+    { name: "Samarog", id: "samarog" },
+    { name: "Deimos", id: "deimos" },
+  ],
+  5: [
+    { name: "Soulless Horror", id: "soulless_horror" },
+    { name: "River of Souls", id: "river_of_souls" },
+    { name: "Statues of Grenth", id: "statues_of_grenth" },
+    { name: "Dhuum", id: "voice_in_the_void" },
+  ],
+  6: [
+    { name: "Conjured Amalgamate", id: "conjured_amalgamate" },
+    { name: "Twin Largos", id: "twin_largos" },
+    { name: "Qadim", id: "qadim" },
+  ],
+  7: [
+    { name: "Gate", id: "gate" },
+    { name: "Cardinal Adina", id: "adina" },
+    { name: "Cardinal Sabir", id: "sabir" },
+    { name: "Qadim the Peerless", id: "qadim_the_peerless" },
+  ],
+  8: [
+    { name: "Camp", id: "camp" },
+    { name: "Greer", id: "greer" },
+    { name: "Decima", id: "decima" },
+    { name: "Ura", id: "ura" },
+  ],
 };
 
 const STRIKE_BITS_ACH_ID = 9125;
@@ -73,28 +115,41 @@ const strikeBitNames = [
   "Temple of Febe", "Old Lion's Court", "Guardian's Glade",
 ];
 
-function computeFullyClearedWings() {
-  const cleared = new Set();
-
-  const completions = getRaidCompletions();
-  if (completions) {
-    for (let wing = 1; wing <= 8; wing++) {
-      const bosses = Object.entries(baseWingOf).filter(([, w]) => w === wing).map(([b]) => b);
-      if (bosses.every(b => completions.has(bossEncounterId[b]))) cleared.add(wing);
-    }
-  }
+// Single source of truth for weekly-clear checklists: per-id row lists (with
+// done flags) plus the resulting set of fully-cleared ids. Both the "hide
+// cleared" schedule filter and the weekly-clears panel read from this so they
+// can never disagree about what counts as cleared.
+function computeWeeklyClearState() {
+  const completions = getRaidCompletions() || new Set();
 
   const progress = getProgressMap();
   const strikeEntry = progress?.[STRIKE_BITS_ACH_ID];
-  if (strikeEntry) {
-    const doneNames = strikeEntry.done
-      ? new Set(strikeBitNames)
-      : new Set((strikeEntry.bits || []).map(i => strikeBitNames[i]));
-    if (ibsMembers.every(b => doneNames.has(b))) cleared.add("IBS");
-    if (eodMembers.every(b => doneNames.has(b))) cleared.add("EOD");
+  const doneStrikeNames = strikeEntry
+    ? new Set(strikeEntry.done ? strikeBitNames : (strikeEntry.bits || []).map(i => strikeBitNames[i]))
+    : new Set();
+
+  const rowsById = {};
+  const clearedIds = new Set();
+
+  for (let wing = 1; wing <= 8; wing++) {
+    const rows = wingEncounters[wing].map(e => ({ name: e.name, done: completions.has(e.id) }));
+    rowsById[wing] = rows;
+    if (rows.every(r => r.done)) clearedIds.add(wing);
   }
 
-  return cleared;
+  const ibsRows = ibsMembers.map(name => ({ name, done: doneStrikeNames.has(name) }));
+  rowsById.IBS = ibsRows;
+  if (ibsRows.every(r => r.done)) clearedIds.add("IBS");
+
+  const eodRows = eodMembers.map(name => ({ name, done: doneStrikeNames.has(name) }));
+  rowsById.EOD = eodRows;
+  if (eodRows.every(r => r.done)) clearedIds.add("EOD");
+
+  return { rowsById, clearedIds };
+}
+
+function computeFullyClearedWings() {
+  return computeWeeklyClearState().clearedIds;
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -114,6 +169,30 @@ function getSelectedWings() {
 
 function getHideCleared() {
   return !!loadRPSettings().hideCleared;
+}
+
+// Collapse state for the weekly-clears cards. `clearsCollapsed` is the actual
+// displayed state (toggled by clicking a card header); `clearsAutoApplied`
+// tracks which ids we've already auto-collapsed for being cleared, so a wing
+// that the user re-expands stays expanded until it cycles cleared -> not -> cleared again.
+function getClearsCollapsed() {
+  return new Set(loadRPSettings().clearsCollapsed || []);
+}
+
+function setClearsCollapsed(set) {
+  const s = loadRPSettings();
+  s.clearsCollapsed = [...set];
+  saveRPSettings(s);
+}
+
+function getClearsAutoApplied() {
+  return new Set(loadRPSettings().clearsAutoApplied || []);
+}
+
+function setClearsAutoApplied(set) {
+  const s = loadRPSettings();
+  s.clearsAutoApplied = [...set];
+  saveRPSettings(s);
 }
 
 // ── Schedule computation ─────────────────────────────────────────────────────
@@ -320,6 +399,105 @@ export function renderRaidPlannerView(container) {
   container.querySelector("#rp-today").addEventListener("click", () => { weekOffset = 0; draw(); });
 
   draw();
+  renderClearsPanel(document.getElementById("rp-clears"));
+}
+
+// ── Weekly clears panel ──────────────────────────────────────────────────────
+
+function renderClearsPanel(clearsEl) {
+  const { rowsById, clearedIds: clearedWings } = computeWeeklyClearState();
+
+  // Auto-collapse a wing the moment it becomes fully cleared, but only once —
+  // if the user re-expands it, leave it alone until it cycles cleared -> not -> cleared.
+  const collapsedSet = getClearsCollapsed();
+  const autoApplied = getClearsAutoApplied();
+  let collapsedChanged = false, autoChanged = false;
+  allIds.forEach(id => {
+    const isCleared = clearedWings.has(id);
+    if (isCleared && !autoApplied.has(id)) {
+      collapsedSet.add(id); autoApplied.add(id);
+      collapsedChanged = true; autoChanged = true;
+    } else if (!isCleared && autoApplied.has(id)) {
+      collapsedSet.delete(id); autoApplied.delete(id);
+      collapsedChanged = true; autoChanged = true;
+    }
+  });
+  if (collapsedChanged) setClearsCollapsed(collapsedSet);
+  if (autoChanged) setClearsAutoApplied(autoApplied);
+
+  clearsEl.innerHTML = "";
+
+  // Two independently-stacking flex columns rather than a CSS grid — a grid
+  // shares row height across both columns, so expanding one card would leave
+  // a matching gap in the other column. Plain flex columns don't have that coupling.
+  const col1 = document.createElement("div");
+  col1.className = "rp-clears-col";
+  const col2 = document.createElement("div");
+  col2.className = "rp-clears-col";
+  clearsEl.appendChild(col1);
+  clearsEl.appendChild(col2);
+
+  allIds.forEach((id, idx) => {
+    const rows = rowsById[id];
+    const c = colorHex[id];
+    const isCleared = clearedWings.has(id);
+    const isCollapsed = collapsedSet.has(id);
+
+    const card = document.createElement("div");
+    card.className = "rp-clear-card" + (isCollapsed ? " rp-clear-card-collapsed" : "") + (isCleared ? " rp-clear-card-done" : "");
+    card.style.setProperty("--rp-wing-color", c[0]);
+
+    const header = document.createElement("div");
+    header.className = "rp-clear-card-header";
+
+    const headerCb = document.createElement("input");
+    headerCb.type = "checkbox";
+    headerCb.className = "daily-item-cb";
+    headerCb.checked = isCleared;
+    headerCb.tabIndex = -1;
+    header.appendChild(headerCb);
+
+    const title = document.createElement("span");
+    title.className = "rp-clear-card-title";
+    title.textContent = (typeof id === "number" ? "W" + id + " – " : "") + wingNames[id];
+    header.appendChild(title);
+
+    header.addEventListener("click", () => {
+      const s = getClearsCollapsed();
+      if (s.has(id)) s.delete(id); else s.add(id);
+      setClearsCollapsed(s);
+      card.classList.toggle("rp-clear-card-collapsed");
+    });
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "rp-clear-card-body";
+    const bodyInner = document.createElement("div");
+    bodyInner.className = "rp-clear-card-body-inner";
+    body.appendChild(bodyInner);
+    card.appendChild(body);
+
+    rows.forEach(r => {
+      const row = document.createElement("div");
+      row.className = "rp-clear-row" + (r.done ? " rp-clear-row-done" : "");
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "daily-item-cb";
+      cb.checked = r.done;
+      cb.tabIndex = -1;
+      row.appendChild(cb);
+
+      const name = document.createElement("span");
+      name.className = "rp-clear-row-name";
+      name.textContent = r.name;
+      row.appendChild(name);
+
+      bodyInner.appendChild(row);
+    });
+
+    (idx % 2 === 0 ? col1 : col2).appendChild(card);
+  });
 }
 
 // ── Filter modal ──────────────────────────────────────────────────────────────

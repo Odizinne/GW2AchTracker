@@ -40,6 +40,7 @@ applyWallpaper(settings.useWallpaper ?? true);
 let currentView        = "favorites";
 let browserInitialized = false;
 let accountDailyAp     = 0;
+let accountMonthlyAp   = 0;
 let activeCat          = null;
 let lastNearlyDoneRows = [];
 let nearlyDoneFirstRender = true;
@@ -151,6 +152,12 @@ function _saveAccountDailyAp(apiKey, val) {
 function _loadAccountDailyAp(apiKey) {
   try { return parseInt(localStorage.getItem(`gw2_daily_ap_${apiKey.slice(-8)}`), 10) || 0; } catch { return 0; }
 }
+function _saveAccountMonthlyAp(apiKey, val) {
+  try { localStorage.setItem(`gw2_monthly_ap_${apiKey.slice(-8)}`, String(val)); } catch {}
+}
+function _loadAccountMonthlyAp(apiKey) {
+  try { return parseInt(localStorage.getItem(`gw2_monthly_ap_${apiKey.slice(-8)}`), 10) || 0; } catch { return 0; }
+}
 
 // ── AP Frise ──────────────────────────────────────────────────────────────────
 
@@ -197,8 +204,7 @@ function refreshApFrise(progressMap) {
   if (!progressMap) return;
   const cache = loadCache();
   const computed = computeAccountAp(progressMap, cache);
-  const correction = accountDailyAp > 10 ? 10 : 0;
-  const ap = computed + accountDailyAp - correction;
+  const ap = computed + accountDailyAp + accountMonthlyAp;
   _apTopbarLabel.innerHTML = ap > _MAX_AP
     ? ap.toLocaleString() + _AP_IMG
     : ap.toLocaleString() + " / " + _MAX_AP.toLocaleString() + _AP_IMG;
@@ -610,6 +616,7 @@ accountSelect.addEventListener("change", () => {
   settings.activeAccount = parseInt(accountSelect.value);
   saveSettings(settings);
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
+  accountMonthlyAp = _loadAccountMonthlyAp(activeApiKey());
   reloadFavorites(activeApiKey());
   activeCat = null;
   browserInitialized = false;
@@ -845,6 +852,8 @@ async function doFetch() {
   if (accountResult.status === "fulfilled") {
     accountDailyAp = accountResult.value.daily_ap ?? 0;
     _saveAccountDailyAp(key, accountDailyAp);
+    accountMonthlyAp = accountResult.value.monthly_ap ?? 0;
+    _saveAccountMonthlyAp(key, accountMonthlyAp);
   }
 
   if (progressFailed) {
@@ -1697,6 +1706,7 @@ if (localStorage.getItem("gw2_split_view") && currentView !== "event-timer") {
 window.addEventListener("resize", updateSplitOrientation);
 if (settings.accounts.length) {
   accountDailyAp = _loadAccountDailyAp(activeApiKey());
+  accountMonthlyAp = _loadAccountMonthlyAp(activeApiKey());
   reloadFavorites(activeApiKey());
   const cachedProgress = loadProgressCache(activeApiKey());
   if (cachedProgress) {

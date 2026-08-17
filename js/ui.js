@@ -32,6 +32,8 @@ export function showView(name) {
   };
   const id = viewMap[name];
   if (id) document.getElementById(id)?.classList.add("active-view");
+
+  document.getElementById("view-raid-clears")?.classList.toggle("hidden", name !== "raid-planner");
 }
 
 export function pctClass(pct) {
