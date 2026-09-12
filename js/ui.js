@@ -29,6 +29,7 @@ export function showView(name) {
     "browser":          "view-browser",
     "event-timer":      "view-event-timer",
     "raid-planner":     "view-raid-planner",
+    "wvw-pips":         "view-wvw-pips",
   };
   const id = viewMap[name];
   if (id) document.getElementById(id)?.classList.add("active-view");

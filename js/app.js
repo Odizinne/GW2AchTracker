@@ -25,6 +25,7 @@ import { startClock } from "./tyrian-clock.js";
 import { computeAccountAp, renderApFrise, stopApParticles } from "./ap-frise.js";
 import { renderEventTimerView, openETFilterModal, initEventTimer, stopETTimer, enableETAutoScroll, openEventModalForReminder } from "./event-timer.js";
 import { renderRaidPlannerView, openRaidPlannerFilterModal, initRaidPlanner } from "./raid-planner.js";
+import { renderWvwPipsView } from "./wvw-pips.js";
 import { initNotifications, setVolume, playNotificationSound, removeReminder, getReminders } from "./notifications.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -498,7 +499,7 @@ function navigateTo(name) {
   btnRpFilter.classList.toggle("hidden", name !== "raid-planner");
   btnSplitView.disabled = name === "event-timer";
   sortControls.classList.toggle("hidden", name !== "browser");
-  const hideViewToggle = name === "daily" || name === "event-timer" || name === "raid-planner";
+  const hideViewToggle = name === "daily" || name === "event-timer" || name === "raid-planner" || name === "wvw-pips";
   btnViewList.classList.toggle("hidden", hideViewToggle);
   btnViewTile.classList.toggle("hidden", hideViewToggle);
   if (name === "nearly-completed") {
@@ -525,6 +526,10 @@ function navigateTo(name) {
     viewTitle.textContent = "Raid Planner";
     viewSubtitle.textContent = "";
     renderRaidPlannerView(document.getElementById("view-raid-planner"));
+  } else if (name === "wvw-pips") {
+    viewTitle.textContent = "WvW Pip Calculator";
+    viewSubtitle.textContent = "";
+    renderWvwPipsView(document.getElementById("view-wvw-pips"));
   }
   updateSplitConflicts();
 }
@@ -536,7 +541,7 @@ document.querySelectorAll(".nav-item[data-view]").forEach(item => {
       navigateTo(item.dataset.view);
       return;
     }
-    if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "raid-planner") return;
+    if (!settings.accounts.length && item.dataset.view !== "event-timer" && item.dataset.view !== "raid-planner" && item.dataset.view !== "wvw-pips") return;
     navigateTo(item.dataset.view);
   });
 });
