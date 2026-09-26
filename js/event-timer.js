@@ -214,7 +214,7 @@ export async function renderEventTimerView(container) {
     .filter(Boolean);
 
   // Bucket events by category
-  const TOD_KEYS = new Set(["core-dn", "eod-dn"]);
+  const TOD_KEYS = new Set(["core-dn", "eod-dn", "voe-dn"]);
   const showTOD  = settings.showTimeOfDay !== false;
   const byCategory = {};
   for (const [key, ev] of Object.entries(data.events)) {

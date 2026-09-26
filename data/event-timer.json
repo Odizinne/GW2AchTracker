@@ -2692,6 +2692,48 @@
         ]
       }
     },
+    "voe-lh": {
+      "category": "Visions of Eternity",
+      "name": "Leyspring Hollows",
+      "segments": {
+        "0": {
+          "name": "",
+          "bg": [
+            250,
+            160,
+            125
+          ]
+        },
+        "1": {
+          "name": "Depths of Cruelty",
+          "link": "Depths of Cruelty",
+          "chatlink": "[&BDYQAAA=]",
+          "bg": [
+            242,
+            126,
+            84
+          ]
+        }
+      },
+      "sequences": {
+        "partial": [
+          {
+            "r": 0,
+            "d": 120
+          }
+        ],
+        "pattern": [
+          {
+            "r": 1,
+            "d": 30
+          },
+          {
+            "r": 0,
+            "d": 150
+          }
+        ]
+      }
+    },
     "public-eotn": {
       "category": "Public Instances",
       "name": "Eye of the North",
@@ -2809,6 +2851,16 @@
           "name": "Outer Nayos",
           "link": "Convergence: Outer Nayos",
           "chatlink": "[&BB8OAAA=]",
+          "bg": [
+            215,
+            100,
+            100
+          ]
+        },
+        "3": {
+          "name": "Nexus of Eternity",
+          "link": "Convergence: Nexus of Eternity",
+          "chatlink": "[&BDYQAAA=]",
           "bg": [
             215,
             100,
